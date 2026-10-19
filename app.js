@@ -109,10 +109,50 @@ function syncCartFromStorage() {
   return cart;
 }
 
+const MILESTONE_STEP = 10;
+const MILESTONE_TARGET = MILESTONE_STEP;
+
+function getPacksClaimed() {
+  return parseInt(localStorage.getItem('kalixPacksClaimed') || '0');
+}
+
+function setPacksClaimed(count) {
+  localStorage.setItem('kalixPacksClaimed', Math.max(0, count).toString());
+}
+
+function getTotalOrderedPints() {
+  return parseInt(localStorage.getItem('kalixTotalOrderedPints') || '0');
+}
+
 function getMysteryPackProgress() {
-  // Read the persisted cart as well: rewards must always reflect the latest additions.
-  const total = getCartQuantity(syncCartFromStorage());
-  return { total, remaining: Math.max(10 - total, 0), unlocked: total >= 10 };
+  syncCartFromStorage();
+  const packsClaimed = getPacksClaimed();
+  const totalOrdered = getTotalOrderedPints();
+  const cartPints = getCartQuantity(cart);
+  const pageQtyEl = document.getElementById('qtyNum');
+  const pageQty = (pageQtyEl && document.body.dataset.page === 'product') ? (parseInt(pageQtyEl.textContent) || 0) : 0;
+  
+  const pendingPints = Math.max(cartPints, pageQty);
+  const totalPints = totalOrdered + pendingPints;
+  const consumedPints = packsClaimed * MILESTONE_STEP;
+  const currentPints = Math.max(0, totalPints - consumedPints);
+  
+  const isPending = sessionStorage.getItem('kalixPendingRewardPack') === 'true';
+  const packsAvailable = Math.floor(currentPints / MILESTONE_STEP);
+  const unlocked = isPending || (packsAvailable > 0);
+  
+  const cyclePints = unlocked ? MILESTONE_STEP : Math.min(currentPints % MILESTONE_STEP, MILESTONE_STEP);
+  const remaining = unlocked ? 0 : Math.max(0, MILESTONE_STEP - (currentPints % MILESTONE_STEP));
+  
+  return {
+    total: cyclePints,
+    target: MILESTONE_STEP,
+    remaining: remaining,
+    unlocked: unlocked,
+    packsClaimed: packsClaimed,
+    lifetimeOrdered: totalOrdered,
+    isPending: isPending
+  };
 }
 
 function saveCart() {
@@ -142,24 +182,17 @@ function updateBadges() {
 
 function addToCart(flavorId, qty=1) {
   syncCartFromStorage();
-  const f = FLAVORS.find(x=>x.id===flavorId);
+  const f = FLAVORS.find(x=>x.id===parseInt(flavorId)||x.id===flavorId);
   if(!f) return;
-  const prevTotal = cart.reduce((s,i)=>s+i.qty,0);
-  const existing = cart.find(x=>x.id===flavorId);
+  const existing = cart.find(x=>x.id===parseInt(flavorId)||x.id===flavorId);
   if(existing) existing.qty += qty;
   else cart.push({id:f.id, name:f.name, price:f.price, image:f.image, emoji:f.emoji, qty});
   saveCart();
-  const { total: totalItems, remaining, unlocked } = getMysteryPackProgress();
-  if(prevTotal < 10 && totalItems >= 10) {
-    if (typeof triggerMilestoneScreen === 'function') {
-      triggerMilestoneScreen();
-    } else {
-      showToast(`🎉 10 Ice Creams! Tap 🪙 Rewards to open your Pack!`);
-    }
-  } else if(unlocked) {
-    showToast(`🎉 10 Ice Creams! Tap 🪙 Rewards to open your EA FC Pack!`);
+  const progress = getMysteryPackProgress();
+  if(progress.unlocked) {
+    showToast(`🎉 10 Ice Creams Reached! Mystery Pack unlocked for checkout!`);
   } else {
-    showToast(`🍨 Added! ${remaining} more ice cream(s) needed for the Mystery Pack (${totalItems}/10).`);
+    showToast(`🍨 Added! ${progress.remaining} more needed for Mystery Pack (${progress.total}/${MILESTONE_STEP}).`);
   }
   updateDrawer();
 }
@@ -504,19 +537,21 @@ function renderCartPage() {
 
   const totalItems = cart.reduce((s,i)=>s+i.qty,0);
 
-  // Enforce 10-item rule on Coin Redemption widget
+  // Reward Coins redemption in Cart (available whenever user has coins)
   const coinInput = el('coinsToApplyInput');
   const coinFeedback = el('coinRedeemFeedback');
-  if (totalItems < 10) {
+  if (availableCoins <= 0) {
     if (coinInput) {
       coinInput.disabled = true;
-      coinInput.placeholder = 'Requires 10 Ice Creams';
-      coinInput.style.opacity = '0.6';
+      coinInput.value = '';
+      coinInput.placeholder = '0 Coins available';
+      coinInput.style.opacity = '0.7';
       coinInput.style.cursor = 'not-allowed';
     }
     if (coinFeedback) {
       coinFeedback.style.display = 'block';
-      coinFeedback.innerHTML = `<span style="color:#ef4444;display:flex;align-items:center;gap:0.35rem"><span class="material-icons" style="font-size:15px">lock</span> Coin redemption locked. Requires 10 ice creams in order (${totalItems}/10).</span>`;
+      coinFeedback.style.color = 'var(--outline)';
+      coinFeedback.innerHTML = `<span style="display:flex;align-items:center;gap:0.35rem"><span class="material-icons" style="font-size:14px">info</span> No coins available yet. Order 10 ice creams to unlock a Mystery Pack!</span>`;
     }
     if (appliedCartCoins > 0) {
       appliedCartCoins = 0;
@@ -525,38 +560,43 @@ function renderCartPage() {
   } else {
     if (coinInput) {
       coinInput.disabled = false;
-      coinInput.placeholder = 'Coins to use';
+      coinInput.placeholder = `Coins to use (max ${availableCoins})`;
       coinInput.style.opacity = '1';
       coinInput.style.cursor = 'text';
     }
-    if (coinFeedback && appliedCartCoins === 0) {
-      coinFeedback.style.display = 'block';
-      coinFeedback.innerHTML = `<span style="color:var(--pistachio);display:flex;align-items:center;gap:0.35rem"><span class="material-icons" style="font-size:15px">check_circle</span> 10 Ice Creams Qualified! Coin redemption unlocked.</span>`;
+    if (coinFeedback) {
+      if (appliedCartCoins > 0) {
+        coinFeedback.style.display = 'block';
+        coinFeedback.style.color = 'var(--pistachio)';
+        coinFeedback.innerHTML = `<span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:2px">check_circle</span> ${appliedCartCoins} Coins applied (-₹${appliedCartCoins * COIN_VALUE_INR} discount)!`;
+      } else {
+        coinFeedback.style.display = 'none';
+      }
     }
   }
 
   const rewardsBanner = el('cartRewardsBanner');
   if (rewardsBanner) {
-    if (totalItems >= 10) {
+    if (totalItems >= MILESTONE_TARGET) {
       rewardsBanner.innerHTML = `
         <div style="background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border-radius:var(--r-lg);padding:1.25rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;box-shadow:0 4px 20px rgba(245,158,11,0.35)">
           <div style="display:flex;align-items:center;gap:0.75rem">
             <span style="font-size:32px">👑</span>
             <div>
-              <div style="font-weight:700;font-size:15px">10 ICE CREAMS BONUS UNLOCKED!</div>
-              <div style="font-size:12px;opacity:0.9">You qualified for an EA FC Style Mystery Pack (Win 1–100 Coins, 1 Coin = ₹5)!</div>
+              <div style="font-weight:700;font-size:15px">${MILESTONE_TARGET} ICE CREAMS BONUS QUALIFIED!</div>
+              <div style="font-size:12px;opacity:0.9">Your order qualifies for an exclusive Mystery Pack (Win 1–100 Coins)! Complete checkout to claim.</div>
             </div>
           </div>
-          <button class="btn-primary" onclick="triggerPackOpening()" style="background:white;color:#b45309;font-weight:700;border:none;padding:0.6rem 1.25rem;box-shadow:var(--shadow-md);cursor:pointer">
-            ⚡ OPEN MYSTERY PACK!
-          </button>
+          <a href="checkout.html" class="btn-primary" style="background:white;color:#b45309;font-weight:700;border:none;padding:0.6rem 1.25rem;box-shadow:var(--shadow-md);cursor:pointer;text-decoration:none">
+            ⚡ PROCEED TO CHECKOUT
+          </a>
         </div>`;
     } else {
       rewardsBanner.innerHTML = `
         <div style="background:rgba(217,119,6,0.06);border:1.5px dashed rgba(217,119,6,0.4);border-radius:var(--r-lg);padding:0.9rem 1.25rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem">
           <div style="display:flex;align-items:center;gap:0.5rem;font-size:13px;color:var(--on-surface)">
             <span style="font-size:18px">🪙</span>
-            <span>Add <strong>${10 - totalItems} more ice cream(s)</strong> to unlock your EA FC Mystery Pack! (<strong>${totalItems}/10</strong>)</span>
+            <span>Add <strong>${MILESTONE_TARGET - totalItems} more ice cream(s)</strong> to unlock your Royal Mystery Pack! (<strong>${totalItems}/${MILESTONE_TARGET}</strong>)</span>
           </div>
           <button onclick="openRewardsModal()" class="rewards-nav-btn" style="font-size:12px;padding:4px 10px">View Rewards</button>
         </div>`;
@@ -572,13 +612,8 @@ function changeQty(id, delta) {
   syncCartFromStorage();
   const item = cart.find(x=>x.id===parseInt(id)||x.id===id);
   if(!item) return;
-  const prevTotal = cart.reduce((s,i)=>s+i.qty,0);
   item.qty = Math.max(1, item.qty+delta);
   saveCart();
-  const newTotal = cart.reduce((s,i)=>s+i.qty,0);
-  if(prevTotal < 10 && newTotal >= 10) {
-    if (typeof triggerMilestoneScreen === 'function') triggerMilestoneScreen();
-  }
   renderCartPage();
 }
 
@@ -837,7 +872,7 @@ function ensureMilestoneModal() {
       </div>
       <div class="notify-text-content">
         <div class="notify-headline">✦ ORDER MILESTONE NOTIFICATION ✦</div>
-        <div class="notify-body">10 Ice Creams Reached! You unlocked a Kalix Royal Mystery Pack!</div>
+        <div class="notify-body">${MILESTONE_TARGET} Ice Creams Reached! You unlocked a Kalix Royal Mystery Pack!</div>
       </div>
       <button class="notify-close-btn" onclick="closeMilestoneScreen()" title="Close"><span class="material-icons">close</span></button>
     </div>
@@ -846,7 +881,7 @@ function ensureMilestoneModal() {
     <div class="milestone-content-card">
       <div class="milestone-ribbon-tag">
         <ion-icon name="trophy"></ion-icon>
-        <span>10 ICE CREAMS CELEBRATION</span>
+        <span>${MILESTONE_TARGET} ICE CREAMS CELEBRATION</span>
       </div>
       
       <div class="milestone-hero-visual">
@@ -861,7 +896,7 @@ function ensureMilestoneModal() {
 
       <h2 class="milestone-headline">Mystery Pack Unlocked!</h2>
       <p class="milestone-sub">
-        Congratulations! For purchasing 10 artisanal ice creams, you unlocked an exclusive Kalix Royal Pack. Win <strong>1 to 100 reward coins</strong> (1 Coin = ₹5 cash discount)!
+        Congratulations! For purchasing ${MILESTONE_TARGET} artisanal ice creams, you unlocked an exclusive Kalix Royal Pack. Win <strong>1 to 100 reward coins</strong> (1 Coin = ₹5 cash discount)!
       </p>
 
       <div class="milestone-probability-hint">
@@ -881,7 +916,8 @@ function ensureMilestoneModal() {
   document.body.appendChild(modal);
 }
 
-function triggerMilestoneScreen() {
+function triggerMilestoneScreen(force = false) {
+  if (force) sessionStorage.setItem('kalixPendingRewardPack', 'true');
   ensureMilestoneModal();
   const modal = document.getElementById('milestoneModal');
   if (modal) {
@@ -897,7 +933,7 @@ function closeMilestoneScreen() {
 
 function openPackFromMilestone() {
   closeMilestoneScreen();
-  triggerPackOpening();
+  triggerPackOpening(null, true);
 }
 
 // Ensure Modal Structure in DOM
@@ -919,7 +955,7 @@ function ensureFutModal() {
 
       <!-- PHASE 1: UNOPENED PACK -->
       <div id="futPackUnopened">
-        <p class="fut-stage-eye">✦ 10 ICE CREAMS SPECIAL UNLOCK ✦</p>
+        <p class="fut-stage-eye">✦ ${MILESTONE_TARGET} ICE CREAMS SPECIAL UNLOCK ✦</p>
         <div class="fut-card" id="futCardElement" onclick="startPackOpening()">
           <div class="fut-card-shimmer"></div>
           <div class="fut-card-header">
@@ -992,7 +1028,7 @@ function ensureRewardsInfoModal() {
         <button onclick="closeRewardsInfoModal()" style="position:absolute;top:1rem;right:1rem;background:transparent;border:none;color:white;cursor:pointer"><span class="material-icons">close</span></button>
         <div style="font-size:42px;margin-bottom:0.5rem">👑</div>
         <h2 style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:#fef3c7;margin-bottom:0.25rem">Kalix Royal Rewards</h2>
-        <p style="font-size:13px;color:#fbbf24">Order 10 Ice Creams &amp; Unlock EA FC Style Packs</p>
+        <p style="font-size:13px;color:#fbbf24">Order ${MILESTONE_STEP} Ice Creams &amp; Unlock Mystery Packs</p>
         
         <div style="background:rgba(255,255,255,0.08);border:1px solid rgba(245,158,11,0.4);border-radius:var(--r-lg);padding:1rem;margin-top:1.25rem;display:flex;align-items:center;justify-content:space-around">
           <div>
@@ -1010,28 +1046,29 @@ function ensureRewardsInfoModal() {
       <div style="padding:1.5rem">
         <div style="margin-bottom:1.25rem">
           <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:0.4rem">
-            <span>Progress to Next Pack (10 Ice Creams)</span>
-            <span id="modalProgressText" style="color:var(--amber)">0 / 10</span>
+            <span id="modalPackTitle">Progress to Pack #1 (${MILESTONE_STEP} Ice Creams)</span>
+            <span id="modalProgressText" style="color:var(--amber)">0 / ${MILESTONE_STEP}</span>
           </div>
           <div class="coin-progress-bar">
             <div class="coin-progress-fill" id="modalProgressFill" style="width:0%"></div>
           </div>
-          <p style="font-size:12px;color:var(--outline);margin-top:0.4rem" id="modalProgressSub">Add 10 ice creams to cart to unlock a random 1–100 coins pack!</p>
+          <p style="font-size:12px;color:var(--outline);margin-top:0.4rem" id="modalProgressSub">Add ${MILESTONE_STEP} ice creams to unlock a random 1–100 coins pack!</p>
         </div>
 
         <div style="background:var(--surface-container-low);border-radius:var(--r-md);padding:1rem;margin-bottom:1.5rem;font-size:12px;color:var(--on-surface-variant);line-height:1.6">
           <div style="font-weight:700;color:var(--on-surface);margin-bottom:0.25rem;display:flex;align-items:center;gap:0.35rem">
             <span class="material-icons" style="font-size:16px;color:var(--amber)">info</span> How it works:
           </div>
-          • 10 Ice Creams purchase unlocks a Mystery Gold Pack.<br/>
+          • Every ${MILESTONE_STEP} Ice Creams purchased unlocks 1 Mystery Gold Pack.<br/>
+          • After claiming, progress resets to 0/${MILESTONE_STEP} and the next pack strictly requires the <strong>next ${MILESTONE_STEP} orders/products</strong>.<br/>
           • Every pack contains a random drop of <strong>1 to 100 Coins</strong>.<br/>
           • <strong>1–20 Coins have high drop probability (80%)</strong>.<br/>
           • <strong>1 Coin = ₹5 discount value</strong>.<br/>
-          • Redeem coins directly at checkout with 10+ ice creams!
+          • Redeem your coins directly on any order at checkout or in your cart!
         </div>
 
         <div style="display:flex;gap:0.75rem">
-          <button class="btn-primary btn-full btn-claim-checkout" onclick="closeRewardsInfoModal();triggerPackOpening()" id="modalOpenPackBtn">
+          <button class="btn-primary btn-full btn-claim-checkout" onclick="closeRewardsInfoModal();triggerPackOpening(null, true)" id="modalOpenPackBtn">
             <ion-icon name="flash"></ion-icon>
             <span>Open Mystery Pack Now</span>
           </button>
@@ -1069,35 +1106,40 @@ function updateRewardsUI() {
   });
 
   const progress = getMysteryPackProgress();
+  const nextPackNum = (progress.packsClaimed || 0) + 1;
   const totalItems = progress.total;
-  const pct = Math.min((totalItems / 10) * 100, 100);
+  const pct = progress.unlocked ? 100 : Math.min((totalItems / MILESTONE_STEP) * 100, 100);
 
+  const titleEl = document.getElementById('modalPackTitle');
   const fill = document.getElementById('modalProgressFill');
   const txt = document.getElementById('modalProgressText');
   const sub = document.getElementById('modalProgressSub');
   const btn = document.getElementById('modalOpenPackBtn');
 
+  if (titleEl) titleEl.textContent = `Progress to Pack #${nextPackNum} (${MILESTONE_STEP} Ice Creams)`;
   if (fill) fill.style.width = pct + '%';
-  if (txt) txt.textContent = `${totalItems} / 10 Ice Creams`;
+  if (txt) txt.textContent = progress.unlocked ? `${MILESTONE_STEP} / ${MILESTONE_STEP} Ice Creams (Pack #${nextPackNum} Unlocked!)` : `${totalItems} / ${MILESTONE_STEP} Ice Creams`;
 
   if (progress.unlocked) {
-    if (sub) sub.innerHTML = '🎉 <strong>10 Ice Creams Qualified!</strong> Ready to open your EA FC Pack!';
+    if (sub) sub.innerHTML = `🎉 <strong>Pack #${nextPackNum} Unlocked!</strong> You reached ${MILESTONE_STEP} ice creams. Ready to crack open your Mystery Pack!`;
     if (btn) {
       btn.disabled = false;
       btn.removeAttribute('aria-disabled');
       btn.removeAttribute('title');
       btn.style.display = 'flex';
-      btn.innerHTML = '<ion-icon name="flash"></ion-icon> <span>OPEN YOUR MYSTERY PACK!</span>';
+      btn.innerHTML = `<ion-icon name="flash"></ion-icon> <span>OPEN PACK #${nextPackNum} NOW!</span>`;
       btn.style.background = 'linear-gradient(135deg,#f59e0b,#d97706)';
+      btn.onclick = () => { closeRewardsInfoModal(); triggerPackOpening(null, true); };
     }
   } else {
-    if (sub) sub.textContent = `Add ${progress.remaining} more ice cream(s) to unlock pack!`;
+    if (sub) sub.textContent = `Order ${progress.remaining} more ice cream(s) to unlock Pack #${nextPackNum}!`;
     if (btn) {
       btn.disabled = true;
       btn.setAttribute('aria-disabled', 'true');
-      btn.title = `Locked — add ${progress.remaining} more ice cream(s) to unlock`;
-      btn.innerHTML = '<ion-icon name="lock-closed"></ion-icon> <span>LOCKED — ADD ' + progress.remaining + ' MORE</span>';
+      btn.title = `Locked — order ${progress.remaining} more ice cream(s) to unlock Pack #${nextPackNum}`;
+      btn.innerHTML = `<ion-icon name="lock-closed"></ion-icon> <span>LOCKED — NEED ${progress.remaining} MORE</span>`;
       btn.style.background = '';
+      btn.onclick = null;
     }
   }
 }
@@ -1121,11 +1163,12 @@ window.addEventListener('focus', refreshCartDependentUI);
 
 // Trigger EA FC Pack Opening
 let currentPackCoins = 0;
-function triggerPackOpening(forcedCoins = null) {
+function triggerPackOpening(forcedCoins = null, forceUnlock = false) {
+  const isPending = sessionStorage.getItem('kalixPendingRewardPack') === 'true';
   const progress = getMysteryPackProgress();
-  if (!progress.unlocked) {
+  if (!forceUnlock && !isPending && !progress.unlocked) {
     updateRewardsUI();
-    showToast(`🔒 Mystery Pack is locked. Add ${progress.remaining} more ice cream(s) to unlock it.`);
+    showToast(`🔒 Mystery Pack is locked. Order 10 ice creams to unlock it.`);
     return;
   }
   closeRewardsInfoModal();
@@ -1147,10 +1190,11 @@ function triggerPackOpening(forcedCoins = null) {
 }
 
 function startPackOpening() {
+  const isPending = sessionStorage.getItem('kalixPendingRewardPack') === 'true';
   const progress = getMysteryPackProgress();
-  if (!progress.unlocked) {
+  if (!isPending && !progress.unlocked) {
     closeFutModal();
-    showToast(`🔒 Mystery Pack requires 10 ice creams (${progress.total}/10).`);
+    showToast(`🔒 Mystery Pack requires 10 ice creams.`);
     return;
   }
   const card = document.getElementById('futCardElement');
@@ -1225,13 +1269,30 @@ function startPackOpening() {
 // ONLY Claim Coins to Checkout button action
 function claimCoinsToCheckout() {
   addRewardCoins(currentPackCoins);
+  sessionStorage.removeItem('kalixPendingRewardPack');
+  setPacksClaimed(getPacksClaimed() + 1);
   appliedCartCoins = currentPackCoins;
   sessionStorage.setItem('kalixAppliedCoins', currentPackCoins.toString());
-  showToast(`🎉 +${currentPackCoins} Coins (-₹${currentPackCoins * COIN_VALUE_INR}) Claimed! Proceeding to Checkout...`);
+
+  const currentCart = syncCartFromStorage();
+  const cartHasItems = currentCart && currentCart.length > 0;
+
+  if (cartHasItems) {
+    showToast(`🎉 +${currentPackCoins} Coins (-₹${currentPackCoins * COIN_VALUE_INR}) Claimed! Proceeding to Checkout...`);
+  } else {
+    showToast(`🎉 +${currentPackCoins} Coins (₹${currentPackCoins * COIN_VALUE_INR} discount value) claimed to your wallet!`);
+  }
+
   closeFutModal();
+  updateRewardsUI();
+  updateBadges();
   setTimeout(() => {
-    window.location.href = 'checkout.html';
-  }, 700);
+    if (cartHasItems) {
+      window.location.href = 'checkout.html';
+    } else {
+      window.location.href = 'index.html#flavors';
+    }
+  }, 800);
 }
 
 function closeFutModal() {
@@ -1240,25 +1301,24 @@ function closeFutModal() {
   cancelAnimationFrame(confettiAnimationId);
 }
 
-// Cart Coin Apply (Strictly requires 10 items)
+// Cart Coin Apply (Usable on any order whenever user has coins)
 function applyCartCoins() {
-  const totalItems = cart.reduce((s,i)=>s+i.qty, 0);
   const feedback = document.getElementById('coinRedeemFeedback');
+  const available = getRewardCoins();
 
-  if (totalItems < 10) {
+  if (available <= 0) {
     if (feedback) {
       feedback.style.display = 'block';
       feedback.style.color = '#ef4444';
-      feedback.innerHTML = `<span class="material-icons" style="font-size:15px;vertical-align:middle">lock</span> Requires 10 ice creams in order to redeem coins (${totalItems}/10).`;
+      feedback.innerHTML = `<span class="material-icons" style="font-size:15px;vertical-align:middle">error_outline</span> No coins available in your wallet.`;
     }
-    showToast('🔒 Order at least 10 ice creams to unlock coin redemption!');
+    showToast(`⚠️ No reward coins available to redeem.`);
     return;
   }
 
   const input = document.getElementById('coinsToApplyInput');
   if (!input) return;
   const coins = parseInt(input.value);
-  const available = getRewardCoins();
 
   if (isNaN(coins) || coins <= 0) {
     if (feedback) { feedback.style.display = 'block'; feedback.style.color = '#ef4444'; feedback.textContent = 'Please enter valid coins.'; }
