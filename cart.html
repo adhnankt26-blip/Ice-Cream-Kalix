@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Curated Darbar Cold Stash | Kalix Artisanal Glacé</title>
+  <meta name="description" content="Review your artisanal glacé selection and proceed to cold-chain checkout. Free cryo-shipping on orders above ₹1,500." />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-page="cart">
+
+<nav class="navbar" id="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo"><span class="logo-icon">✦</span><span>Kalix <em>Artisanal Glacé</em></span></a>
+    <ul class="nav-links">
+      <li><a href="index.html#flavors">Ice Cream Pints</a></li>
+      <li><a href="index.html#craft">Vedic Craft</a></li>
+      <li><a href="index.html#cities">Delivery</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="rewards-nav-btn" onclick="openRewardsModal()" title="Kalix Rewards & Coins"><span class="rewards-coin-icon">🪙</span><span id="navRewardsCount">0</span> Coins</button>
+      <a href="wishlist.html" class="nav-icon-btn" title="Wishlist"><span class="material-icons">favorite</span><span class="badge" id="wishlistBadge">0</span></a>
+      <a href="cart.html" class="nav-icon-btn" title="Cart"><span class="material-icons">shopping_bag</span><span class="badge" id="cartBadge">0</span></a>
+      <button class="btn-primary btn-sm">Sign In</button>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="cart-layout">
+
+    <!-- LEFT: CART ITEMS -->
+    <div>
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:2rem">
+        <a href="index.html" style="display:flex;align-items:center;gap:0.25rem;font-size:14px;color:var(--on-surface-variant);text-decoration:none;transition:color 0.2s" onmouseover="this.style.color='var(--amber)'" onmouseout="this.style.color='var(--on-surface-variant)'"><span class="material-icons" style="font-size:18px">arrow_back</span> Return to Boutique</a>
+      </div>
+      <h1 class="cart-title">Your Curated Darbar Cold Stash</h1>
+      <p style="color:var(--on-surface-variant);margin-bottom:1.5rem;font-size:15px">Handcrafted Items · Churn-Locked · Sub-Zero Dispatched</p>
+
+      <!-- Rewards Banner -->
+      <div id="cartRewardsBanner"></div>
+
+      <div class="progress-bar-section">
+        <p class="pb-text" id="pbText">You're ₹1,500 away from complimentary Insulated Cryo-Shipping and a handcrafted brass tasting spoon set across India.</p>
+        <div class="pb-bar-track"><div class="pb-bar-fill" id="pbFill" style="width:0%"></div></div>
+      </div>
+
+      <div class="cart-items-list" id="cartItemsList"></div>
+
+      <!-- Guarantees -->
+      <div style="margin-top:2rem;padding:1.5rem;background:var(--surface-container-low);border-radius:var(--r-lg);border:var(--ghost-border)">
+        <p class="section-eye" style="margin-bottom:1rem">COLD CHAIN GUARANTEES</p>
+        <div style="display:flex;flex-direction:column;gap:0.75rem">
+          <div style="display:flex;gap:0.75rem;align-items:center;font-size:13px;color:var(--on-surface-variant)"><span class="material-icons" style="color:var(--pistachio);font-size:18px">ac_unit</span> 100% Melt-Free Guarantee: Reshipped immediately free of charge if internal temperature exceeds -18°C.</div>
+          <div style="display:flex;gap:0.75rem;align-items:center;font-size:13px;color:var(--on-surface-variant)"><span class="material-icons" style="color:var(--pistachio);font-size:18px">inventory_2</span> Dry-Ice Cryo-Packaging: Engineered to withstand peak Indian summer heat up to 42°C for 48 hours.</div>
+          <div style="display:flex;gap:0.75rem;align-items:center;font-size:13px;color:var(--on-surface-variant)"><span class="material-icons" style="color:var(--amber);font-size:18px">payments</span> Cash on Delivery (COD) Available: Pay conveniently in cash at your doorstep upon receiving your dry-ice cryo-box.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: SUMMARY -->
+    <div>
+      <div class="summary-card">
+        <div class="summary-header">
+          <h3>Insulated Cryo-Bag Summary</h3>
+          <p style="color:rgba(255,255,255,0.7);font-size:13px;margin-top:0.25rem">Dispatched in biodegradable dry-ice cryo-boxes</p>
+        </div>
+        <div class="summary-body">
+          <div class="summary-row"><span>Subtotal</span><span id="subtotal">₹0</span></div>
+          <div class="summary-row"><span>Delivery</span><span id="shipping">₹199</span></div>
+          <div class="summary-row" id="coinDiscountRow" style="display:none;color:var(--pistachio);font-weight:700">
+            <span>Coin Discount (🪙 <span id="appliedCoinsCount">0</span>)</span>
+            <span>-₹<span id="appliedCoinsDiscount">0</span></span>
+          </div>
+          <div class="summary-row"><span style="font-size:12px;color:var(--outline)">Orders above ₹1,500 → FREE</span></div>
+          <div class="summary-row total"><span>Total</span><span id="totalAmt">₹0</span></div>
+
+          <!-- Use Coins Widget -->
+          <div class="coin-redeem-card" style="margin-top:1.25rem">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.4rem">
+              <div style="display:flex;align-items:center;gap:0.4rem">
+                <span style="font-size:20px">🪙</span>
+                <span style="font-size:13px;font-weight:700">Use Reward Coins</span>
+              </div>
+              <span id="redeemWalletBalance" style="font-size:12px;font-weight:700;color:var(--amber)">0 Coins (₹0)</span>
+            </div>
+            <p style="font-size:11px;color:var(--outline);margin-bottom:0.6rem">1 Coin = ₹5 value. Apply coins to discount this order!</p>
+            <div style="display:flex;gap:0.5rem;align-items:center">
+              <input type="number" id="coinsToApplyInput" placeholder="Coins to use" min="1" class="form-input" style="padding:8px 12px;font-size:13px;flex:1" />
+              <button type="button" class="btn-primary btn-sm" onclick="applyCartCoins()" style="padding:8px 14px;white-space:nowrap;font-size:12px">Use Coins</button>
+            </div>
+            <div id="coinRedeemFeedback" style="display:none;margin-top:0.5rem;font-size:11px;font-weight:600"></div>
+          </div>
+
+          <div class="trust-badges">
+            <div class="trust-badge"><span class="material-icons">ac_unit</span> Arrives at -18°C · Guaranteed</div>
+            <div class="trust-badge"><span class="material-icons">eco</span> Zero-plastic mycelium cryo-shield liners</div>
+            <div class="trust-badge"><span class="material-icons">workspace_premium</span> Heritage brass scoop artisan-beaten in Moradabad</div>
+          </div>
+
+          <a href="checkout.html" class="btn-primary btn-full" style="margin-bottom:0.75rem">Proceed to Checkout <span class="material-icons">arrow_forward</span></a>
+          <a href="index.html#flavors" class="btn-secondary btn-full">Continue Shopping</a>
+
+          <div style="text-align:center;margin-top:1.5rem">
+            <p style="font-size:12px;color:var(--outline)">Need help?</p>
+            <p style="font-size:12px;color:var(--on-surface-variant);margin:0.25rem 0">Concierge active 8:00 AM – 10:00 PM IST</p>
+            <a href="https://wa.me/919999999999" style="font-size:13px;font-weight:600;color:var(--pistachio);text-decoration:none;display:flex;align-items:center;justify-content:center;gap:0.25rem;margin-top:0.5rem">
+              <span class="material-icons" style="font-size:16px">chat</span> WhatsApp Concierge
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recently Viewed -->
+      <div style="margin-top:1.5rem;padding:1.25rem;background:var(--surface-container-lowest);border-radius:var(--r-lg);border:var(--ghost-border)">
+        <p class="section-eye" style="margin-bottom:1rem">RECENTLY VIEWED</p>
+        <div style="display:flex;flex-direction:column;gap:0.75rem">
+          <div style="display:flex;align-items:center;gap:0.75rem;cursor:pointer" onclick="goToProduct(1)">
+            <img src="images/kalix_pistachio_rose.png" style="width:48px;height:48px;border-radius:var(--r-md);object-fit:cover;box-shadow:var(--shadow-sm);background:#eaf5ea" alt="Kalix Pistachio Rose Ice Cream" />
+            <div style="flex:1"><div style="font-size:13px;font-weight:600">Kalix Royal Pistachio &amp; Rose</div><div style="font-size:12px;color:var(--outline)">₹449</div></div>
+            <button class="quick-add-btn" style="width:36px;height:36px" onclick="event.stopPropagation();addToCart(1)"><span class="material-icons" style="font-size:16px">add</span></button>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.75rem;cursor:pointer" onclick="goToProduct(2)">
+            <img src="images/kalix_butterscotch.png" style="width:48px;height:48px;border-radius:var(--r-md);object-fit:cover;box-shadow:var(--shadow-sm);background:#fff7e6" alt="Kalix Butterscotch Crunch Ice Cream" />
+            <div style="flex:1"><div style="font-size:13px;font-weight:600">Kalix Butterscotch Crunch</div><div style="font-size:12px;color:var(--outline)">₹449</div></div>
+            <button class="quick-add-btn" style="width:36px;height:36px" onclick="event.stopPropagation();addToCart(2)"><span class="material-icons" style="font-size:16px">add</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;padding:2rem 0;border-top:var(--ghost-border)">
+      <p style="font-size:12px;color:var(--outline)">© 2024 Kalix Artisanal Glacé India Pvt Ltd. Handcrafted with botanical purity and royal indulgence. FSSAI Lic. No. 10022022000841.</p>
+      <div style="display:flex;gap:1rem;flex-wrap:wrap">
+        <a href="#" style="font-size:12px;color:var(--outline);text-decoration:none">Privacy Policy</a>
+        <a href="#" style="font-size:12px;color:var(--outline);text-decoration:none">Terms &amp; Conditions</a>
+        <a href="#" style="font-size:12px;color:var(--outline);text-decoration:none">Cryo-Ice Safe Handling Guide</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

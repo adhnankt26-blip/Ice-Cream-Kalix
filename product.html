@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kalix Royal Pistachio &amp; Damask Rose | Kalix Artisanal Glacé</title>
+  <meta name="description" content="Kalix Royal Pistachio & Damask Rose Artisanal Pint — 412 verified tastings. Order now with pan-India cold chain delivery." />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-page="product">
+
+<nav class="navbar" id="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo"><span class="logo-icon">✦</span><span>Kalix <em>Artisanal Glacé</em></span></a>
+    <ul class="nav-links">
+      <li><a href="index.html#flavors">Ice Cream Pints</a></li>
+      <li><a href="index.html#craft">Vedic Craft</a></li>
+      <li><a href="index.html#cities">Delivery</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="rewards-nav-btn" onclick="openRewardsModal()" title="Kalix Rewards & Coins"><span class="rewards-coin-icon">🪙</span><span id="navRewardsCount">0</span> Coins</button>
+      <a href="wishlist.html" class="nav-icon-btn"><span class="material-icons">favorite</span><span class="badge" id="wishlistBadge">0</span></a>
+      <a href="cart.html" class="nav-icon-btn" id="cartBtn"><span class="material-icons">shopping_bag</span><span class="badge" id="cartBadge">0</span></a>
+      <button class="btn-primary btn-sm">Sign In</button>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="product-layout">
+
+    <!-- GALLERY -->
+    <div class="product-gallery">
+      <div class="product-breadcrumb">
+        <a href="index.html">Home</a> <span>›</span>
+        <a href="index.html#flavors">Ice Creams</a> <span>›</span>
+        <span id="prodBreadcrumb">Pistachio Rose</span>
+      </div>
+      <div class="product-gallery-main" id="prodGalleryMain" style="background:linear-gradient(145deg, #eaf5ea 0%, #d5edd6 100%);border-radius:var(--r-xl);padding:2rem;display:flex;align-items:center;justify-content:center">
+        <img id="prodImage" src="images/kalix_pistachio_rose.png" alt="Kalix Royal Pistachio Rose Artisanal Ice Cream Tub" class="product-main-img" style="max-height:420px;object-fit:contain;filter:drop-shadow(0 16px 28px rgba(0,0,0,0.15))" />
+      </div>
+      <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-top:1rem">
+        <div style="background:var(--surface-container);border-radius:var(--r-md);padding:0.5rem 1rem;font-size:12px;font-weight:600;color:var(--pistachio);display:flex;align-items:center;gap:0.35rem"><span class="material-icons" style="font-size:16px">ac_unit</span> -18°C Guaranteed</div>
+        <div style="background:var(--surface-container);border-radius:var(--r-md);padding:0.5rem 1rem;font-size:12px;font-weight:600;color:var(--pistachio);display:flex;align-items:center;gap:0.35rem"><span class="material-icons" style="font-size:16px">eco</span> FSSAI Certified</div>
+        <div style="background:var(--surface-container);border-radius:var(--r-md);padding:0.5rem 1rem;font-size:12px;font-weight:600;color:var(--amber);display:flex;align-items:center;gap:0.35rem"><span class="material-icons" style="font-size:16px">verified</span> A2 Gir Cow Milk</div>
+      </div>
+      <!-- Pairings section -->
+      <div style="margin-top:2rem;padding:1.5rem;background:var(--surface-container-low);border-radius:var(--r-lg);border:var(--ghost-border)">
+        <p class="section-eye" style="margin-bottom:0.75rem">RECOMMENDED PAIRINGS</p>
+        <div style="display:flex;flex-direction:column;gap:0.75rem">
+          <div style="display:flex;align-items:center;gap:0.75rem;font-size:13px;color:var(--on-surface-variant)"><span style="font-size:20px">🍪</span> Cardamom Infused Besan Shortbread Shards</div>
+          <div style="display:flex;align-items:center;gap:0.75rem;font-size:13px;color:var(--on-surface-variant)"><span style="font-size:20px">🌹</span> Kannauj Wild Damask Rose Glaze &amp; Edible Vark</div>
+          <div style="display:flex;align-items:center;gap:0.75rem;font-size:13px;color:var(--on-surface-variant)"><span style="font-size:20px">☕</span> Single-Estate Coorg Dark Espresso Reduction</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DETAILS -->
+    <div class="product-details">
+      <div class="product-tag" id="prodTag">AWARD WINNER</div>
+      <h1 class="product-title" id="prodTitle">Kalix Royal Pistachio &amp; Damask Rose</h1>
+      <p class="product-subtitle" id="prodSubtitle">Pistachio Rose Artisanal Tub</p>
+      <div class="stars">
+        <span class="s">★</span><span class="s">★</span><span class="s">★</span><span class="s">★</span><span class="s">★</span>
+        <span class="count"><a href="#reviews" style="color:inherit;text-decoration:none">(412 verified royal tastings)</a></span>
+      </div>
+      <div class="product-price-row">
+        <span class="product-price" id="prodPrice">₹449</span>
+        <span style="font-size:13px;color:var(--outline)">per 500ml tub</span>
+      </div>
+      <p style="font-size:14px;color:var(--on-surface-variant);margin-bottom:1.5rem;line-height:1.7" id="prodDesc">
+        Slow-churned 100% single-herd A2 Gir cow cream infused with copper-distilled Kannauj damask rose, folded with slow-roasted green pistachios and raw misri.
+      </p>
+
+      <!-- Sensory Spectrum -->
+      <div class="spectrum-section">
+        <h4>Sensory Balance Spectrum</h4>
+        <div class="spectrum-bar"><div class="spectrum-label"><span>Sweetness</span><span id="sweetPct">85%</span></div><div class="bar-track"><div class="bar-fill" id="sweetBar" style="width:85%"></div></div></div>
+        <div class="spectrum-bar"><div class="spectrum-label"><span>Tartness</span><span id="tartPct">15%</span></div><div class="bar-track"><div class="bar-fill" id="tartBar" style="width:15%;background:linear-gradient(90deg,var(--tertiary),var(--berry-compote))"></div></div></div>
+        <div class="spectrum-bar"><div class="spectrum-label"><span>Creaminess</span><span id="creamPct">95%</span></div><div class="bar-track"><div class="bar-fill" id="creamBar" style="width:95%"></div></div></div>
+      </div>
+
+      <!-- Ingredients -->
+      <div class="ingredient-chips" id="ingChips"></div>
+
+      <!-- Quantity -->
+      <div class="qty-stepper">
+        <button class="qty-btn" id="qtyMinus">−</button>
+        <span class="qty-num" id="qtyNum">1</span>
+        <button class="qty-btn" id="qtyPlus">+</button>
+      </div>
+
+      <!-- Actions -->
+      <div class="product-actions">
+        <button class="btn-primary btn-lg" id="addCartBtn">Add to Cryo-Bag <span class="material-icons">shopping_bag</span></button>
+        <button class="btn-wish" id="wishBtn" title="Add to wishlist"><span class="material-icons">favorite_border</span></button>
+      </div>
+
+      <!-- Trust -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-top:0.5rem">
+        <div style="display:flex;align-items:center;gap:0.5rem;font-size:13px;color:var(--on-surface-variant);padding:0.75rem;background:var(--surface-container);border-radius:var(--r-md)"><span class="material-icons" style="font-size:16px;color:var(--pistachio)">ac_unit</span>Melt-Free Guarantee</div>
+        <div style="display:flex;align-items:center;gap:0.5rem;font-size:13px;color:var(--on-surface-variant);padding:0.75rem;background:var(--surface-container);border-radius:var(--r-md)"><span class="material-icons" style="font-size:16px;color:var(--pistachio)">local_shipping</span>Pan-India Cold Chain</div>
+        <div style="display:flex;align-items:center;gap:0.5rem;font-size:13px;color:var(--on-surface-variant);padding:0.75rem;background:var(--surface-container);border-radius:var(--r-md)"><span class="material-icons" style="font-size:16px;color:var(--amber)">verified</span>GI-Tagged Ingredients</div>
+        <div style="display:flex;align-items:center;gap:0.5rem;font-size:13px;color:var(--on-surface-variant);padding:0.75rem;background:var(--surface-container);border-radius:var(--r-md)"><span class="material-icons" style="font-size:16px;color:var(--amber)">eco</span>Zero Artificial Gums</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REVIEWS -->
+  <section id="reviews" style="padding:4rem 0">
+    <p class="section-eye">CONNOISSEUR REVIEWS</p>
+    <h2 class="section-title">Royal <em>Tasting Journals</em></h2>
+    <p class="section-desc" style="margin-bottom:2.5rem">Read sensory journals from verified culinary club patrons across Indian metropolises.</p>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem">
+      <div class="social-card">
+        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem">
+          <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--amber),#b45309);display:flex;align-items:center;justify-content:center;color:white;font-weight:700">A</div>
+          <div><div style="font-size:14px;font-weight:700">Arunima Krishnan</div><div style="font-size:12px;color:var(--outline)">Mumbai, Verified Purchase</div></div>
+        </div>
+        <div style="color:var(--amber);margin-bottom:0.5rem">★★★★★</div>
+        <p>"Rock-solid in Mumbai's 38°C humidity. Kalix's sub-zero dry-ice packaging was so cold frost was peeling off the pint! The Pampore saffron is authentic, intensely aromatic without cloying sweetness."</p>
+      </div>
+      <div class="social-card">
+        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem">
+          <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--pistachio),#234f1e);display:flex;align-items:center;justify-content:center;color:white;font-weight:700">R</div>
+          <div><div style="font-size:14px;font-weight:700">Raghav Malhotra</div><div style="font-size:12px;color:var(--outline)">Delhi NCR, Verified Purchase</div></div>
+        </div>
+        <div style="color:var(--amber);margin-bottom:0.5rem">★★★★★</div>
+        <p>"Unrivaled A2 creaminess &amp; Royal heritage. Delivered to Jor Bagh during peak Loo heat. Pristine condition, frozen brick-hard. Truly a bespoke darbar experience."</p>
+      </div>
+      <div class="social-card">
+        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem">
+          <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--tertiary),#8f0042);display:flex;align-items:center;justify-content:center;color:white;font-weight:700">P</div>
+          <div><div style="font-size:14px;font-weight:700">Priya Venkataraman</div><div style="font-size:12px;color:var(--outline)">Bengaluru, Verified Purchase</div></div>
+        </div>
+        <div style="color:var(--amber);margin-bottom:0.5rem">★★★★★</div>
+        <p>"Ordered the 4-Pint Darbar Flight. Paired the glacé with the Coorg dark espresso reduction. The slow-churned Gir cow malai has no excess air — just thick, velvety indulgence."</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- RELATED -->
+  <section style="padding:2rem 0 4rem">
+    <p class="section-eye">YOU MAY ALSO LOVE</p>
+    <h2 class="section-title" style="margin-bottom:2rem">More from the <em>Royal Archive</em></h2>
+    <div class="flavors-grid" id="relatedGrid"></div>
+  </section>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <div style="text-align:center;padding:2rem 0;border-top:var(--ghost-border)">
+      <p style="font-size:13px;color:var(--outline)">© 2024 Kalix Artisanal Glacé Pvt. Ltd. | <a href="index.html" style="color:var(--amber);text-decoration:none">Back to Boutique</a> | FSSAI Lic. No. 10022022000841</p>
+    </div>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Curated Darbar Cold Stash — Wishlist | Kalix Artisanal Glacé</title>
+  <meta name="description" content="Your saved Kalix artisanal glacé pints. Reserve your favourite seasonal flavours before they sell out." />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-page="wishlist">
+
+<nav class="navbar" id="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo"><span class="logo-icon">✦</span><span>Kalix <em>Artisanal Glacé</em></span></a>
+    <ul class="nav-links">
+      <li><a href="index.html#flavors">Ice Cream Pints</a></li>
+      <li><a href="index.html#craft">Vedic Craft</a></li>
+      <li><a href="index.html#cities">Delivery</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="rewards-nav-btn" onclick="openRewardsModal()" title="Kalix Rewards & Coins"><span class="rewards-coin-icon">🪙</span><span id="navRewardsCount">0</span> Coins</button>
+      <a href="wishlist.html" class="nav-icon-btn"><span class="material-icons" style="color:var(--tertiary)">favorite</span><span class="badge" id="wishlistBadge">0</span></a>
+      <a href="cart.html" class="nav-icon-btn" id="cartBtn"><span class="material-icons">shopping_bag</span><span class="badge" id="cartBadge">0</span></a>
+      <button class="btn-primary btn-sm">Sign In</button>
+    </div>
+  </div>
+</nav>
+
+<div class="container wishlist-layout">
+
+  <div class="wishlist-header">
+    <div>
+      <p class="section-eye">YOUR CURATED STASH</p>
+      <h1 class="wishlist-title">Your Curated Darbar<br/><em style="color:var(--amber)">Cold Stash</em></h1>
+    </div>
+    <div style="text-align:right">
+      <p style="font-size:14px;color:var(--outline)" id="wishCount">0 items</p>
+      <button class="btn-secondary btn-sm" style="margin-top:0.5rem" onclick="addAllToCart()">Add All to Cryo-Bag</button>
+    </div>
+  </div>
+
+  <!-- Progress hint -->
+  <div style="background:linear-gradient(135deg,rgba(59,105,52,0.08),rgba(45,90,39,0.12));border:1px solid rgba(59,105,52,0.2);border-radius:var(--r-lg);padding:1.25rem 1.5rem;margin-bottom:2.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+    <span class="material-icons" style="color:var(--pistachio);font-size:24px">card_giftcard</span>
+    <p style="font-size:14px;font-weight:600;color:var(--pistachio);flex:1">You're <strong>2 pints away</strong> from complimentary Insulated Cryo-Shipping and a handcrafted brass tasting spoon set across India.</p>
+    <a href="index.html#flavors" class="btn-primary btn-sm">Keep Exploring</a>
+  </div>
+
+  <div class="wishlist-grid" id="wishlistGrid"></div>
+
+  <!-- Recently Viewed -->
+  <section style="padding:3rem 0 2rem">
+    <p class="section-eye">RECENTLY VIEWED &amp; SMALL-BATCH EDITIONS</p>
+    <h2 class="section-title" style="margin-bottom:2rem">You Might Also <em>Love</em></h2>
+    <div class="flavors-grid" id="suggestedGrid"></div>
+  </section>
+
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;padding:2rem 0;border-top:var(--ghost-border)">
+      <p style="font-size:12px;color:var(--outline)">© 2024 Kalix Artisanal Glacé India Pvt Ltd. All rights reserved.</p>
+      <div style="display:flex;gap:1rem;flex-wrap:wrap">
+        <a href="#" style="font-size:12px;color:var(--outline);text-decoration:none">Privacy Policy</a>
+        <a href="#" style="font-size:12px;color:var(--outline);text-decoration:none">Terms &amp; Conditions</a>
+        <a href="#" style="font-size:12px;color:var(--outline);text-decoration:none">Cryo-Ice Safe Handling</a>
+      </div>
+      <div style="display:flex;gap:0.75rem">
+        <a href="#" style="font-size:12px;color:var(--outline);text-decoration:none">📸 Instagram</a>
+        <a href="#" style="font-size:12px;color:var(--outline);text-decoration:none">📓 Darbar Journal</a>
+        <a href="#" style="font-size:12px;color:var(--outline);text-decoration:none">💬 Concierge</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<div class="cart-drawer" id="cartDrawer">
+  <div class="drawer-header">
+    <h3>Cryo-Bag</h3>
+    <button onclick="closeCartDrawer()" class="drawer-close"><span class="material-icons">close</span></button>
+  </div>
+  <div class="drawer-items" id="drawerItems">
+    <div class="empty-state"><span class="material-icons" style="font-size:48px;color:var(--outline)">shopping_bag</span><p>Your cryo-bag is empty.</p></div>
+  </div>
+  <div class="drawer-footer" id="drawerFooter" style="display:none">
+    <div class="drawer-total"><span>Subtotal</span><span id="drawerTotal">₹0</span></div>
+    <a href="cart.html" class="btn-primary btn-full">Proceed to Checkout</a>
+  </div>
+</div>
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeCartDrawer()"></div>
+
+<script src="app.js"></script>
+<script>
+function addAllToCart() {
+  if(wishlist.length===0) { showToast('Your wishlist is empty!'); return; }
+  wishlist.forEach(item => addToCart(item.id));
+  showToast('🛍️ All wishlist items added to Cryo-Bag!');
+}
+
+// Render suggested flavors
+document.addEventListener('DOMContentLoaded', ()=>{
+  const grid = document.getElementById('suggestedGrid');
+  if(grid) {
+    const suggested = FLAVORS.slice(0,4);
+    grid.innerHTML = suggested.map(f=>`
+      <div class="flavor-card" onclick="goToProduct(${f.id})">
+        <div class="flavor-card-img" style="background:${f.bg}">${f.emoji}</div>
+        <div class="flavor-card-body">
+          <div class="flavor-tag" style="color:${f.tagColor==='berry'?'var(--tertiary)':f.tagColor==='green'?'var(--pistachio)':'var(--amber)'}">${f.tag}</div>
+          <div class="flavor-name">${f.name.split(' & ')[0]}</div>
+          <div class="flavor-footer">
+            <span class="flavor-price">₹${f.price}</span>
+            <button class="quick-add-btn" onclick="event.stopPropagation();addToCart(${f.id})"><span class="material-icons">add_shopping_cart</span></button>
+          </div>
+        </div>
+      </div>`).join('');
+  }
+});
+</script>
+</body>
+</html>

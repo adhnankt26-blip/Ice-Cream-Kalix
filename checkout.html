@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kalix Artisanal Glacé — Indian Cold-Chain Checkout</title>
+  <meta name="description" content="Secure checkout for Kalix Artisanal Glacé. Cash on Delivery (COD) available with cold-chain cryo packaging across India." />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-page="checkout">
+
+<nav class="navbar" id="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo"><span class="logo-icon">✦</span><span>Kalix <em>Artisanal Glacé</em></span></a>
+    <div class="nav-actions">
+      <button class="rewards-nav-btn" onclick="openRewardsModal()" title="Kalix Rewards & Coins"><span class="rewards-coin-icon">🪙</span><span id="navRewardsCount">0</span> Coins</button>
+      <a href="cart.html" class="nav-icon-btn"><span class="material-icons">arrow_back</span></a>
+      <button class="btn-primary btn-sm">Sign In</button>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="checkout-layout">
+
+    <!-- LEFT: FORM -->
+    <div>
+      <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem">
+        <a href="cart.html" style="display:flex;align-items:center;gap:0.25rem;font-size:14px;color:var(--on-surface-variant);text-decoration:none;transition:color 0.2s" onmouseover="this.style.color='var(--amber)'" onmouseout="this.style.color='var(--on-surface-variant)'"><span class="material-icons" style="font-size:18px">arrow_back</span> Return to Boutique</a>
+      </div>
+      <h1 class="checkout-title">Destination Address <span style="font-size:18px;color:var(--outline)">(India)</span></h1>
+      <p class="checkout-subtitle">Where should our insulated dry-ice cryo-chest arrive?</p>
+
+      <!-- Step Indicator -->
+      <div style="display:flex;align-items:center;gap:0;margin-bottom:2.5rem">
+        <div style="display:flex;align-items:center;gap:0.5rem"><div style="width:32px;height:32px;border-radius:50%;background:var(--amber);color:white;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">1</div><span style="font-size:13px;font-weight:600;color:var(--amber)">Address</span></div>
+        <div style="flex:1;height:2px;background:var(--surface-container);margin:0 1rem"></div>
+        <div style="display:flex;align-items:center;gap:0.5rem"><div style="width:32px;height:32px;border-radius:50%;background:var(--surface-container);color:var(--outline);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">2</div><span style="font-size:13px;font-weight:600;color:var(--outline)">Payment</span></div>
+        <div style="flex:1;height:2px;background:var(--surface-container);margin:0 1rem"></div>
+        <div style="display:flex;align-items:center;gap:0.5rem"><div style="width:32px;height:32px;border-radius:50%;background:var(--surface-container);color:var(--outline);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">3</div><span style="font-size:13px;font-weight:600;color:var(--outline)">Confirm</span></div>
+      </div>
+
+      <form onsubmit="placeOrder(event)">
+        <!-- Address -->
+        <div class="form-section">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:0.75rem">
+            <h3 style="margin-bottom:0;border-bottom:none;padding-bottom:0"><span class="material-icons" style="font-size:22px;vertical-align:middle;margin-right:0.4rem;color:var(--amber)">location_on</span>Delivery Address</h3>
+            <div style="display:flex;gap:0.5rem;align-items:center">
+              <button type="button" class="btn-secondary btn-sm" onclick="detectUserLocation()" id="detectLocBtn" style="display:flex;align-items:center;gap:0.35rem;font-size:12px;padding:0.45rem 0.85rem">
+                <span class="material-icons" style="font-size:16px;color:var(--pistachio)">my_location</span> Detect Location
+              </button>
+              <button type="button" class="btn-secondary btn-sm" onclick="toggleMapPicker()" id="toggleMapBtn" style="display:flex;align-items:center;gap:0.35rem;font-size:12px;padding:0.45rem 0.85rem">
+                <span class="material-icons" style="font-size:16px;color:var(--amber)">map</span> <span id="mapBtnText">Select on Map</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Interactive Map Picker -->
+          <div id="mapPickerWrapper" class="map-picker-card" style="display:none">
+            <div class="map-header">
+              <span style="display:flex;align-items:center;gap:0.4rem;color:var(--on-surface-variant);font-size:12px">
+                <span class="material-icons" style="font-size:16px;color:var(--amber)">touch_app</span>
+                Tap map or drag the pin to set your exact delivery drop point
+              </span>
+              <span id="geoStatus" class="map-status-pill"><span class="material-icons" style="font-size:14px">check_circle</span> Ready</span>
+            </div>
+            <div id="leafletMap" class="map-canvas"></div>
+            <div class="map-footer">
+              <div style="flex:1;min-width:220px">
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--outline);font-weight:600">Selected Pin Location</div>
+                <div id="pinnedAddressText" style="font-size:13px;font-weight:600;color:var(--on-surface);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Click anywhere on the map to pin</div>
+              </div>
+              <button type="button" onclick="applyMapAddress()" class="btn-primary btn-sm" style="display:flex;align-items:center;gap:0.35rem;padding:0.5rem 1rem;font-size:12px">
+                <span class="material-icons" style="font-size:16px">check</span> Apply to Address
+              </button>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group"><label>First Name *</label><input class="form-input" id="firstName" type="text" placeholder="Arjun" required /></div>
+            <div class="form-group"><label>Last Name *</label><input class="form-input" id="lastName" type="text" placeholder="Sharma" required /></div>
+            <div class="form-group full"><label>Address Line 1 (Flat / House / Street) *</label><input class="form-input" id="addressLine1" type="text" placeholder="Flat / House No., Building, Street" required /></div>
+            <div class="form-group full"><label>Address Line 2 (Area / Locality / Landmark)</label><input class="form-input" id="addressLine2" type="text" placeholder="Area, Colony, Landmark (optional)" /></div>
+            <div class="form-group"><label>City *</label><input class="form-input" id="cityInput" type="text" placeholder="Kochi / Mumbai" required /></div>
+            <div class="form-group"><label>State *</label>
+              <select class="form-input" id="stateSelect" required>
+                <option value="">Select State</option>
+                <option value="Kerala">Kerala</option>
+                <option value="Maharashtra">Maharashtra</option>
+                <option value="Karnataka">Karnataka</option>
+                <option value="Tamil Nadu">Tamil Nadu</option>
+                <option value="Delhi">Delhi</option>
+                <option value="Telangana">Telangana</option>
+                <option value="Gujarat">Gujarat</option>
+                <option value="West Bengal">West Bengal</option>
+                <option value="Uttar Pradesh">Uttar Pradesh</option>
+                <option value="Andhra Pradesh">Andhra Pradesh</option>
+                <option value="Goa">Goa</option>
+                <option value="Rajasthan">Rajasthan</option>
+                <option value="Punjab">Punjab</option>
+                <option value="Haryana">Haryana</option>
+              </select>
+            </div>
+            <div class="form-group"><label>PIN Code *</label><input class="form-input" id="pinCodeInput" type="text" placeholder="682001 / 400001" maxlength="6" required /></div>
+            <div class="form-group"><label>Mobile Number *</label><input class="form-input" id="mobileInput" type="tel" value="+91 " placeholder="+91 98xxx xxxxx" maxlength="15" required /></div>
+          </div>
+        </div>
+
+
+        <!-- Payment -->
+        <div class="form-section">
+          <h3><span class="material-icons" style="font-size:20px;vertical-align:middle;margin-right:0.4rem;color:var(--pistachio)">payments</span>Payment Method</h3>
+          <p style="font-size:13px;color:var(--outline);margin-bottom:1rem">Pay directly at the time of delivery at your doorstep.</p>
+          <div class="payment-methods">
+            <label class="payment-option selected" id="payCod" style="border-color:var(--amber);background:rgba(217,119,6,0.04)">
+              <input type="radio" name="payment" value="cod" checked />
+              <span class="payment-icon">💵</span>
+              <div class="payment-option-label">
+                Cash on Delivery (COD)
+                <div style="font-size:12px;font-weight:400;color:var(--on-surface-variant);margin-top:2px">Pay in cash directly to the courier upon receiving your insulated dry-ice cryo-box.</div>
+              </div>
+              <span style="font-size:11px;font-weight:700;color:var(--pistachio);background:rgba(59,105,52,0.12);padding:4px 10px;border-radius:var(--r-full);white-space:nowrap">ZERO COD FEE</span>
+            </label>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary btn-full btn-lg" style="margin-top:1rem">
+          <span class="material-icons">payments</span> Place Order (Cash on Delivery)
+        </button>
+      </form>
+    </div>
+
+    <!-- RIGHT: ORDER SUMMARY -->
+    <div>
+      <div class="summary-card" style="position:sticky;top:100px">
+        <div class="summary-header">
+          <h3>Order Summary</h3>
+          <p style="color:rgba(255,255,255,0.7);font-size:13px;margin-top:0.25rem">5 Handcrafted Items · Churn-Locked</p>
+        </div>
+        <div class="summary-body">
+          <!-- Static sample items for checkout display -->
+          <div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:1.5rem" id="checkoutItemsList">
+            <div style="display:flex;gap:0.75rem;align-items:center">
+              <img src="images/kalix_pistachio_rose.png" style="width:44px;height:44px;border-radius:var(--r-md);object-fit:cover;box-shadow:var(--shadow-sm);background:#eaf5ea" alt="Kalix Royal Pistachio &amp; Damask Rose Ice Cream" />
+              <div style="flex:1"><div style="font-size:13px;font-weight:600">Kalix Royal Pistachio &amp; Rose</div><div style="font-size:12px;color:var(--outline)">Roasted pistachio &amp; Damask rose · × 1</div></div>
+              <span style="font-size:13px;font-weight:700;color:var(--amber)">₹449</span>
+            </div>
+            <div style="display:flex;gap:0.75rem;align-items:center">
+              <img src="images/kalix_butterscotch.png" style="width:44px;height:44px;border-radius:var(--r-md);object-fit:cover;box-shadow:var(--shadow-sm);background:#fff7e6" alt="Kalix Salted Butterscotch Crunch Ice Cream" />
+              <div style="flex:1"><div style="font-size:13px;font-weight:600">Kalix Butterscotch Crunch</div><div style="font-size:12px;color:var(--outline)">Salted jaggery &amp; toffee shards · × 1</div></div>
+              <span style="font-size:13px;font-weight:700;color:var(--amber)">₹449</span>
+            </div>
+            <div style="display:flex;gap:0.75rem;align-items:center">
+              <img src="images/kalix_mango_chili.png" style="width:44px;height:44px;border-radius:var(--r-md);object-fit:cover;box-shadow:var(--shadow-sm);background:#fff3e0" alt="Kalix Ratnagiri Alphonso Mango &amp; Chili Pop" />
+              <div style="flex:1"><div style="font-size:13px;font-weight:600">Kalix Mango Chili Pop</div><div style="font-size:12px;color:var(--outline)">Devgad Alphonso &amp; Kashmiri chili · × 1</div></div>
+              <span style="font-size:13px;font-weight:700;color:var(--amber)">₹449</span>
+            </div>
+          </div>
+
+          <!-- Perks callout -->
+          <div style="background:linear-gradient(135deg,rgba(59,105,52,0.08),rgba(45,90,39,0.12));border:1px solid rgba(59,105,52,0.2);border-radius:var(--r-md);padding:1rem;margin-bottom:1.5rem">
+            <div style="display:flex;align-items:center;gap:0.5rem;font-size:13px;font-weight:600;color:var(--pistachio)"><span class="material-icons" style="font-size:16px">card_giftcard</span> Complimentary Dry-Ice Cryo-Box Unlocked!</div>
+            <p style="font-size:12px;color:var(--on-surface-variant);margin-top:0.4rem">Arrives rock-solid with guaranteed -18°C dry-ice containment.</p>
+          </div>
+
+          <!-- Use Coins Section in Checkout -->
+          <div class="coin-redeem-card" id="checkoutCoinCard">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.4rem">
+              <div style="display:flex;align-items:center;gap:0.4rem">
+                <span style="font-size:20px">🪙</span>
+                <span style="font-size:13px;font-weight:700">Use Reward Coins</span>
+              </div>
+              <span id="checkoutWalletCoins" style="font-size:12px;font-weight:700;color:var(--amber)">0 Coins (₹0)</span>
+            </div>
+            <p style="font-size:11px;color:var(--outline);margin-bottom:0.6rem">1 Coin = ₹5 value. Apply coins to discount this order!</p>
+            <div style="display:flex;gap:0.5rem;align-items:center">
+              <input type="number" id="checkoutCoinsInput" placeholder="Coins to use" min="1" class="form-input" style="padding:8px 12px;font-size:13px;flex:1" />
+              <button type="button" id="applyCheckoutCoinsBtn" class="btn-primary btn-sm" onclick="applyCheckoutCoins()" style="padding:8px 14px;white-space:nowrap;font-size:12px">Use This Coin</button>
+            </div>
+            <div id="checkoutCoinStatus" style="display:none;margin-top:0.5rem;font-size:12px;font-weight:600"></div>
+          </div>
+
+          <div class="summary-row"><span>Subtotal</span><span id="checkoutSubtotal">₹1,797</span></div>
+          <div class="summary-row"><span>Delivery</span><span style="color:var(--pistachio);font-weight:700">FREE</span></div>
+          <div class="summary-row" id="checkoutCoinDiscountRow" style="display:none;color:var(--pistachio);font-weight:700">
+            <span>Coin Discount (🪙 <span id="checkoutCoinsUsed">0</span>)</span>
+            <span>-₹<span id="checkoutCoinsDiscountAmt">0</span></span>
+          </div>
+          <div class="summary-row" style="font-size:12px;color:var(--outline)"><span>GST (5%)</span><span id="checkoutGst">₹90</span></div>
+          <div class="summary-row total"><span>Order Total</span><span id="checkoutTotal">₹1,887</span></div>
+
+          <div class="trust-badges" style="margin-top:1.5rem">
+            <div class="trust-badge"><span class="material-icons">payments</span> Cash on Delivery (COD) · Pay at Doorstep</div>
+            <div class="trust-badge"><span class="material-icons">ac_unit</span> Melt-Free Guarantee</div>
+            <div class="trust-badge"><span class="material-icons">eco</span> 100% Compostable packaging</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <div style="text-align:center;padding:2rem 0;border-top:var(--ghost-border)">
+      <p style="font-size:12px;color:var(--outline)">© 2024 Kalix Artisanal Glacé Pvt. Ltd. | <a href="#" style="color:var(--amber);text-decoration:none">Privacy Policy</a> | <a href="#" style="color:var(--amber);text-decoration:none">100% Melt-Free Guarantee</a> | FSSAI Lic. No. 10022022000841.</p>
+    </div>
+  </div>
+</footer>
+
+<div id="orderModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.6);align-items:center;justify-content:center">
+  <div style="background:white;border-radius:var(--r-xl);padding:3rem;max-width:480px;width:90%;text-align:center;box-shadow:var(--shadow-lg)">
+    <div style="font-size:64px;margin-bottom:1rem">🎉</div>
+    <h2 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:600;margin-bottom:0.75rem">Order Confirmed!</h2>
+    <div style="display:inline-block;background:rgba(59,105,52,0.1);color:var(--pistachio);font-weight:700;font-size:13px;padding:5px 14px;border-radius:var(--r-full);margin-bottom:1rem">Payment: Cash on Delivery (COD)</div>
+    <p style="color:var(--on-surface-variant);margin-bottom:1.5rem">Your artisanal ice creams are being packed in an insulated dry-ice cryo-box. Please pay in cash upon receiving your order at your doorstep.</p>
+    <a href="index.html" class="btn-primary">Back to Boutique <span class="material-icons">storefront</span></a>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+let appliedCheckoutCoins = parseInt(sessionStorage.getItem('kalixAppliedCoins') || '0');
+
+function updateCheckoutTotals() {
+  const itemsList = document.getElementById('checkoutItemsList');
+  const availableCoins = getRewardCoins();
+  const walletCoinsEl = document.getElementById('checkoutWalletCoins');
+  if (walletCoinsEl) walletCoinsEl.textContent = `${availableCoins} Coins (₹${availableCoins * COIN_VALUE_INR})`;
+
+  let subtotal = 0;
+  const totalItems = (cart && cart.length > 0) ? cart.reduce((s,i) => s + i.qty, 0) : 0;
+
+  if (cart && cart.length > 0) {
+    subtotal = cart.reduce((s,i) => s + (i.price * i.qty), 0);
+    if (itemsList) {
+      itemsList.innerHTML = cart.map(item => {
+        const f = FLAVORS.find(x => x.id === item.id) || item;
+        const img = item.image || (f && f.image) || 'images/kalix_pistachio_rose.png';
+        return `
+          <div style="display:flex;gap:0.75rem;align-items:center">
+            <img src="${img}" style="width:44px;height:44px;border-radius:var(--r-md);object-fit:cover;box-shadow:var(--shadow-sm)" alt="${item.name}" />
+            <div style="flex:1"><div style="font-size:13px;font-weight:600">${item.name}</div><div style="font-size:12px;color:var(--outline)">₹${item.price} · × ${item.qty}</div></div>
+            <span style="font-size:13px;font-weight:700;color:var(--amber)">₹${(item.price * item.qty).toLocaleString('en-IN')}</span>
+          </div>`;
+      }).join('');
+    }
+  } else {
+    subtotal = 1797;
+  }
+
+  // Enforce 10-item requirement
+  const coinInput = document.getElementById('checkoutCoinsInput');
+  const status = document.getElementById('checkoutCoinStatus');
+  const applyBtn = document.getElementById('applyCheckoutCoinsBtn');
+
+  if (totalItems < 10) {
+    if (coinInput) {
+      coinInput.disabled = true;
+      coinInput.placeholder = 'Requires 10 Ice Creams';
+      coinInput.style.opacity = '0.6';
+      coinInput.style.cursor = 'not-allowed';
+    }
+    if (applyBtn) {
+      applyBtn.disabled = true;
+      applyBtn.style.opacity = '0.6';
+      applyBtn.style.cursor = 'not-allowed';
+    }
+    if (status) {
+      status.style.display = 'block';
+      status.style.color = '#ef4444';
+      status.innerHTML = `<span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:2px">lock</span> Coin redemption locked. Requires 10 ice creams in order (${totalItems}/10).`;
+    }
+    appliedCheckoutCoins = 0;
+    sessionStorage.removeItem('kalixAppliedCoins');
+  } else {
+    if (coinInput) {
+      coinInput.disabled = false;
+      coinInput.placeholder = 'Coins to use';
+      coinInput.style.opacity = '1';
+      coinInput.style.cursor = 'text';
+    }
+    if (applyBtn) {
+      applyBtn.disabled = false;
+      applyBtn.style.opacity = '1';
+      applyBtn.style.cursor = 'pointer';
+    }
+    if (status && appliedCheckoutCoins === 0) {
+      status.style.display = 'block';
+      status.style.color = 'var(--pistachio)';
+      status.innerHTML = `<span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:2px">check_circle</span> 10 Ice Creams Qualified! Coin discount unlocked.`;
+    }
+  }
+
+  const maxCoins = Math.min(availableCoins, Math.ceil(subtotal / COIN_VALUE_INR));
+  if (appliedCheckoutCoins > maxCoins) {
+    appliedCheckoutCoins = maxCoins;
+    sessionStorage.setItem('kalixAppliedCoins', appliedCheckoutCoins.toString());
+  }
+
+  const coinDiscount = appliedCheckoutCoins * COIN_VALUE_INR;
+  const gst = Math.round(subtotal * 0.05);
+  const total = Math.max(0, subtotal + gst - coinDiscount);
+
+  const subtotalEl = document.getElementById('checkoutSubtotal');
+  const gstEl = document.getElementById('checkoutGst');
+  const totalEl = document.getElementById('checkoutTotal');
+  const discountRow = document.getElementById('checkoutCoinDiscountRow');
+  const coinsUsedEl = document.getElementById('checkoutCoinsUsed');
+  const discountAmtEl = document.getElementById('checkoutCoinsDiscountAmt');
+
+  if (subtotalEl) subtotalEl.textContent = '₹' + subtotal.toLocaleString('en-IN');
+  if (gstEl) gstEl.textContent = '₹' + gst.toLocaleString('en-IN');
+  if (totalEl) totalEl.textContent = '₹' + total.toLocaleString('en-IN');
+
+  if (discountRow) {
+    if (coinDiscount > 0) {
+      discountRow.style.display = 'flex';
+      if (coinsUsedEl) coinsUsedEl.textContent = appliedCheckoutCoins;
+      if (discountAmtEl) discountAmtEl.textContent = coinDiscount.toLocaleString('en-IN');
+    } else {
+      discountRow.style.display = 'none';
+    }
+  }
+}
+
+function applyCheckoutCoins() {
+  const totalItems = (cart && cart.length > 0) ? cart.reduce((s,i) => s + i.qty, 0) : 0;
+  const input = document.getElementById('checkoutCoinsInput');
+  const status = document.getElementById('checkoutCoinStatus');
+
+  if (totalItems < 10) {
+    if (status) {
+      status.style.display = 'block';
+      status.style.color = '#ef4444';
+      status.innerHTML = `<span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:2px">lock</span> Requires 10 ice creams in your order to redeem coins (Current: ${totalItems}/10).`;
+    }
+    showToast('🔒 10 Ice Creams required to redeem coins!');
+    return;
+  }
+
+  if (!input) return;
+  const coins = parseInt(input.value);
+  const available = getRewardCoins();
+
+  if (isNaN(coins) || coins <= 0) {
+    if (status) { status.style.display = 'block'; status.style.color = '#ef4444'; status.textContent = 'Please enter a valid coin amount.'; }
+    return;
+  }
+  if (coins > available) {
+    if (status) { status.style.display = 'block'; status.style.color = '#ef4444'; status.textContent = `You only have ${available} coins available.`; }
+    return;
+  }
+
+  appliedCheckoutCoins = coins;
+  sessionStorage.setItem('kalixAppliedCoins', coins.toString());
+  if (status) {
+    status.style.display = 'block';
+    status.style.color = 'var(--pistachio)';
+    status.textContent = `✓ ${coins} Coins applied (-₹${coins * COIN_VALUE_INR} discount)!`;
+  }
+  showToast(`🪙 ${coins} Coins Applied (-₹${coins * COIN_VALUE_INR})`);
+  updateCheckoutTotals();
+}
+
+function placeOrder(e) {
+  e.preventDefault();
+  const totalItems = (cart && cart.length > 0) ? cart.reduce((s,i)=>s+i.qty, 0) : 10;
+
+  if (appliedCheckoutCoins > 0) {
+    setRewardCoins(getRewardCoins() - appliedCheckoutCoins);
+    sessionStorage.removeItem('kalixAppliedCoins');
+    appliedCheckoutCoins = 0;
+  }
+
+  const modal = document.getElementById('orderModal');
+  if (modal) modal.style.display = 'flex';
+
+  localStorage.removeItem('kalixCart');
+  cart = [];
+  updateBadges();
+
+  if (totalItems >= 10) {
+    setTimeout(() => {
+      if (modal) modal.style.display = 'none';
+      if (typeof triggerMilestoneScreen === 'function') {
+        triggerMilestoneScreen();
+      } else {
+        triggerPackOpening();
+      }
+    }, 2000);
+  }
+}
+
+document.getElementById('orderModal')?.addEventListener('click', function(e) {
+  if(e.target===this) this.style.display='none';
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  updateCheckoutTotals();
+});
+
+// Map Picker Functionality
+let deliveryMap = null;
+let deliveryMarker = null;
+let currentAddressData = null;
+let geocodeTimer = null;
+
+function initDeliveryMap(lat = 9.9312, lng = 76.2673) {
+  if (deliveryMap) return;
+  const mapEl = document.getElementById('leafletMap');
+  if (!mapEl || typeof L === 'undefined') return;
+
+  // Custom golden luxury icon
+  const customIcon = L.divIcon({
+    className: 'custom-map-pin',
+    html: '<div style="background:linear-gradient(135deg, #d97706, #b45309);width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid white;box-shadow:0 4px 12px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center"><span style="transform:rotate(45deg);font-size:16px">🍦</span></div>',
+    iconSize: [34, 34],
+    iconAnchor: [17, 34],
+    popupAnchor: [0, -34]
+  });
+
+  deliveryMap = L.map('leafletMap').setView([lat, lng], 13);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19,
+    attribution: '© Esri — World Street Map'
+  }).addTo(deliveryMap);
+
+  deliveryMarker = L.marker([lat, lng], { draggable: true, icon: customIcon }).addTo(deliveryMap);
+
+  deliveryMap.on('click', function(e) {
+    deliveryMarker.setLatLng(e.latlng);
+    fetchReverseGeocode(e.latlng.lat, e.latlng.lng, false);
+  });
+
+  deliveryMarker.on('dragend', function() {
+    const pos = deliveryMarker.getLatLng();
+    fetchReverseGeocode(pos.lat, pos.lng, false);
+  });
+
+  fetchReverseGeocode(lat, lng, false);
+}
+
+function toggleMapPicker() {
+  const wrapper = document.getElementById('mapPickerWrapper');
+  const btnText = document.getElementById('mapBtnText');
+  if (!wrapper) return;
+  
+  if (wrapper.style.display === 'none' || !wrapper.style.display) {
+    wrapper.style.display = 'block';
+    if (btnText) btnText.textContent = 'Hide Map';
+    if (!deliveryMap) {
+      initDeliveryMap();
+    } else {
+      setTimeout(() => deliveryMap.invalidateSize(), 150);
+    }
+  } else {
+    wrapper.style.display = 'none';
+    if (btnText) btnText.textContent = 'Select on Map';
+  }
+}
+
+function detectUserLocation() {
+  const geoStatus = document.getElementById('geoStatus');
+  const wrapper = document.getElementById('mapPickerWrapper');
+  const btnText = document.getElementById('mapBtnText');
+
+  if (wrapper) wrapper.style.display = 'block';
+  if (btnText) btnText.textContent = 'Hide Map';
+
+  if (!navigator.geolocation) {
+    if (geoStatus) geoStatus.innerHTML = '<span class="material-icons" style="font-size:14px;color:#ef4444">error</span> Geolocation not supported';
+    showToast('Geolocation is not supported by your browser');
+    if (!deliveryMap) initDeliveryMap();
+    return;
+  }
+
+  if (geoStatus) geoStatus.innerHTML = '<span class="material-icons" style="font-size:14px;color:var(--amber)">sync</span> Detecting GPS location...';
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      if (!deliveryMap) {
+        initDeliveryMap(lat, lng);
+      } else {
+        deliveryMap.setView([lat, lng], 15);
+        deliveryMarker.setLatLng([lat, lng]);
+        setTimeout(() => deliveryMap.invalidateSize(), 150);
+      }
+      fetchReverseGeocode(lat, lng, true);
+    },
+    (error) => {
+      console.warn('Geolocation error:', error.message);
+      if (geoStatus) geoStatus.innerHTML = '<span class="material-icons" style="font-size:14px;color:var(--amber)">location_on</span> Drag map to pin';
+      showToast('Click or drag on the map to pin your location.');
+      if (!deliveryMap) initDeliveryMap();
+    },
+    { timeout: 10000, enableHighAccuracy: true }
+  );
+}
+
+function fetchReverseGeocode(lat, lng, autoApply = false) {
+  const geoStatus = document.getElementById('geoStatus');
+  const textEl = document.getElementById('pinnedAddressText');
+  if (geoStatus) geoStatus.innerHTML = '<span class="material-icons" style="font-size:14px;color:var(--amber)">sync</span> Getting address...';
+  if (textEl) textEl.textContent = `Pin: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+
+  clearTimeout(geocodeTimer);
+  geocodeTimer = setTimeout(() => {
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`, {
+      headers: { 'Accept': 'application/json' }
+    })
+    .then(r => r.json())
+    .then(data => {
+      currentAddressData = data;
+      if (data && data.address) {
+        const addr = data.address;
+        const main = addr.road || addr.suburb || addr.neighbourhood || addr.amenity || '';
+        const city = addr.city || addr.town || addr.county || addr.district || addr.state_district || '';
+        const state = addr.state || '';
+        const pin = addr.postcode || '';
+
+        const summary = [main, city, state, pin].filter(Boolean).join(', ');
+        if (textEl) textEl.textContent = summary || data.display_name;
+        if (geoStatus) geoStatus.innerHTML = '<span class="material-icons" style="font-size:14px;color:var(--pistachio)">check_circle</span> Pin Selected';
+
+        if (autoApply) {
+          applyMapAddress();
+        }
+      } else {
+        if (geoStatus) geoStatus.innerHTML = '<span class="material-icons" style="font-size:14px;color:var(--pistachio)">place</span> Pin Dropped';
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      if (geoStatus) geoStatus.innerHTML = '<span class="material-icons" style="font-size:14px;color:var(--pistachio)">place</span> Pin Dropped';
+      if (textEl) textEl.textContent = `Pinned: Lat ${lat.toFixed(4)}, Lng ${lng.toFixed(4)}`;
+    });
+  }, 300);
+}
+
+function applyMapAddress() {
+  if (!currentAddressData || !currentAddressData.address) {
+    showToast('Click or drag the pin on the map first');
+    return;
+  }
+  const addr = currentAddressData.address;
+
+  // Fill Address Line 1
+  const line1Parts = [addr.house_number, addr.building, addr.road].filter(Boolean);
+  const line1Input = document.getElementById('addressLine1');
+  if (line1Input) {
+    if (line1Parts.length > 0) {
+      line1Input.value = line1Parts.join(', ');
+    } else if (!line1Input.value) {
+      line1Input.value = addr.road || addr.suburb || addr.neighbourhood || '';
+    }
+  }
+
+  // Fill Address Line 2
+  const line2Parts = [addr.neighbourhood, addr.suburb, addr.residential].filter(Boolean);
+  const line2Input = document.getElementById('addressLine2');
+  if (line2Input && line2Parts.length > 0) {
+    line2Input.value = line2Parts.join(', ');
+  }
+
+  // Fill City
+  const city = addr.city || addr.town || addr.village || addr.county || addr.district || addr.state_district || '';
+  const cityInput = document.getElementById('cityInput');
+  if (cityInput && city) {
+    cityInput.value = city;
+  }
+
+  // Match State
+  const state = addr.state || '';
+  const stateSelect = document.getElementById('stateSelect');
+  if (stateSelect && state) {
+    const sLower = state.toLowerCase();
+    for (let opt of stateSelect.options) {
+      if (opt.value && (sLower.includes(opt.value.toLowerCase()) || opt.value.toLowerCase().includes(sLower))) {
+        stateSelect.value = opt.value;
+        break;
+      }
+    }
+  }
+
+  // Fill PIN Code
+  const pinInput = document.getElementById('pinCodeInput');
+  if (pinInput && addr.postcode) {
+    const cleanPin = addr.postcode.replace(/\D/g, '').slice(0, 6);
+    if (cleanPin) pinInput.value = cleanPin;
+  }
+
+  showToast('✓ Address populated from Map!');
+}
+
+// Mobile Number +91 formatting and prefix protection
+const mobileInput = document.getElementById('mobileInput');
+if (mobileInput) {
+  mobileInput.addEventListener('focus', function() {
+    if (!this.value || this.value.trim() === '') {
+      this.value = '+91 ';
+    }
+    if (this.selectionStart < 4) {
+      this.setSelectionRange(this.value.length, this.value.length);
+    }
+  });
+
+  mobileInput.addEventListener('keydown', function(e) {
+    if (this.selectionStart <= 4 && (e.key === 'Backspace' || e.key === 'Delete')) {
+      e.preventDefault();
+    }
+  });
+
+  mobileInput.addEventListener('input', function() {
+    let val = this.value;
+    if (val.startsWith('+91')) {
+      val = val.substring(3);
+    }
+    const digits = val.replace(/\D/g, '').slice(0, 10);
+    this.value = '+91 ' + digits;
+  });
+}
+</script>
+</body>
+</html>
