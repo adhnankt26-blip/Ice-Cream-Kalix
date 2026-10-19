@@ -405,7 +405,6 @@ function applyCheckoutCoins() {
 
   if (!input) return;
   const coins = parseInt(input.value);
-  const available = getRewardCoins();
 
   if (isNaN(coins) || coins <= 0) {
     if (status) { status.style.display = 'block'; status.style.color = '#ef4444'; status.textContent = 'Please enter a valid coin amount.'; }
