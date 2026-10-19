@@ -10,6 +10,12 @@
   <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    if (typeof L === 'undefined') {
+      document.write('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />');
+      document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"><\/script>');
+    }
+  </script>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body data-page="checkout">
@@ -140,27 +146,10 @@
       <div class="summary-card" style="position:sticky;top:100px">
         <div class="summary-header">
           <h3>Order Summary</h3>
-          <p style="color:rgba(255,255,255,0.7);font-size:13px;margin-top:0.25rem">5 Handcrafted Items · Churn-Locked</p>
+          <p style="color:rgba(255,255,255,0.7);font-size:13px;margin-top:0.25rem" id="checkoutOrderItemsSubtitle">Loading items...</p>
         </div>
         <div class="summary-body">
-          <!-- Static sample items for checkout display -->
-          <div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:1.5rem" id="checkoutItemsList">
-            <div style="display:flex;gap:0.75rem;align-items:center">
-              <img src="images/kalix_pistachio_rose.png" style="width:44px;height:44px;border-radius:var(--r-md);object-fit:cover;box-shadow:var(--shadow-sm);background:#eaf5ea" alt="Kalix Royal Pistachio &amp; Damask Rose Ice Cream" />
-              <div style="flex:1"><div style="font-size:13px;font-weight:600">Kalix Royal Pistachio &amp; Rose</div><div style="font-size:12px;color:var(--outline)">Roasted pistachio &amp; Damask rose · × 1</div></div>
-              <span style="font-size:13px;font-weight:700;color:var(--amber)">₹449</span>
-            </div>
-            <div style="display:flex;gap:0.75rem;align-items:center">
-              <img src="images/kalix_butterscotch.png" style="width:44px;height:44px;border-radius:var(--r-md);object-fit:cover;box-shadow:var(--shadow-sm);background:#fff7e6" alt="Kalix Salted Butterscotch Crunch Ice Cream" />
-              <div style="flex:1"><div style="font-size:13px;font-weight:600">Kalix Butterscotch Crunch</div><div style="font-size:12px;color:var(--outline)">Salted jaggery &amp; toffee shards · × 1</div></div>
-              <span style="font-size:13px;font-weight:700;color:var(--amber)">₹449</span>
-            </div>
-            <div style="display:flex;gap:0.75rem;align-items:center">
-              <img src="images/kalix_mango_chili.png" style="width:44px;height:44px;border-radius:var(--r-md);object-fit:cover;box-shadow:var(--shadow-sm);background:#fff3e0" alt="Kalix Ratnagiri Alphonso Mango &amp; Chili Pop" />
-              <div style="flex:1"><div style="font-size:13px;font-weight:600">Kalix Mango Chili Pop</div><div style="font-size:12px;color:var(--outline)">Devgad Alphonso &amp; Kashmiri chili · × 1</div></div>
-              <span style="font-size:13px;font-weight:700;color:var(--amber)">₹449</span>
-            </div>
-          </div>
+          <div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:1.5rem" id="checkoutItemsList"></div>
 
           <!-- Perks callout -->
           <div style="background:linear-gradient(135deg,rgba(59,105,52,0.08),rgba(45,90,39,0.12));border:1px solid rgba(59,105,52,0.2);border-radius:var(--r-md);padding:1rem;margin-bottom:1.5rem">
@@ -262,24 +251,61 @@ function updateCheckoutTotals() {
   if (walletCoinsEl) walletCoinsEl.textContent = `${availableCoins} Coins (₹${availableCoins * COIN_VALUE_INR})`;
 
   let subtotal = 0;
-  const totalItems = (cart && cart.length > 0) ? cart.reduce((s,i) => s + i.qty, 0) : 0;
+  const totalItems = (cart && Array.isArray(cart)) ? cart.reduce((s,i) => s + (Number(i.qty) || 0), 0) : 0;
+  const headerSubtitle = document.getElementById('checkoutOrderItemsSubtitle');
+  if (headerSubtitle) {
+    headerSubtitle.textContent = totalItems === 0
+      ? '0 Handcrafted Items · Cryo-Bag Empty'
+      : `${totalItems} Handcrafted Item${totalItems === 1 ? '' : 's'} · Churn-Locked`;
+  }
 
-  if (cart && cart.length > 0) {
-    subtotal = cart.reduce((s,i) => s + (i.price * i.qty), 0);
+  const submitBtn = document.querySelector('button[type="submit"]');
+
+  if (cart && Array.isArray(cart) && cart.length > 0) {
+    subtotal = cart.reduce((s,i) => s + ((Number(i.price) || 0) * (Number(i.qty) || 0)), 0);
     if (itemsList) {
       itemsList.innerHTML = cart.map(item => {
-        const f = FLAVORS.find(x => x.id === item.id) || item;
+        const f = FLAVORS.find(x => x.id === parseInt(item.id) || x.id === item.id) || item;
         const img = item.image || (f && f.image) || 'images/kalix_pistachio_rose.png';
+        const itemPrice = Number(item.price) || (f && f.price) || 0;
+        const itemQty = Number(item.qty) || 1;
+        const subtitle = (f && f.subtitle) ? f.subtitle : (item.name || 'Artisanal Ice Cream');
         return `
           <div style="display:flex;gap:0.75rem;align-items:center">
-            <img src="${img}" style="width:44px;height:44px;border-radius:var(--r-md);object-fit:cover;box-shadow:var(--shadow-sm)" alt="${item.name}" />
-            <div style="flex:1"><div style="font-size:13px;font-weight:600">${item.name}</div><div style="font-size:12px;color:var(--outline)">₹${item.price} · × ${item.qty}</div></div>
-            <span style="font-size:13px;font-weight:700;color:var(--amber)">₹${(item.price * item.qty).toLocaleString('en-IN')}</span>
+            <img src="${img}" style="width:44px;height:44px;border-radius:var(--r-md);object-fit:cover;box-shadow:var(--shadow-sm);background:var(--surface-container-low)" alt="${item.name}" />
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:600">${item.name}</div>
+              <div style="font-size:12px;color:var(--outline)">${subtitle} · × ${itemQty}</div>
+            </div>
+            <span style="font-size:13px;font-weight:700;color:var(--amber)">₹${(itemPrice * itemQty).toLocaleString('en-IN')}</span>
           </div>`;
       }).join('');
     }
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.style.opacity = '1';
+      submitBtn.style.cursor = 'pointer';
+      submitBtn.innerHTML = `<span>Dispatch My Cryo-Vault</span> <span class="material-icons">lock</span>`;
+    }
   } else {
-    subtotal = 1797;
+    subtotal = 0;
+    if (itemsList) {
+      itemsList.innerHTML = `
+        <div style="text-align:center;padding:1.75rem 1rem;background:var(--surface-container-lowest);border-radius:var(--r-md);border:1px dashed var(--outline)">
+          <span class="material-icons" style="font-size:36px;color:var(--outline);display:block;margin-bottom:0.4rem">shopping_bag</span>
+          <p style="font-size:13px;font-weight:600;color:var(--on-surface);margin-bottom:0.25rem">Your Cryo-Bag is Empty</p>
+          <p style="font-size:12px;color:var(--outline);margin-bottom:0.85rem">Please add artisanal ice creams to proceed.</p>
+          <a href="index.html#flavors" class="btn-primary btn-sm" style="display:inline-flex;align-items:center;gap:0.25rem;text-decoration:none;font-size:12px;padding:6px 14px">
+            Explore Flavors <span class="material-icons" style="font-size:14px">storefront</span>
+          </a>
+        </div>`;
+    }
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.style.opacity = '0.6';
+      submitBtn.style.cursor = 'not-allowed';
+      submitBtn.innerHTML = `<span>Cryo-Bag is Empty</span> <span class="material-icons">shopping_bag</span>`;
+    }
   }
 
   // Reward Coins redemption (usable on any order whenever user has coins)
@@ -405,6 +431,10 @@ function placeOrder(e) {
   e.preventDefault();
   syncCartFromStorage();
   const totalItems = (cart && cart.length > 0) ? cart.reduce((s,i)=>s+i.qty, 0) : 0;
+  if (totalItems === 0) {
+    showToast('⚠️ Your cryo-bag is empty. Please select ice creams before checking out!');
+    return;
+  }
 
   // Track cumulative items across orders
   const prevOrdered = parseInt(localStorage.getItem('kalixTotalOrderedPints') || '0');
@@ -463,49 +493,94 @@ document.getElementById('orderModal')?.addEventListener('click', function(e) {
   if(e.target===this) this.style.display='none';
 });
 
-document.addEventListener('DOMContentLoaded', () => {
-  updateCheckoutTotals();
+// Run immediately to populate real cart items
+updateCheckoutTotals();
+
+// Also run on DOM ready, pageshow, and cross-tab storage
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', updateCheckoutTotals);
+}
+window.addEventListener('pageshow', updateCheckoutTotals);
+window.addEventListener('focus', updateCheckoutTotals);
+window.addEventListener('storage', (e) => {
+  if (e.key === 'kalixCart') updateCheckoutTotals();
 });
 
-// Map Picker Functionality
+// Map Picker & Geolocation Functionality
 let deliveryMap = null;
 let deliveryMarker = null;
 let currentAddressData = null;
 let geocodeTimer = null;
 
-function initDeliveryMap(lat = 9.9312, lng = 76.2673) {
+// Helper to ensure Leaflet library is loaded before calling map APIs
+function ensureLeafletLoaded(callback) {
+  if (typeof L !== 'undefined') {
+    callback();
+    return;
+  }
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css';
+  document.head.appendChild(link);
+
+  const script = document.createElement('script');
+  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js';
+  script.onload = () => callback();
+  script.onerror = () => {
+    showToast('Failed to load map library. Please check your internet connection.');
+  };
+  document.head.appendChild(script);
+}
+
+// Invalidate Leaflet map size across layout transitions
+function refreshMapSize() {
+  if (!deliveryMap) return;
+  deliveryMap.invalidateSize();
+  setTimeout(() => { if (deliveryMap) deliveryMap.invalidateSize(); }, 80);
+  setTimeout(() => { if (deliveryMap) deliveryMap.invalidateSize(); }, 250);
+  setTimeout(() => { if (deliveryMap) deliveryMap.invalidateSize(); }, 600);
+}
+
+function initDeliveryMap(lat = 11.8900, lng = 75.5200) {
   if (deliveryMap) return;
   const mapEl = document.getElementById('leafletMap');
-  if (!mapEl || typeof L === 'undefined') return;
+  if (!mapEl) return;
 
-  // Custom golden luxury icon
-  const customIcon = L.divIcon({
-    className: 'custom-map-pin',
-    html: '<div style="background:linear-gradient(135deg, #d97706, #b45309);width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid white;box-shadow:0 4px 12px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center"><span style="transform:rotate(45deg);font-size:16px">🍦</span></div>',
-    iconSize: [34, 34],
-    iconAnchor: [17, 34],
-    popupAnchor: [0, -34]
+  ensureLeafletLoaded(() => {
+    if (deliveryMap) return;
+
+    // Custom golden luxury ice cream icon
+    const customIcon = L.divIcon({
+      className: 'custom-map-pin',
+      html: '<div style="background:linear-gradient(135deg, #d97706, #b45309);width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid white;box-shadow:0 4px 12px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center"><span style="transform:rotate(45deg);font-size:16px">🍦</span></div>',
+      iconSize: [34, 34],
+      iconAnchor: [17, 34],
+      popupAnchor: [0, -34]
+    });
+
+    deliveryMap = L.map('leafletMap').setView([lat, lng], 13);
+    
+    // High-performance OpenStreetMap tiles
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(deliveryMap);
+
+    deliveryMarker = L.marker([lat, lng], { draggable: true, icon: customIcon }).addTo(deliveryMap);
+
+    deliveryMap.on('click', function(e) {
+      deliveryMarker.setLatLng(e.latlng);
+      fetchReverseGeocode(e.latlng.lat, e.latlng.lng, false);
+    });
+
+    deliveryMarker.on('dragend', function() {
+      const pos = deliveryMarker.getLatLng();
+      fetchReverseGeocode(pos.lat, pos.lng, false);
+    });
+
+    refreshMapSize();
+    fetchReverseGeocode(lat, lng, false);
   });
-
-  deliveryMap = L.map('leafletMap').setView([lat, lng], 13);
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-    maxZoom: 19,
-    attribution: '© Esri — World Street Map'
-  }).addTo(deliveryMap);
-
-  deliveryMarker = L.marker([lat, lng], { draggable: true, icon: customIcon }).addTo(deliveryMap);
-
-  deliveryMap.on('click', function(e) {
-    deliveryMarker.setLatLng(e.latlng);
-    fetchReverseGeocode(e.latlng.lat, e.latlng.lng, false);
-  });
-
-  deliveryMarker.on('dragend', function() {
-    const pos = deliveryMarker.getLatLng();
-    fetchReverseGeocode(pos.lat, pos.lng, false);
-  });
-
-  fetchReverseGeocode(lat, lng, false);
 }
 
 function toggleMapPicker() {
@@ -513,14 +588,17 @@ function toggleMapPicker() {
   const btnText = document.getElementById('mapBtnText');
   if (!wrapper) return;
   
-  if (wrapper.style.display === 'none' || !wrapper.style.display) {
+  const isHidden = wrapper.style.display === 'none' || !wrapper.style.display;
+  if (isHidden) {
     wrapper.style.display = 'block';
     if (btnText) btnText.textContent = 'Hide Map';
-    if (!deliveryMap) {
-      initDeliveryMap();
-    } else {
-      setTimeout(() => deliveryMap.invalidateSize(), 150);
-    }
+    ensureLeafletLoaded(() => {
+      if (!deliveryMap) {
+        initDeliveryMap();
+      } else {
+        refreshMapSize();
+      }
+    });
   } else {
     wrapper.style.display = 'none';
     if (btnText) btnText.textContent = 'Select on Map';
@@ -531,119 +609,267 @@ function detectUserLocation() {
   const geoStatus = document.getElementById('geoStatus');
   const wrapper = document.getElementById('mapPickerWrapper');
   const btnText = document.getElementById('mapBtnText');
+  const detectBtn = document.getElementById('detectLocBtn');
 
   if (wrapper) wrapper.style.display = 'block';
   if (btnText) btnText.textContent = 'Hide Map';
 
-  if (!navigator.geolocation) {
-    if (geoStatus) geoStatus.innerHTML = '<span class="material-icons" style="font-size:14px;color:#ef4444">error</span> Geolocation not supported';
-    showToast('Geolocation is not supported by your browser');
-    if (!deliveryMap) initDeliveryMap();
-    return;
+  if (geoStatus) {
+    geoStatus.innerHTML = '<span class="material-icons spin" style="font-size:14px;color:var(--amber)">sync</span> Detecting your location...';
+  }
+  if (detectBtn) {
+    detectBtn.disabled = true;
+    detectBtn.innerHTML = '<span class="material-icons spin" style="font-size:16px">sync</span> Detecting...';
   }
 
-  if (geoStatus) geoStatus.innerHTML = '<span class="material-icons" style="font-size:14px;color:var(--amber)">sync</span> Detecting GPS location...';
-
-  navigator.geolocation.getCurrentPosition(
-    (position) => {
-      const lat = position.coords.latitude;
-      const lng = position.coords.longitude;
-      if (!deliveryMap) {
-        initDeliveryMap(lat, lng);
-      } else {
-        deliveryMap.setView([lat, lng], 15);
-        deliveryMarker.setLatLng([lat, lng]);
-        setTimeout(() => deliveryMap.invalidateSize(), 150);
-      }
-      fetchReverseGeocode(lat, lng, true);
-    },
-    (error) => {
-      console.warn('Geolocation error:', error.message);
-      if (geoStatus) geoStatus.innerHTML = '<span class="material-icons" style="font-size:14px;color:var(--amber)">location_on</span> Drag map to pin';
-      showToast('Click or drag on the map to pin your location.');
-      if (!deliveryMap) initDeliveryMap();
-    },
-    { timeout: 10000, enableHighAccuracy: true }
-  );
-}
-
-function fetchReverseGeocode(lat, lng, autoApply = false) {
-  const geoStatus = document.getElementById('geoStatus');
-  const textEl = document.getElementById('pinnedAddressText');
-  if (geoStatus) geoStatus.innerHTML = '<span class="material-icons" style="font-size:14px;color:var(--amber)">sync</span> Getting address...';
-  if (textEl) textEl.textContent = `Pin: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-
-  clearTimeout(geocodeTimer);
-  geocodeTimer = setTimeout(() => {
-    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`, {
-      headers: { 'Accept': 'application/json' }
-    })
-    .then(r => r.json())
-    .then(data => {
-      currentAddressData = data;
-      if (data && data.address) {
-        const addr = data.address;
-        const main = addr.road || addr.suburb || addr.neighbourhood || addr.amenity || '';
-        const city = addr.city || addr.town || addr.county || addr.district || addr.state_district || '';
-        const state = addr.state || '';
-        const pin = addr.postcode || '';
-
-        const summary = [main, city, state, pin].filter(Boolean).join(', ');
-        if (textEl) textEl.textContent = summary || data.display_name;
-        if (geoStatus) geoStatus.innerHTML = '<span class="material-icons" style="font-size:14px;color:var(--pistachio)">check_circle</span> Pin Selected';
-
-        if (autoApply) {
-          applyMapAddress();
-        }
-      } else {
-        if (geoStatus) geoStatus.innerHTML = '<span class="material-icons" style="font-size:14px;color:var(--pistachio)">place</span> Pin Dropped';
-      }
-    })
-    .catch(err => {
-      console.error(err);
-      if (geoStatus) geoStatus.innerHTML = '<span class="material-icons" style="font-size:14px;color:var(--pistachio)">place</span> Pin Dropped';
-      if (textEl) textEl.textContent = `Pinned: Lat ${lat.toFixed(4)}, Lng ${lng.toFixed(4)}`;
-    });
-  }, 300);
-}
-
-function applyMapAddress() {
-  if (!currentAddressData || !currentAddressData.address) {
-    showToast('Click or drag the pin on the map first');
-    return;
-  }
-  const addr = currentAddressData.address;
-
-  // Fill Address Line 1
-  const line1Parts = [addr.house_number, addr.building, addr.road].filter(Boolean);
-  const line1Input = document.getElementById('addressLine1');
-  if (line1Input) {
-    if (line1Parts.length > 0) {
-      line1Input.value = line1Parts.join(', ');
-    } else if (!line1Input.value) {
-      line1Input.value = addr.road || addr.suburb || addr.neighbourhood || '';
+  function resetBtn() {
+    if (detectBtn) {
+      detectBtn.disabled = false;
+      detectBtn.innerHTML = '<span class="material-icons" style="font-size:16px;color:var(--pistachio)">my_location</span> Detect Location';
     }
   }
 
+  function onLocationSuccess(lat, lng, bdcData = null) {
+    ensureLeafletLoaded(() => {
+      if (!deliveryMap) {
+        initDeliveryMap(lat, lng);
+      } else {
+        deliveryMap.setView([lat, lng], 14);
+        if (deliveryMarker) deliveryMarker.setLatLng([lat, lng]);
+        refreshMapSize();
+      }
+
+      if (bdcData) {
+        parseAndApplyAddress(bdcData, lat, lng, true);
+        resetBtn();
+      } else {
+        fetchReverseGeocode(lat, lng, true, () => {
+          resetBtn();
+        });
+      }
+    });
+  }
+
+  function fallbackToIpLocation() {
+    if (geoStatus) {
+      geoStatus.innerHTML = '<span class="material-icons spin" style="font-size:14px;color:var(--amber)">sync</span> Resolving via network...';
+    }
+    fetch('https://api.bigdatacloud.net/data/reverse-geocode-client')
+      .then(res => res.json())
+      .then(data => {
+        const lat = parseFloat(data.latitude) || 11.8900;
+        const lng = parseFloat(data.longitude) || 75.5200;
+        onLocationSuccess(lat, lng, data);
+      })
+      .catch(err => {
+        console.warn('IP geocode failed:', err);
+        resetBtn();
+        if (geoStatus) {
+          geoStatus.innerHTML = '<span class="material-icons" style="font-size:14px;color:var(--amber)">location_on</span> Drag map to pin';
+        }
+        ensureLeafletLoaded(() => {
+          if (!deliveryMap) initDeliveryMap(11.8900, 75.5200);
+          refreshMapSize();
+        });
+        showToast('Click or drag on the map to set your location.');
+      });
+  }
+
+  const isSecure = window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+  if (navigator.geolocation && isSecure) {
+    let handled = false;
+    const timeoutTimer = setTimeout(() => {
+      if (!handled) {
+        handled = true;
+        fallbackToIpLocation();
+      }
+    }, 3500);
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        if (handled) return;
+        handled = true;
+        clearTimeout(timeoutTimer);
+        onLocationSuccess(pos.coords.latitude, pos.coords.longitude);
+      },
+      (err) => {
+        if (handled) return;
+        handled = true;
+        clearTimeout(timeoutTimer);
+        console.warn('GPS error, falling back to IP:', err.message);
+        fallbackToIpLocation();
+      },
+      { timeout: 3500, enableHighAccuracy: false }
+    );
+  } else {
+    // Immediate fallback for file://, insecure origins, or when geolocation is unavailable
+    fallbackToIpLocation();
+  }
+}
+
+function parseAndApplyAddress(data, lat, lng, autoApply = false) {
+  const geoStatus = document.getElementById('geoStatus');
+  const textEl = document.getElementById('pinnedAddressText');
+
+  const admin = data.localityInfo?.administrative || [];
+  const distObj = admin.find(a => a.adminLevel === 5 || (a.description && a.description.toLowerCase().includes('district')));
+  const talukObj = admin.find(a => a.adminLevel === 6 || (a.description && a.description.toLowerCase().includes('taluk')));
+  const localObj = admin.find(a => a.adminLevel >= 7 || (a.name && (a.name.includes('Panchayat') || a.name.includes('Municipality'))));
+
+  const city = data.city || data.locality || (distObj?.name ? distObj.name.replace(/ district/i, '') : '') || 'Tellicherry';
+  const state = data.principalSubdivision || 'Kerala';
+  const pincode = data.postcode ? data.postcode.replace(/\D/g, '').slice(0, 6) : '';
+  const line1 = localObj?.name || data.locality || city;
+  const line2 = [talukObj?.name, distObj?.name].filter(Boolean).join(', ');
+  const summary = [line1, line2, city, state, pincode].filter(Boolean).join(', ');
+
+  currentAddressData = {
+    line1,
+    line2,
+    city,
+    state,
+    pincode,
+    summary
+  };
+
+  if (textEl) textEl.textContent = summary || `${city}, ${state}`;
+  if (geoStatus) geoStatus.innerHTML = '<span class="material-icons" style="font-size:14px;color:var(--pistachio)">check_circle</span> Pin Selected';
+
+  if (autoApply) {
+    applyMapAddress();
+  }
+}
+
+async function fetchReverseGeocode(lat, lng, autoApply = false, onDone = null) {
+  const geoStatus = document.getElementById('geoStatus');
+  const textEl = document.getElementById('pinnedAddressText');
+
+  if (geoStatus) geoStatus.innerHTML = '<span class="material-icons spin" style="font-size:14px;color:var(--amber)">sync</span> Getting address...';
+  if (textEl) textEl.textContent = `Pin: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+
+  clearTimeout(geocodeTimer);
+  geocodeTimer = setTimeout(async () => {
+    let resolvedData = null;
+
+    // 1. Primary fast & reliable lookup via BigDataCloud (No rate-limit, works everywhere)
+    try {
+      const bdcUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`;
+      const res = await fetch(bdcUrl);
+      if (res.ok) {
+        const bdc = await res.json();
+        if (bdc && (bdc.city || bdc.locality || bdc.principalSubdivision)) {
+          const admin = bdc.localityInfo?.administrative || [];
+          const distObj = admin.find(a => a.adminLevel === 5 || (a.description && a.description.toLowerCase().includes('district')));
+          const talukObj = admin.find(a => a.adminLevel === 6 || (a.description && a.description.toLowerCase().includes('taluk')));
+          const localObj = admin.find(a => a.adminLevel >= 7 || (a.name && (a.name.includes('Panchayat') || a.name.includes('Municipality'))));
+
+          resolvedData = {
+            line1: localObj?.name || bdc.locality || bdc.city || '',
+            line2: [talukObj?.name, distObj?.name].filter(Boolean).join(', '),
+            city: bdc.city || bdc.locality || (distObj?.name ? distObj.name.replace(/ district/i, '') : ''),
+            state: bdc.principalSubdivision || 'Kerala',
+            pincode: bdc.postcode ? bdc.postcode.replace(/\D/g, '').slice(0, 6) : '',
+            summary: [bdc.locality || bdc.city, talukObj?.name, distObj?.name, bdc.principalSubdivision].filter(Boolean).join(', ')
+          };
+        }
+      }
+    } catch (e) {
+      console.warn('BigDataCloud error:', e);
+    }
+
+    // 2. Secondary enrichment via Nominatim (for street/house number/postal code)
+    try {
+      const controller = new AbortController();
+      const nomTimer = setTimeout(() => controller.abort(), 2000);
+      const nomUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+      const res = await fetch(nomUrl, { signal: controller.signal });
+      clearTimeout(nomTimer);
+      if (res.ok) {
+        const nom = await res.json();
+        if (nom && nom.address) {
+          const a = nom.address;
+          const streetParts = [a.house_number, a.building, a.road, a.amenity].filter(Boolean);
+          const areaParts = [a.suburb, a.neighbourhood, a.residential].filter(Boolean);
+          const nomCity = a.city || a.town || a.village || a.county || a.district || a.state_district || '';
+          const nomState = a.state || '';
+          const nomPin = a.postcode ? a.postcode.replace(/\D/g, '').slice(0, 6) : '';
+
+          if (!resolvedData) {
+            resolvedData = {
+              line1: streetParts.join(', ') || areaParts.join(', ') || nomCity,
+              line2: areaParts.join(', '),
+              city: nomCity,
+              state: nomState,
+              pincode: nomPin,
+              summary: nom.display_name || ''
+            };
+          } else {
+            if (streetParts.length > 0) resolvedData.line1 = streetParts.join(', ');
+            if (areaParts.length > 0) resolvedData.line2 = areaParts.join(', ');
+            if (nomPin) resolvedData.pincode = nomPin;
+            if (nomCity && !resolvedData.city) resolvedData.city = nomCity;
+            if (nom.display_name) resolvedData.summary = nom.display_name;
+          }
+        }
+      }
+    } catch (e) {
+      // Nominatim timeout or CORS/network issue, resolvedData remains safe
+    }
+
+    if (!resolvedData) {
+      resolvedData = {
+        line1: `Pinned Location`,
+        line2: '',
+        city: 'Thalassery',
+        state: 'Kerala',
+        pincode: '',
+        summary: `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`
+      };
+    }
+
+    currentAddressData = resolvedData;
+
+    if (textEl) textEl.textContent = resolvedData.summary || `${resolvedData.city}, ${resolvedData.state}`;
+    if (geoStatus) geoStatus.innerHTML = '<span class="material-icons" style="font-size:14px;color:var(--pistachio)">check_circle</span> Pin Selected';
+
+    if (autoApply) {
+      applyMapAddress();
+    }
+
+    if (onDone) onDone();
+  }, 250);
+}
+
+function applyMapAddress() {
+  if (!currentAddressData) {
+    showToast('Click or drag the pin on the map first');
+    return;
+  }
+  const addr = currentAddressData;
+
+  // Fill Address Line 1
+  const line1Input = document.getElementById('addressLine1');
+  if (line1Input && addr.line1) {
+    line1Input.value = addr.line1;
+  }
+
   // Fill Address Line 2
-  const line2Parts = [addr.neighbourhood, addr.suburb, addr.residential].filter(Boolean);
   const line2Input = document.getElementById('addressLine2');
-  if (line2Input && line2Parts.length > 0) {
-    line2Input.value = line2Parts.join(', ');
+  if (line2Input && addr.line2) {
+    line2Input.value = addr.line2;
   }
 
   // Fill City
-  const city = addr.city || addr.town || addr.village || addr.county || addr.district || addr.state_district || '';
   const cityInput = document.getElementById('cityInput');
-  if (cityInput && city) {
-    cityInput.value = city;
+  if (cityInput && addr.city) {
+    cityInput.value = addr.city;
   }
 
-  // Match State
-  const state = addr.state || '';
+  // Match State in dropdown
   const stateSelect = document.getElementById('stateSelect');
-  if (stateSelect && state) {
-    const sLower = state.toLowerCase();
+  if (stateSelect && addr.state) {
+    const sLower = addr.state.toLowerCase();
     for (let opt of stateSelect.options) {
       if (opt.value && (sLower.includes(opt.value.toLowerCase()) || opt.value.toLowerCase().includes(sLower))) {
         stateSelect.value = opt.value;
@@ -654,9 +880,8 @@ function applyMapAddress() {
 
   // Fill PIN Code
   const pinInput = document.getElementById('pinCodeInput');
-  if (pinInput && addr.postcode) {
-    const cleanPin = addr.postcode.replace(/\D/g, '').slice(0, 6);
-    if (cleanPin) pinInput.value = cleanPin;
+  if (pinInput && addr.pincode) {
+    pinInput.value = addr.pincode;
   }
 
   showToast('✓ Address populated from Map!');

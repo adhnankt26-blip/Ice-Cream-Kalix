@@ -1371,6 +1371,43 @@ function refreshMotionElements(scope=document) {
 
 function initialiseMotion() {
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const navbar = document.getElementById('navbar');
+  const navLinks = document.getElementById('navLinks') || navbar?.querySelector('.nav-links');
+  if (navbar && navLinks) {
+    let menuButton = navbar.querySelector('.hamburger');
+    if (!menuButton) {
+      menuButton = document.createElement('button');
+      menuButton.className = 'hamburger';
+      menuButton.type = 'button';
+      menuButton.innerHTML = '<span></span><span></span><span></span>';
+      navbar.querySelector('.nav-actions')?.appendChild(menuButton);
+    }
+    menuButton.setAttribute('aria-label', 'Open navigation menu');
+    menuButton.setAttribute('aria-expanded', 'false');
+    menuButton.addEventListener('click', () => {
+      const isOpen = navbar.classList.toggle('menu-open');
+      menuButton.setAttribute('aria-expanded', String(isOpen));
+      menuButton.setAttribute('aria-label', isOpen ? 'Close navigation menu' : 'Open navigation menu');
+    });
+    navLinks.addEventListener('click', () => {
+      navbar.classList.remove('menu-open');
+      menuButton.setAttribute('aria-expanded', 'false');
+    });
+    document.addEventListener('click', event => {
+      if (!navbar.contains(event.target)) {
+        navbar.classList.remove('menu-open');
+        menuButton.setAttribute('aria-expanded', 'false');
+      }
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        navbar.classList.remove('menu-open');
+        menuButton.setAttribute('aria-expanded', 'false');
+        menuButton.focus();
+      }
+    });
+  }
+
   const hero = document.querySelector('.hero');
   if (hero && !reduceMotion) {
     const particles = document.createElement('div');
@@ -1504,5 +1541,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
   if(page==='product') renderProductPage();
   if(page==='cart') renderCartPage();
   if(page==='wishlist') renderWishlistPage();
+  if(page==='checkout' && typeof updateCheckoutTotals === 'function') updateCheckoutTotals();
   requestAnimationFrame(()=> refreshMotionElements());
 });
