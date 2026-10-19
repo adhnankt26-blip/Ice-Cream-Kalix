@@ -304,7 +304,7 @@ function renderFlavors(filter='all') {
   grid.innerHTML = filtered.map(f=>{
     const wishActive = isWishlisted(f.id);
     return `
-    <div class="flavor-card" onclick="goToProduct(${f.id})">
+    <div class="flavor-card" onclick="handleFlavorCardClick(event, ${f.id})" tabindex="0" role="button" aria-label="View ${f.name}">
       <div class="flavor-card-stage" style="background:${f.bg}">
         <div class="card-stage-top">
           <span class="card-origin-pill">✦ 500 ML · ARTISANAL GLACÉ</span>
@@ -351,6 +351,18 @@ function renderFlavors(filter='all') {
 function goToProduct(id) {
   localStorage.setItem('kalixCurrentProduct', id);
   window.location.href='product.html';
+}
+
+function handleFlavorCardClick(event, id) {
+  // On phones, a tap reveals the flavour description rather than navigating away.
+  if (window.matchMedia('(max-width: 600px)').matches) {
+    const card = event.currentTarget || event.target.closest('.flavor-card');
+    if (!card) return;
+    const expanded = card.classList.toggle('is-expanded');
+    card.setAttribute('aria-expanded', String(expanded));
+    return;
+  }
+  goToProduct(id);
 }
 
 // ---- PIN Check ----
