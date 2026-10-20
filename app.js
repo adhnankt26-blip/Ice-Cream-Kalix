@@ -365,20 +365,278 @@ function goToProduct(id) {
   window.location.href='product.html';
 }
 
-// ---- PIN Check ----
-function checkPin() {
-  const pin = document.getElementById('pinInput')?.value;
-  if(!pin || pin.length!==6 || isNaN(pin)) { showToast('Please enter a valid 6-digit PIN code'); return; }
-  const res = document.getElementById('pinResult');
-  const first = pin[0];
-  if(['1','2','3','4','5','6','7'].includes(first)) {
-    res.style.color='var(--pistachio)';
-    res.textContent='✓ Delivery available! Expected: 1–2 business days in a dry-ice cryo-box.';
-  } else {
-    res.style.color='var(--tertiary)';
-    res.textContent='⚠ Your area is currently outside our cold chain coverage. Join waitlist below.';
+// ---- PIN Check & Automatic Indian Location Fetcher ----
+const PIN_PREFIX_MAP = {
+  '11': { state: 'Delhi', district: 'New Delhi', cityPill: 'delhi' },
+  '12': { state: 'Haryana', district: 'Gurugram/Faridabad', cityPill: 'noida' },
+  '13': { state: 'Haryana', district: 'Ambala/Panipat', cityPill: 'delhi' },
+  '14': { state: 'Punjab', district: 'Ludhiana/Amritsar', cityPill: 'delhi' },
+  '15': { state: 'Punjab', district: 'Bathinda/Firozpur', cityPill: 'delhi' },
+  '16': { state: 'Chandigarh', district: 'Chandigarh', cityPill: 'delhi' },
+  '20': { state: 'Uttar Pradesh', district: 'Noida/Ghaziabad', cityPill: 'noida' },
+  '22': { state: 'Uttar Pradesh', district: 'Lucknow/Kanpur', cityPill: 'delhi' },
+  '38': { state: 'Gujarat', district: 'Ahmedabad/Surat', cityPill: 'mumbai' },
+  '40': { state: 'Maharashtra', district: 'Mumbai & Navi Mumbai', cityPill: 'mumbai' },
+  '41': { state: 'Maharashtra', district: 'Pune', cityPill: 'pune' },
+  '42': { state: 'Maharashtra', district: 'Nashik/Thane', cityPill: 'mumbai' },
+  '50': { state: 'Telangana', district: 'Hyderabad', cityPill: 'hyderabad' },
+  '56': { state: 'Karnataka', district: 'Bengaluru', cityPill: 'bengaluru' },
+  '57': { state: 'Karnataka', district: 'Mangaluru/Mysuru', cityPill: 'bengaluru' },
+  '60': { state: 'Tamil Nadu', district: 'Chennai', cityPill: 'chennai' },
+  '62': { state: 'Tamil Nadu', district: 'Madurai/Tiruchirappalli', cityPill: 'chennai' },
+  '64': { state: 'Tamil Nadu', district: 'Coimbatore', cityPill: 'chennai' },
+  '67': { state: 'Kerala', district: 'Kannur / Kozhikode', cityPill: 'kerala' },
+  '68': { state: 'Kerala', district: 'Kochi / Ernakulam', cityPill: 'kerala' },
+  '69': { state: 'Kerala', district: 'Thiruvananthapuram', cityPill: 'kerala' },
+  '70': { state: 'West Bengal', district: 'Kolkata', cityPill: 'kolkata' },
+  '71': { state: 'West Bengal', district: 'Howrah', cityPill: 'kolkata' }
+};
+
+async function checkPin() {
+  const pinInput = document.getElementById('pinInput');
+  const pin = (pinInput?.value || '').trim();
+  const resContainer = document.getElementById('pinResultContainer');
+  const resText = document.getElementById('pinResult');
+  const checkBtn = document.getElementById('checkPinBtn');
+
+  if (!pin || pin.length !== 6 || !/^\d{6}$/.test(pin)) {
+    showToast('Please enter a valid 6-digit Indian PIN code (e.g. 670592)');
+    if (resContainer) {
+      resContainer.innerHTML = `
+        <div class="pin-result-box error">
+          <div class="pin-result-header">
+            <div class="pin-location-title" style="color:var(--tertiary)">
+              <span class="material-icons" style="color:var(--tertiary)">error_outline</span>
+              <span>Invalid PIN Code format</span>
+            </div>
+            <span class="pin-status-tag error">6 Digits Required</span>
+          </div>
+          <p style="margin:0.5rem 0 0;font-size:13px;color:var(--on-surface-variant)">
+            Please enter a valid 6-digit postal code (e.g., 670592 for Kannur, 560001 for Bengaluru).
+          </p>
+        </div>
+      `;
+    }
+    return;
+  }
+
+  // Show fetching indicator
+  if (checkBtn) {
+    checkBtn.disabled = true;
+    checkBtn.innerHTML = '<span class="pin-loading-spinner"></span> Checking...';
+  }
+  if (resContainer) {
+    resContainer.innerHTML = `
+      <p style="text-align:center;font-size:14px;color:var(--amber);margin:1rem 0;font-weight:600">
+        <span class="pin-loading-spinner"></span> Fetching location details for PIN <strong>${pin}</strong>...
+      </p>
+    `;
+  }
+
+  let locationInfo = null;
+
+  // 1. Fetch live postal location from India Postal PIN API
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4500);
+    const response = await fetch(`https://api.postalpincode.in/pincode/${pin}`, { signal: controller.signal });
+    clearTimeout(timeoutId);
+
+    if (response.ok) {
+      const data = await response.json();
+      if (Array.isArray(data) && data[0]?.Status === 'Success' && Array.isArray(data[0].PostOffice) && data[0].PostOffice.length > 0) {
+        const offices = data[0].PostOffice;
+        // Find best matching post office
+        const primaryPo = offices.find(p => p.BranchType === 'Sub Post Office' || p.DeliveryStatus === 'Delivery') || offices[0];
+        locationInfo = {
+          name: primaryPo.Name,
+          district: primaryPo.District,
+          state: primaryPo.State,
+          block: primaryPo.Block && primaryPo.Block !== 'NA' ? primaryPo.Block : null,
+          allOffices: offices.map(o => o.Name).slice(0, 4)
+        };
+      }
+    }
+  } catch (err) {
+    console.warn('Postal PIN API note, falling back to prefix index:', err);
+  }
+
+  // 2. Fallback to regional prefix index if postal API returned no data or failed
+  if (!locationInfo) {
+    const prefix2 = pin.substring(0, 2);
+    const prefix1 = pin.substring(0, 1);
+    const fallback = PIN_PREFIX_MAP[prefix2];
+
+    if (fallback) {
+      locationInfo = {
+        name: fallback.district,
+        district: fallback.district,
+        state: fallback.state,
+        block: null
+      };
+    } else if (['1','2','3','4','5','6','7'].includes(prefix1)) {
+      locationInfo = {
+        name: `Zone ${prefix1}`,
+        district: `Region ${pin.substring(0, 3)}`,
+        state: 'India (Covered)',
+        block: null
+      };
+    }
+  }
+
+  // Reset button text
+  if (checkBtn) {
+    checkBtn.disabled = false;
+    checkBtn.textContent = 'Check Delivery PIN';
+  }
+
+  // 3. Highlight matching city pill in the grid
+  highlightCityPillForPin(pin, locationInfo);
+
+  // 4. Render Rich Result Box
+  if (resContainer) {
+    if (locationInfo) {
+      const locDisplay = [locationInfo.name, locationInfo.district, locationInfo.state]
+        .filter((v, i, a) => v && a.indexOf(v) === i)
+        .join(', ');
+
+      const officesSubtext = locationInfo.allOffices && locationInfo.allOffices.length > 1
+        ? `<div style="font-size:11px;color:var(--outline);margin-top:2px">Covered localities: ${locationInfo.allOffices.join(' · ')}</div>`
+        : '';
+
+      resContainer.innerHTML = `
+        <div class="pin-result-box">
+          <div class="pin-result-header">
+            <div>
+              <div class="pin-location-title">
+                <span class="material-icons">place</span>
+                <span>${locDisplay}</span>
+              </div>
+              <div style="font-size:12px;font-weight:600;color:var(--outline);margin-left:26px">
+                PIN Code: <strong>${pin}</strong>
+              </div>
+              ${officesSubtext}
+            </div>
+            <span class="pin-status-tag">✓ Express Delivery Available</span>
+          </div>
+
+          <div class="pin-result-details">
+            <div class="pin-info-point">
+              <span class="material-icons">ac_unit</span>
+              <div>
+                <strong style="color:var(--on-surface);display:block">-18°C Deep Frozen Cryo-Box</strong>
+                <span>Packed with food-grade dry ice for 100% melt-free transit</span>
+              </div>
+            </div>
+            <div class="pin-info-point">
+              <span class="material-icons">local_shipping</span>
+              <div>
+                <strong style="color:var(--on-surface);display:block">Delivery Within 24–48 Hours</strong>
+                <span>Direct express dispatch to ${locationInfo.district || 'your door'}</span>
+              </div>
+            </div>
+            <div class="pin-info-point">
+              <span class="material-icons">payments</span>
+              <div>
+                <strong style="color:var(--on-surface);display:block">Cash on Delivery (COD) Available</strong>
+                <span>Pay by Cash or UPI on arrival</span>
+              </div>
+            </div>
+            <div class="pin-info-point">
+              <span class="material-icons">verified</span>
+              <div>
+                <strong style="color:var(--on-surface);display:block">Free Cold-Chain Shipping</strong>
+                <span>Complimentary cryo-box on orders above ₹1,500</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pin-action-row">
+            <span style="font-size:12px;color:var(--outline)">🍨 Pure A2 Malai Ice Cream ready for order</span>
+            <a href="#flavors" class="pin-action-btn">
+              Explore Ice Creams for ${locationInfo.district || 'Your City'} <span class="material-icons" style="font-size:16px">arrow_forward</span>
+            </a>
+          </div>
+        </div>
+      `;
+    } else {
+      resContainer.innerHTML = `
+        <div class="pin-result-box error">
+          <div class="pin-result-header">
+            <div class="pin-location-title" style="color:var(--tertiary)">
+              <span class="material-icons" style="color:var(--tertiary)">location_off</span>
+              <span>PIN ${pin} — Outside Cold Chain</span>
+            </div>
+            <span class="pin-status-tag error">Not Covered Yet</span>
+          </div>
+          <p style="margin:0.6rem 0 0;font-size:13px;color:var(--on-surface-variant);line-height:1.5">
+            We currently do not have sub-zero cold chain delivery to PIN ${pin}. We are rapidly expanding our dry-ice refrigerated hub network.
+          </p>
+          <div class="pin-action-row">
+            <span style="font-size:12px;color:var(--outline)">Join waitlist for notifications when we launch in your area</span>
+            <a href="#newsletter" class="pin-action-btn" style="background:var(--tertiary)">
+              Notify Me When Available <span class="material-icons" style="font-size:16px">notifications</span>
+            </a>
+          </div>
+        </div>
+      `;
+    }
   }
 }
+
+function highlightCityPillForPin(pin, locationInfo) {
+  const pills = document.querySelectorAll('.city-pill');
+  if (!pills.length) return;
+
+  const state = (locationInfo?.state || '').toLowerCase();
+  const district = (locationInfo?.district || '').toLowerCase();
+  const name = (locationInfo?.name || '').toLowerCase();
+
+  let targetPill = null;
+
+  if (state.includes('kerala') || district.includes('kannur') || district.includes('kochi') || district.includes('calicut') || district.includes('kozhikode') || pin.startsWith('67') || pin.startsWith('68') || pin.startsWith('69')) {
+    targetPill = document.querySelector('.city-pill[data-city="kerala"]');
+  } else if (district.includes('bengaluru') || district.includes('bangalore') || state.includes('karnataka') || pin.startsWith('56')) {
+    targetPill = document.querySelector('.city-pill[data-city="bengaluru"]');
+  } else if (district.includes('mumbai') || pin.startsWith('40')) {
+    targetPill = document.querySelector('.city-pill[data-city="mumbai"]');
+  } else if (district.includes('pune') || pin.startsWith('41')) {
+    targetPill = document.querySelector('.city-pill[data-city="pune"]');
+  } else if (district.includes('delhi') || pin.startsWith('11')) {
+    targetPill = document.querySelector('.city-pill[data-city="delhi"]');
+  } else if (district.includes('noida') || district.includes('gurgaon') || district.includes('gurugram') || pin.startsWith('12') || pin.startsWith('20')) {
+    targetPill = document.querySelector('.city-pill[data-city="noida"]');
+  } else if (district.includes('hyderabad') || state.includes('telangana') || pin.startsWith('50')) {
+    targetPill = document.querySelector('.city-pill[data-city="hyderabad"]');
+  } else if (district.includes('kolkata') || district.includes('howrah') || pin.startsWith('70')) {
+    targetPill = document.querySelector('.city-pill[data-city="kolkata"]');
+  } else if (district.includes('chennai') || district.includes('madras') || pin.startsWith('60')) {
+    targetPill = document.querySelector('.city-pill[data-city="chennai"]');
+  }
+
+  if (targetPill) {
+    pills.forEach(p => p.classList.remove('active'));
+    targetPill.classList.add('active');
+  }
+}
+
+// City Pill Click Handlers for Interactive PIN checking
+document.addEventListener('DOMContentLoaded', () => {
+  const cityPills = document.querySelectorAll('.city-pill');
+  cityPills.forEach(pill => {
+    pill.style.cursor = 'pointer';
+    pill.addEventListener('click', () => {
+      cityPills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      const pin = pill.getAttribute('data-pin');
+      const pinInput = document.getElementById('pinInput');
+      if (pin && pinInput) {
+        pinInput.value = pin;
+        checkPin();
+      }
+    });
+  });
+});
 
 // ---- Newsletter ----
 function subscribeNewsletter(e) {

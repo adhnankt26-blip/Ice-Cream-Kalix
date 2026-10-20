@@ -31,7 +31,7 @@
       <div class="nav-actions">
         <button class="sommelier-nav-btn" onclick="openSommelierScreen()" title="Kalix AI Voice Tasting"><span class="material-icons" style="font-size:16px">mic</span> <span>AI Voice</span></button>
         <button class="rewards-nav-btn" onclick="openRewardsModal()" title="Kalix Rewards & Coins"><span
-            class="rewards-coin-icon material-icons">monetization_on</span><span id="navRewardsCount">0</span> Coins</button>
+            class="rewards-coin-icon material-icons">monetization_on</span><span id="navRewardsCount">0</span><span class="rewards-label">Coins</span></button>
         <a href="wishlist.html" class="nav-icon-btn" title="Wishlist"><span class="material-icons">favorite</span><span
             class="badge" id="wishlistBadge">0</span></a>
         <a href="cart.html" class="nav-icon-btn" title="Cart"><span class="material-icons">shopping_bag</span><span
@@ -240,23 +240,25 @@
         <h2 class="section-title">100% Melt-Free<br /><em>Express Delivery Across India</em></h2>
         <p class="section-desc">Packed in specialised reusable dry-ice thermal boxes. Guaranteed solid frozen delivery right to your door or an immediate free replacement.</p>
       </div>
-      <div class="cities-grid">
-        <div class="city-pill active"><span class="material-icons city-icon">sailing</span>Mumbai &amp; Navi Mumbai</div>
-        <div class="city-pill"><span class="material-icons city-icon">account_balance</span>Delhi &amp; NCR</div>
-        <div class="city-pill"><span class="material-icons city-icon">park</span>Bengaluru</div>
-        <div class="city-pill"><span class="material-icons city-icon">castle</span>Hyderabad</div>
-        <div class="city-pill"><span class="material-icons city-icon">tram</span>Kolkata</div>
-        <div class="city-pill"><span class="material-icons city-icon">apartment</span>Gurugram &amp; Noida</div>
-        <div class="city-pill"><span class="material-icons city-icon">landscape</span>Pune</div>
-        <div class="city-pill"><span class="material-icons city-icon">waves</span>Chennai</div>
-        <div class="city-pill"><span class="material-icons city-icon">directions_boat</span>Kerala</div>
+      <div class="cities-grid" id="citiesGrid">
+        <div class="city-pill active" data-city="mumbai" data-pin="400001"><span class="material-icons city-icon">sailing</span>Mumbai &amp; Navi Mumbai</div>
+        <div class="city-pill" data-city="delhi" data-pin="110001"><span class="material-icons city-icon">account_balance</span>Delhi &amp; NCR</div>
+        <div class="city-pill" data-city="bengaluru" data-pin="560001"><span class="material-icons city-icon">park</span>Bengaluru</div>
+        <div class="city-pill" data-city="hyderabad" data-pin="500001"><span class="material-icons city-icon">castle</span>Hyderabad</div>
+        <div class="city-pill" data-city="kolkata" data-pin="700001"><span class="material-icons city-icon">tram</span>Kolkata</div>
+        <div class="city-pill" data-city="noida" data-pin="201301"><span class="material-icons city-icon">apartment</span>Gurugram &amp; Noida</div>
+        <div class="city-pill" data-city="pune" data-pin="411001"><span class="material-icons city-icon">landscape</span>Pune</div>
+        <div class="city-pill" data-city="chennai" data-pin="600001"><span class="material-icons city-icon">waves</span>Chennai</div>
+        <div class="city-pill" data-city="kerala" data-pin="670592"><span class="material-icons city-icon">directions_boat</span>Kerala</div>
       </div>
       <div class="pin-check-box">
-        <input type="text" id="pinInput" placeholder="Enter your 6-digit PIN code (e.g. 560001)..." class="pin-input"
-          maxlength="6" />
-        <button class="btn-primary" onclick="checkPin()">Check Delivery PIN</button>
+        <input type="text" id="pinInput" placeholder="Enter your 6-digit PIN code (e.g. 670592)..." class="pin-input"
+          maxlength="6" inputmode="numeric" pattern="[0-9]*" onkeydown="if(event.key==='Enter')checkPin()" />
+        <button class="btn-primary" id="checkPinBtn" onclick="checkPin()">Check Delivery PIN</button>
       </div>
-      <p class="pin-result" id="pinResult"></p>
+      <div id="pinResultContainer">
+        <p class="pin-result" id="pinResult"></p>
+      </div>
       <div class="delivery-features">
         <div class="df-item"><span class="material-icons">ac_unit</span><span>-18°C Deep Frozen Guaranteed</span></div>
         <div class="df-item"><span class="material-icons">timer</span><span>Express Transit</span></div>
