@@ -56,7 +56,10 @@
         <div class="form-section">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:0.75rem">
             <h3 style="margin-bottom:0;border-bottom:none;padding-bottom:0"><span class="material-icons" style="font-size:22px;vertical-align:middle;margin-right:0.4rem;color:var(--amber)">location_on</span>Delivery Address</h3>
-            <div style="display:flex;gap:0.5rem;align-items:center">
+            <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap">
+              <button type="button" class="btn-secondary btn-sm" onclick="promptSaveLocation()" id="saveLocHeaderBtn" style="display:flex;align-items:center;gap:0.35rem;font-size:12px;padding:0.45rem 0.85rem">
+                <span class="material-icons" style="font-size:16px;color:var(--amber)">bookmark_add</span> Save Location
+              </button>
               <button type="button" class="btn-secondary btn-sm" onclick="detectUserLocation()" id="detectLocBtn" style="display:flex;align-items:center;gap:0.35rem;font-size:12px;padding:0.45rem 0.85rem">
                 <span class="material-icons" style="font-size:16px;color:var(--pistachio)">my_location</span> Detect Location
               </button>
@@ -64,6 +67,17 @@
                 <span class="material-icons" style="font-size:16px;color:var(--amber)">map</span> <span id="mapBtnText">Select on Map</span>
               </button>
             </div>
+          </div>
+
+          <!-- Saved Delivery Locations Bar -->
+          <div id="savedLocationsWrapper" class="saved-locations-wrapper" style="display:none">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;flex-wrap:wrap;gap:0.5rem">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--outline);display:flex;align-items:center;gap:0.4rem">
+                <span class="material-icons" style="font-size:16px;color:var(--amber)">bookmarks</span> Saved Locations (Tap to Select)
+              </div>
+              <span id="savedLocCountBadge" style="font-size:11px;font-weight:700;color:var(--amber)">0 Saved</span>
+            </div>
+            <div id="savedLocationsGrid" class="saved-locations-grid"></div>
           </div>
 
           <!-- Interactive Map Picker -->
@@ -77,13 +91,18 @@
             </div>
             <div id="leafletMap" class="map-canvas"></div>
             <div class="map-footer">
-              <div style="flex:1;min-width:220px">
+              <div style="flex:1;min-width:200px">
                 <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--outline);font-weight:600">Selected Pin Location</div>
                 <div id="pinnedAddressText" style="font-size:13px;font-weight:600;color:var(--on-surface);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Click anywhere on the map to pin</div>
               </div>
-              <button type="button" onclick="applyMapAddress()" class="btn-primary btn-sm" style="display:flex;align-items:center;gap:0.35rem;padding:0.5rem 1rem;font-size:12px">
-                <span class="material-icons" style="font-size:16px">check</span> Apply to Address
-              </button>
+              <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap">
+                <button type="button" onclick="promptSaveLocation()" class="btn-secondary btn-sm" style="display:flex;align-items:center;gap:0.35rem;padding:0.5rem 0.9rem;font-size:12px">
+                  <span class="material-icons" style="font-size:16px;color:var(--amber)">bookmark_add</span> Save Location
+                </button>
+                <button type="button" onclick="applyMapAddress()" class="btn-primary btn-sm" style="display:flex;align-items:center;gap:0.35rem;padding:0.5rem 1rem;font-size:12px">
+                  <span class="material-icons" style="font-size:16px">check</span> Apply to Address
+                </button>
+              </div>
             </div>
           </div>
 
@@ -913,6 +932,315 @@ if (mobileInput) {
     this.value = '+91 ' + digits;
   });
 }
+
+// ============================================================================
+// ---- SAVED LOCATIONS & ADDRESS MANAGEMENT ----
+// ============================================================================
+let selectedSavedLocationId = null;
+
+function getSavedLocations() {
+  try {
+    const list = JSON.parse(localStorage.getItem('kalixSavedLocations') || '[]');
+    return Array.isArray(list) ? list : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function setSavedLocations(list) {
+  localStorage.setItem('kalixSavedLocations', JSON.stringify(list));
+}
+
+function renderSavedLocations() {
+  const wrapper = document.getElementById('savedLocationsWrapper');
+  const grid = document.getElementById('savedLocationsGrid');
+  const countBadge = document.getElementById('savedLocCountBadge');
+  if (!wrapper || !grid) return;
+
+  const locations = getSavedLocations();
+  if (locations.length === 0) {
+    wrapper.style.display = 'none';
+    return;
+  }
+
+  wrapper.style.display = 'block';
+  if (countBadge) countBadge.textContent = `${locations.length} Saved`;
+
+  grid.innerHTML = locations.map(loc => {
+    const isSelected = selectedSavedLocationId === loc.id;
+    const icon = loc.type === 'home' ? 'home' : (loc.type === 'work' ? 'apartment' : 'place');
+    const label = loc.customName || (loc.type === 'home' ? 'Home' : (loc.type === 'work' ? 'Work' : 'Other'));
+    
+    return `
+      <div class="saved-loc-card ${isSelected ? 'selected' : ''}" onclick="selectSavedLocation('${loc.id}')" title="Click to use this delivery address">
+        <div class="saved-loc-icon">
+          <span class="material-icons" style="font-size:18px">${icon}</span>
+        </div>
+        <div class="saved-loc-content">
+          <div class="saved-loc-header">
+            <span class="saved-loc-title">${label}</span>
+            ${isSelected ? '<span class="saved-loc-active-pill">ACTIVE</span>' : ''}
+          </div>
+          <div class="saved-loc-line">${loc.addressLine1}</div>
+          <div class="saved-loc-city">${loc.city}, ${loc.pinCode}</div>
+        </div>
+        <button type="button" class="saved-loc-delete-btn" onclick="deleteSavedLocation('${loc.id}', event)" title="Delete saved address">
+          <span class="material-icons" style="font-size:15px">delete_outline</span>
+        </button>
+      </div>
+    `;
+  }).join('');
+}
+
+function promptSaveLocation() {
+  const l1 = document.getElementById('addressLine1')?.value?.trim();
+  const city = document.getElementById('cityInput')?.value?.trim();
+  const pin = document.getElementById('pinCodeInput')?.value?.trim();
+  const state = document.getElementById('stateSelect')?.value?.trim();
+  const l2 = document.getElementById('addressLine2')?.value?.trim();
+
+  let previewText = '';
+  if (currentAddressData && currentAddressData.summary) {
+    previewText = currentAddressData.summary;
+  } else if (l1 && city) {
+    previewText = [l1, l2, city, state, pin].filter(Boolean).join(', ');
+  } else {
+    showToast('Please select a pin on the map or fill in your address first.');
+    const wrapper = document.getElementById('mapPickerWrapper');
+    if (wrapper && (wrapper.style.display === 'none' || !wrapper.style.display)) {
+      toggleMapPicker();
+    }
+    return;
+  }
+
+  const previewEl = document.getElementById('saveLocPreviewText');
+  if (previewEl) previewEl.textContent = previewText;
+
+  selectSaveLocTag('home');
+  const customInput = document.getElementById('customLocNameInput');
+  if (customInput) customInput.value = '';
+
+  const modal = document.getElementById('saveLocationModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function selectSaveLocTag(type) {
+  document.querySelectorAll('.loc-tag-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.type === type);
+  });
+  const customWrapper = document.getElementById('customLocNameWrapper');
+  if (customWrapper) {
+    customWrapper.style.display = type === 'other' ? 'block' : 'none';
+  }
+}
+
+function closeSaveLocationModal() {
+  const modal = document.getElementById('saveLocationModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function confirmSaveLocation() {
+  const activeBtn = document.querySelector('.loc-tag-btn.active');
+  const type = activeBtn ? activeBtn.dataset.type : 'home';
+  const customNameInput = document.getElementById('customLocNameInput');
+  const customName = type === 'other' && customNameInput ? customNameInput.value.trim() : '';
+
+  const line1 = document.getElementById('addressLine1')?.value?.trim() || currentAddressData?.line1 || '';
+  const line2 = document.getElementById('addressLine2')?.value?.trim() || currentAddressData?.line2 || '';
+  const city = document.getElementById('cityInput')?.value?.trim() || currentAddressData?.city || '';
+  const state = document.getElementById('stateSelect')?.value || currentAddressData?.state || 'Kerala';
+  const pinCode = document.getElementById('pinCodeInput')?.value?.trim() || currentAddressData?.pincode || '';
+  const firstName = document.getElementById('firstName')?.value?.trim() || '';
+  const lastName = document.getElementById('lastName')?.value?.trim() || '';
+  const mobile = document.getElementById('mobileInput')?.value?.trim() || '';
+
+  if (!line1 || !city) {
+    showToast('Please fill in Address Line 1 and City before saving.');
+    return;
+  }
+
+  let lat = 11.8900;
+  let lng = 75.5200;
+  if (deliveryMarker) {
+    const pos = deliveryMarker.getLatLng();
+    lat = pos.lat;
+    lng = pos.lng;
+  } else if (currentAddressData && currentAddressData.lat) {
+    lat = currentAddressData.lat;
+    lng = currentAddressData.lng;
+  }
+
+  const label = customName || (type === 'home' ? 'Home' : (type === 'work' ? 'Work' : 'Other'));
+
+  const newLocation = {
+    id: 'loc_' + Date.now(),
+    type,
+    label,
+    customName,
+    firstName,
+    lastName,
+    mobile,
+    addressLine1: line1,
+    addressLine2: line2,
+    city,
+    state,
+    pinCode,
+    lat,
+    lng,
+    summary: [line1, line2, city, state, pinCode].filter(Boolean).join(', '),
+    createdAt: Date.now()
+  };
+
+  const list = getSavedLocations();
+  list.unshift(newLocation);
+  setSavedLocations(list);
+
+  selectedSavedLocationId = newLocation.id;
+  renderSavedLocations();
+  closeSaveLocationModal();
+  showToast(`✓ Location saved as "${label}"!`);
+
+  applyMapAddress();
+}
+
+function selectSavedLocation(locId) {
+  const list = getSavedLocations();
+  const loc = list.find(l => l.id === locId);
+  if (!loc) return;
+
+  selectedSavedLocationId = locId;
+
+  // 1. Populate form fields
+  const l1 = document.getElementById('addressLine1');
+  const l2 = document.getElementById('addressLine2');
+  const c = document.getElementById('cityInput');
+  const s = document.getElementById('stateSelect');
+  const p = document.getElementById('pinCodeInput');
+  const fn = document.getElementById('firstName');
+  const ln = document.getElementById('lastName');
+  const mob = document.getElementById('mobileInput');
+
+  if (l1) l1.value = loc.addressLine1;
+  if (l2) l2.value = loc.addressLine2 || '';
+  if (c) c.value = loc.city;
+  if (p) p.value = loc.pinCode;
+  if (fn && loc.firstName && !fn.value) fn.value = loc.firstName;
+  if (ln && loc.lastName && !ln.value) ln.value = loc.lastName;
+  if (mob && loc.mobile && mob.value === '+91 ') mob.value = loc.mobile;
+
+  if (s && loc.state) {
+    const sLower = loc.state.toLowerCase();
+    for (let opt of s.options) {
+      if (opt.value && (sLower.includes(opt.value.toLowerCase()) || opt.value.toLowerCase().includes(sLower))) {
+        s.value = opt.value;
+        break;
+      }
+    }
+  }
+
+  // 2. Pan and place pin on map
+  if (loc.lat && loc.lng) {
+    ensureLeafletLoaded(() => {
+      if (!deliveryMap) {
+        initDeliveryMap(loc.lat, loc.lng);
+      } else {
+        deliveryMap.setView([loc.lat, loc.lng], 15);
+        if (deliveryMarker) deliveryMarker.setLatLng([loc.lat, loc.lng]);
+        refreshMapSize();
+      }
+    });
+
+    const textEl = document.getElementById('pinnedAddressText');
+    if (textEl) textEl.textContent = `${loc.label}: ${loc.addressLine1}, ${loc.city}`;
+
+    const geoStatus = document.getElementById('geoStatus');
+    if (geoStatus) geoStatus.innerHTML = '<span class="material-icons" style="font-size:14px;color:var(--pistachio)">check_circle</span> Saved Location Active';
+  }
+
+  // 3. Cache currentAddressData
+  currentAddressData = {
+    line1: loc.addressLine1,
+    line2: loc.addressLine2,
+    city: loc.city,
+    state: loc.state,
+    pincode: loc.pinCode,
+    summary: loc.summary,
+    lat: loc.lat,
+    lng: loc.lng
+  };
+
+  renderSavedLocations();
+  showToast(`✓ Selected "${loc.label}" address!`);
+}
+
+function deleteSavedLocation(locId, event) {
+  if (event) event.stopPropagation();
+  let list = getSavedLocations();
+  const target = list.find(l => l.id === locId);
+  const name = target ? target.label : 'Location';
+
+  list = list.filter(l => l.id !== locId);
+  setSavedLocations(list);
+
+  if (selectedSavedLocationId === locId) {
+    selectedSavedLocationId = null;
+  }
+
+  renderSavedLocations();
+  showToast(`Removed "${name}" from saved locations.`);
+}
+
+// Initialise Saved Locations on load
+document.addEventListener('DOMContentLoaded', () => {
+  renderSavedLocations();
+});
+renderSavedLocations();
 </script>
+
+<!-- Save Location Modal -->
+<div id="saveLocationModal" class="loc-modal-overlay" style="display:none" onclick="if(event.target===this)closeSaveLocationModal()">
+  <div class="loc-modal-card">
+    <div class="loc-modal-header">
+      <div style="display:flex;align-items:center;gap:0.5rem">
+        <span class="material-icons" style="color:var(--amber);font-size:20px">bookmark_add</span>
+        <h3 style="margin:0;font-size:17px;font-family:var(--font-display);font-weight:700">Save Delivery Location</h3>
+      </div>
+      <button type="button" onclick="closeSaveLocationModal()" style="background:none;border:none;cursor:pointer;color:var(--outline);display:flex;align-items:center;justify-content:center;padding:4px">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+    <div class="loc-modal-body">
+      <div style="font-size:12px;color:var(--outline);margin-bottom:0.4rem;text-transform:uppercase;letter-spacing:0.05em;font-weight:700">Address to Save</div>
+      <div id="saveLocPreviewText" style="font-size:13px;font-weight:600;color:var(--on-surface);background:var(--surface-container-low);padding:0.75rem 1rem;border-radius:var(--r-md);margin-bottom:1.25rem;border:1px solid var(--surface-container-high);line-height:1.4">
+        Loading address...
+      </div>
+
+      <div style="font-size:12px;color:var(--outline);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.05em;font-weight:700">Tag Location As *</div>
+      <div class="loc-tag-options">
+        <button type="button" class="loc-tag-btn active" data-type="home" onclick="selectSaveLocTag('home')">
+          <span class="material-icons" style="font-size:18px">home</span> Home
+        </button>
+        <button type="button" class="loc-tag-btn" data-type="work" onclick="selectSaveLocTag('work')">
+          <span class="material-icons" style="font-size:18px">apartment</span> Work
+        </button>
+        <button type="button" class="loc-tag-btn" data-type="other" onclick="selectSaveLocTag('other')">
+          <span class="material-icons" style="font-size:18px">place</span> Other
+        </button>
+      </div>
+
+      <div id="customLocNameWrapper" style="display:none;margin-bottom:1.25rem">
+        <label style="font-size:12px;font-weight:600;color:var(--on-surface-variant);display:block;margin-bottom:0.35rem">Custom Location Name</label>
+        <input type="text" id="customLocNameInput" class="form-input" placeholder="e.g. Beach Villa, Mom's House" style="padding:10px 14px;font-size:13px" />
+      </div>
+
+      <div style="display:flex;gap:0.75rem;justify-content:flex-end;margin-top:1.5rem">
+        <button type="button" onclick="closeSaveLocationModal()" class="btn-secondary btn-sm" style="padding:0.6rem 1.1rem;font-size:13px">Cancel</button>
+        <button type="button" onclick="confirmSaveLocation()" class="btn-primary btn-sm" style="display:flex;align-items:center;gap:0.35rem;padding:0.6rem 1.25rem;font-size:13px">
+          <span class="material-icons" style="font-size:16px">bookmark</span> Save Location
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
