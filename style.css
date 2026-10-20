@@ -333,17 +333,18 @@ body {
 }
 
 .flavor-tub-img {
-  max-width: 95%;
-  max-height: 100%;
-  object-fit: contain;
+  width: 96%;
+  height: 96%;
+  object-fit: cover;
+  border-radius: var(--r-md);
   display: block;
-  filter: drop-shadow(0 12px 20px rgba(35, 25, 15, 0.14));
-  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease;
+  box-shadow: 0 10px 24px rgba(35, 25, 15, 0.16);
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s ease;
 }
 
 .flavor-card:hover .flavor-tub-img {
-  transform: translateY(-6px) scale(1.05);
-  filter: drop-shadow(0 18px 28px rgba(35, 25, 15, 0.2));
+  transform: translateY(-5px) scale(1.03);
+  box-shadow: 0 16px 32px rgba(35, 25, 15, 0.22);
 }
 
 /* Backward compatibility for previous classes */
@@ -814,6 +815,97 @@ body {
 .ingredient-chips { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 2rem; }
 .ingr-chip { padding: 6px 14px; border-radius: var(--r-full); background: var(--surface-container); font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--on-surface-variant); }
 
+/* ---- INTERACTIVE FLAVOR SELECTOR & DYNAMIC COLOR MORPH ---- */
+.flavor-swatch-section {
+  margin: 1.5rem 0;
+  padding: 1.15rem 1.25rem;
+  background: var(--surface-container-low);
+  border-radius: var(--r-lg);
+  border: 1.5px solid var(--outline-variant);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow-sm);
+}
+.flavor-swatch-section:hover {
+  border-color: var(--amber);
+}
+.flavor-swatches-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 0.65rem;
+}
+.flavor-swatch-card {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.75rem;
+  background: white;
+  border: 1.5px solid var(--surface-container-high);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: left;
+  user-select: none;
+  position: relative;
+}
+.flavor-swatch-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--amber);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+}
+.flavor-swatch-card.active {
+  border-color: var(--amber);
+  background: linear-gradient(135deg, rgba(217,119,6,0.1), rgba(245,158,11,0.04));
+  box-shadow: 0 0 0 2px var(--amber), 0 8px 20px rgba(217,119,6,0.2);
+  transform: scale(1.02);
+}
+.flavor-swatch-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.22);
+  border: 2px solid white;
+  transition: transform 0.25s ease;
+}
+.flavor-swatch-card:hover .flavor-swatch-dot {
+  transform: scale(1.15);
+}
+.flavor-swatch-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.flavor-swatch-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--on-surface);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.25;
+}
+.flavor-swatch-price {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--amber);
+  margin-top: 1px;
+}
+
+/* Gallery transitions */
+.product-gallery-main {
+  transition: background 0.65s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.65s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.65s ease;
+  position: relative;
+  overflow: hidden;
+}
+.product-main-img {
+  transition: opacity 0.32s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.product-main-img.switching {
+  opacity: 0.1;
+  transform: scale(0.92) translateY(10px);
+}
+
+
 /* ---- CART PAGE ---- */
 .cart-layout { display: grid; grid-template-columns: 1fr 400px; gap: 3rem; padding-top: 7rem; padding-bottom: 4rem; }
 .cart-title { font-family: var(--font-display); font-size: 36px; font-weight: 600; margin-bottom: 0.5rem; }
@@ -1193,6 +1285,48 @@ body {
   0% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.5); }
   100% { box-shadow: 0 0 38px rgba(16, 185, 129, 0.85); }
 }
+
+/* Royal vault upgrade for the mystery-pack experience */
+.fut-modal {
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(178, 113, 18, .2), transparent 28%),
+    radial-gradient(circle at 15% 80%, rgba(5, 150, 105, .16), transparent 32%),
+    linear-gradient(135deg, #050807 0%, #10130f 48%, #060706 100%);
+}
+.fut-modal::before, .fut-modal::after {
+  content: ''; position: absolute; pointer-events: none; border-radius: 50%; z-index: -1;
+}
+.fut-modal::before { width: min(88vw, 720px); aspect-ratio: 1; border: 1px solid rgba(251,191,36,.16); box-shadow: 0 0 90px rgba(245,158,11,.13), inset 0 0 70px rgba(245,158,11,.06); animation: vaultBreathe 3.8s ease-in-out infinite; }
+.fut-modal::after { left:50%; top:50%; width: min(66vw, 540px); aspect-ratio: 1; border: 1px dashed rgba(110,231,183,.14); animation: orbitSpin 26s linear infinite; }
+.fut-grain { position:absolute; inset:0; z-index:0; pointer-events:none; opacity:.2; background-image: radial-gradient(rgba(255,255,255,.7) .6px, transparent .8px); background-size:7px 7px; mask-image:linear-gradient(to bottom, transparent, black 20%, black 80%, transparent); }
+.fut-vault-orbit { position:absolute; left:50%; top:50%; border-radius:50%; pointer-events:none; z-index:0; }
+.fut-vault-orbit::after { content:''; position:absolute; width:8px; height:8px; border-radius:50%; background:#fef3c7; box-shadow:0 0 18px 6px rgba(251,191,36,.7); }
+.fut-vault-orbit-one { width:520px; height:520px; border:1px solid rgba(251,191,36,.13); transform:translate(-50%,-50%) rotate(15deg); animation: orbitSpin 18s linear infinite; }
+.fut-vault-orbit-one::after { top:18%; left:8%; }
+.fut-vault-orbit-two { width:370px; height:370px; border:1px solid rgba(110,231,183,.16); transform:translate(-50%,-50%) rotate(-35deg); animation: orbitSpin 13s linear infinite reverse; }
+.fut-vault-orbit-two::after { right:8%; bottom:20%; background:#6ee7b7; box-shadow:0 0 18px 6px rgba(110,231,183,.65); }
+@keyframes orbitSpin { from { transform:translate(-50%,-50%) rotate(0); } to { transform:translate(-50%,-50%) rotate(360deg); } }
+@keyframes spinOnly { to { transform:rotate(360deg); } }
+@keyframes vaultBreathe { 50% { transform:scale(1.07); opacity:.72; } }
+.fut-pack-stage { animation: stageRise .65s cubic-bezier(.16,1,.3,1) both; }
+@keyframes stageRise { from { opacity:0; transform:translateY(20px) scale(.96); } to { opacity:1; transform:none; } }
+.fut-vault-status { display:flex; align-items:center; justify-content:center; gap:9px; margin:-.2rem 0 .85rem; color:rgba(254,243,199,.66); font-size:9px; font-weight:800; letter-spacing:.19em; }
+.fut-vault-status span { width:26px; height:1px; background:linear-gradient(90deg, transparent, #fbbf24); }.fut-vault-status span:last-child { transform:scaleX(-1); }
+.fut-card { transform: perspective(900px) rotateX(2deg); animation: packFloat 3.5s ease-in-out infinite; background:linear-gradient(150deg,#383018 0%,#15140d 42%,#050806 100%); border-color:#f6c453; }
+.fut-card:hover { transform:perspective(900px) rotateX(0) translateY(-8px) scale(1.025); }
+.fut-card::after { content:''; position:absolute; inset:7px; border:1px solid rgba(254,243,199,.26); border-radius:14px; pointer-events:none; }
+@keyframes packFloat { 50% { transform:perspective(900px) rotateX(-2deg) translateY(-9px); } }
+.fut-card-corner { position:absolute; width:26px; height:26px; border-color:#fef3c7; opacity:.75; z-index:2; }.fut-card-corner.top-left{top:12px;left:12px;border-top:2px solid;border-left:2px solid}.fut-card-corner.top-right{top:12px;right:12px;border-top:2px solid;border-right:2px solid}.fut-card-corner.bottom-left{bottom:12px;left:12px;border-bottom:2px solid;border-left:2px solid}.fut-card-corner.bottom-right{bottom:12px;right:12px;border-bottom:2px solid;border-right:2px solid}
+.fut-card-crest { position:relative; background:radial-gradient(circle at 35% 28%,#fff7d2 0 5%,#f59e0b 35%,#78350f 100%); }.fut-card-crest::before { content:''; position:absolute; inset:-11px; border:1px solid rgba(251,191,36,.5); border-radius:50%; animation:spinOnly 8s linear infinite; }.fut-card-crest::after { content:'✦'; position:absolute; color:#fff7d2; font-size:12px; top:-20px; }
+.fut-tap-prompt { display:flex; align-items:center; justify-content:center; gap:6px; margin:-.7rem 0 .8rem; color:#fef3c7; font-size:11px; font-weight:700; letter-spacing:.03em; animation:tapNudge 1.6s ease-in-out infinite; }.fut-tap-prompt .material-icons{font-size:16px;color:#fbbf24}@keyframes tapNudge{50%{transform:translateY(-3px);opacity:.72}}
+.fut-modal.is-opening { animation: vaultFlash 1.55s ease both; }.fut-modal.is-opening .fut-vault-orbit { border-color:rgba(255,244,190,.75); filter:drop-shadow(0 0 12px #fbbf24); animation-duration:1.5s; }.fut-modal.is-opening .fut-card-corner { animation: cornerFlicker .18s linear infinite; }.fut-modal.is-opening .fut-card { animation: packCrack 1.55s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes vaultFlash { 48% { background-color:#fff0af; } 56% { filter:brightness(2.2); } }
+@keyframes cornerFlicker { 50% { opacity:.12; } } @keyframes packCrack { 0%,60%{transform:perspective(900px) rotateX(2deg) scale(1)} 18%,42%{transform:perspective(900px) rotateX(2deg) translateX(-5px) rotateZ(-1deg) scale(1.025)} 80%{transform:scale(1.13);filter:brightness(2.7)} 100%{transform:scale(1.7);opacity:0;filter:brightness(4)} }
+.fut-modal.is-revealed .fut-vault-orbit { border-color:rgba(110,231,183,.34); }.fut-reveal-container { position:relative; }.fut-reveal-container::before { content:''; position:absolute; width:330px; height:330px; border-radius:50%; background:radial-gradient(circle,rgba(251,191,36,.22),transparent 65%); z-index:-1; animation:vaultBreathe 2s ease-in-out infinite; }.fut-3d-coin-stage::after { content:''; position:absolute; inset:-15px; border:1px dashed rgba(254,243,199,.36); border-radius:50%; animation:spinOnly 10s linear infinite; }
+
+.milestone-modal { isolation:isolate; overflow:hidden; background:radial-gradient(circle at 50% 36%,rgba(245,158,11,.18),transparent 30%),linear-gradient(145deg,#07110d,#0b0b08 55%,#160f05); }.milestone-aurora { position:absolute; inset:-25%; z-index:0; pointer-events:none; background:conic-gradient(from 120deg,transparent,rgba(251,191,36,.12),transparent,rgba(16,185,129,.12),transparent); filter:blur(35px); animation:auroraTurn 14s linear infinite; }.milestone-stars { position:absolute; inset:0; z-index:1; pointer-events:none; }.milestone-stars i { position:absolute; width:4px; height:4px; background:#fef3c7; border-radius:50%; box-shadow:0 0 10px 3px rgba(251,191,36,.55); animation:starTwinkle 1.8s ease-in-out infinite alternate; }.milestone-stars i:nth-child(1){top:18%;left:16%}.milestone-stars i:nth-child(2){top:28%;right:14%;animation-delay:.3s}.milestone-stars i:nth-child(3){bottom:23%;left:12%;animation-delay:.8s}.milestone-stars i:nth-child(4){bottom:17%;right:18%;animation-delay:1.1s}.milestone-stars i:nth-child(5){top:13%;left:56%;animation-delay:.5s}@keyframes auroraTurn{to{transform:rotate(360deg)}}@keyframes starTwinkle{to{transform:scale(2);opacity:.35}}
+.milestone-content-card { overflow:hidden; background:linear-gradient(145deg,rgba(44,34,15,.96),rgba(10,13,10,.98)); }.milestone-content-card::before { content:''; position:absolute; inset:8px; border:1px solid rgba(254,243,199,.16); border-radius:17px; pointer-events:none; }.milestone-content-card::after { content:'✦  KALIX ROYAL REWARDS  ✦'; position:absolute; left:0; right:0; bottom:8px; color:rgba(251,191,36,.33); font-size:8px; font-weight:800; letter-spacing:.28em; }.milestone-3d-coin-box { position:relative; }.milestone-3d-coin-box::after { content:''; position:absolute; inset:-15px; border:1px solid rgba(254,243,199,.45); border-radius:50%; animation:spinOnly 9s linear infinite; }
 
 /* ==========================================
    MILESTONE CELEBRATION MODAL & NOTIFICATION

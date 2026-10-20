@@ -13,9 +13,11 @@ const FLAVORS = [
     image: 'images/kalix_pistachio_rose.png',
     emoji: '🍨',
     category: 'saffron',
+    swatchColor: '#2e7d32',
+    glowColor: 'rgba(46, 125, 50, 0.22)',
+    bg: 'linear-gradient(145deg, #eaf5ea 0%, #d5edd6 100%)',
     ingredients: ['Roasted Iranian Pistachio', 'Kannauj Damask Rose', '100% A2 Gir Malai', 'Raw Khandsari'],
-    sweetness: 75, tartness: 18, creaminess: 96,
-    bg: 'linear-gradient(145deg, #eaf5ea 0%, #d5edd6 100%)'
+    sweetness: 75, tartness: 18, creaminess: 96
   },
   {
     id: 2,
@@ -28,24 +30,28 @@ const FLAVORS = [
     image: 'images/kalix_butterscotch.png',
     emoji: '🍯',
     category: 'heritage',
+    swatchColor: '#d97706',
+    glowColor: 'rgba(217, 119, 6, 0.22)',
+    bg: 'linear-gradient(145deg, #fff7e6 0%, #fde6ba 100%)',
     ingredients: ['Butterscotch Toffee Shards', 'Palm Jaggery Caramel', 'Smoked Sea Salt', 'Cultured A2 Cream'],
-    sweetness: 85, tartness: 10, creaminess: 94,
-    bg: 'linear-gradient(145deg, #fff7e6 0%, #fde6ba 100%)'
+    sweetness: 85, tartness: 10, creaminess: 94
   },
   {
     id: 3,
     name: 'Kalix Ratnagiri Alphonso & Kashmiri Chili Pop Ice Cream',
     subtitle: 'Mango Chili Pop Artisanal Tub',
     desc: 'Pure tree-ripened Devgad Alphonso mango pulp churned with velvety sweet malai, kissed with a warm spark of Kashmiri chili flakes and fresh Coorg lime.',
-    price: 399,
+    price: 499,
     tag: 'SEASONAL HARVEST',
     tagColor: 'amber',
     image: 'images/kalix_mango_chili.png',
     emoji: '🥭',
     category: 'fruit',
+    swatchColor: '#ea580c',
+    glowColor: 'rgba(234, 88, 12, 0.22)',
+    bg: 'linear-gradient(145deg, #fff3e0 0%, #ffe0b2 100%)',
     ingredients: ['Devgad Alphonso Mango', 'Kashmiri Chili Flakes', 'Coorg Lime Zest', 'A2 Churned Malai'],
-    sweetness: 88, tartness: 35, creaminess: 82,
-    bg: 'linear-gradient(145deg, #fff3e0 0%, #ffe0b2 100%)'
+    sweetness: 88, tartness: 35, creaminess: 82
   },
   {
     id: 4,
@@ -58,39 +64,45 @@ const FLAVORS = [
     image: 'images/kalix_blackberry.png',
     emoji: '🫐',
     category: 'floral',
+    swatchColor: '#7c3aed',
+    glowColor: 'rgba(124, 58, 237, 0.22)',
+    bg: 'linear-gradient(145deg, #f5eefb 0%, #e8d7f7 100%)',
     ingredients: ['Wild Blackberries', 'French Lavender Infusion', 'Golden Cookie Crumble', 'Cultured Cream'],
-    sweetness: 72, tartness: 48, creaminess: 88,
-    bg: 'linear-gradient(145deg, #f5eefb 0%, #e8d7f7 100%)'
+    sweetness: 72, tartness: 48, creaminess: 88
   },
   {
     id: 5,
     name: 'Kalix Mahabaleshwar Strawberry & Lychee Churn Ice Cream',
     subtitle: 'Strawberry Lychee Artisanal Tub',
     desc: 'Hand-picked Mahabaleshwar winter strawberries paired with succulent Muzaffarpur lychee pearls and bourbon vanilla folded into dense A2 Gir cream.',
-    price: 459,
+    price: 549,
     tag: 'SUMMER CRUSH',
     tagColor: 'rose',
     image: 'images/kalix_strawberry_lychee.png',
     emoji: '🍓',
     category: 'fruit',
+    swatchColor: '#e11d48',
+    glowColor: 'rgba(225, 29, 72, 0.22)',
+    bg: 'linear-gradient(145deg, #fdebf0 0%, #fad0dc 100%)',
     ingredients: ['Mahabaleshwar Strawberries', 'Muzaffarpur Shahi Lychee', 'Bourbon Vanilla Bean', 'A2 Sweet Cream'],
-    sweetness: 80, tartness: 36, creaminess: 86,
-    bg: 'linear-gradient(145deg, #fdebf0 0%, #fad0dc 100%)'
+    sweetness: 80, tartness: 36, creaminess: 86
   },
   {
     id: 6,
-    name: 'Kalix Ube Cloud & Sweet Velvet Malai Ice Cream',
-    subtitle: 'Purple Ube & Toasted Coconut Tub',
-    desc: 'Slow-roasted organic purple ube tuber churned with sweet velvety coconut cream and delicate cardamom, crowned with crisp toasted flakes.',
-    price: 899,
-    tag: 'LIMITED DROP',
-    tagColor: 'berry',
-    image: 'images/kalix_ube_cloud.png',
-    emoji: '🍠',
+    name: 'Kalix Rich Choco Almond Artisanal Ice Cream',
+    subtitle: 'Rich Choco Almond Glacé Tub',
+    desc: 'Velvety single-origin dark cocoa and slow-churned A2 Gir cow cream, laced with dark chocolate fudge swirl and roasted Californian almond shards.',
+    price: 799,
+    tag: 'ROYAL INDULGENCE',
+    tagColor: 'amber',
+    image: 'images/kalix_choco_almond.png',
+    emoji: '🍫',
     category: 'heritage',
-    ingredients: ['Organic Purple Ube Tuber', 'Toasted Coconut Flakes', 'Cardamom Mist', 'A2 Gir Malai'],
-    sweetness: 74, tartness: 12, creaminess: 95,
-    bg: 'linear-gradient(145deg, #ede9fe 0%, #ddd6fe 100%)'
+    swatchColor: '#5c3826',
+    glowColor: 'rgba(92, 56, 38, 0.26)',
+    bg: 'linear-gradient(145deg, #f7efe8 0%, #ecd8cb 100%)',
+    ingredients: ['Single-Origin Dark Cocoa', 'Roasted Almond Shards', 'Dark Chocolate Fudge', 'A2 Churned Malai'],
+    sweetness: 82, tartness: 8, creaminess: 98
   }
 ];
 
@@ -395,80 +407,175 @@ document.addEventListener('click', e=>{
   if(cartBtn) { e.preventDefault(); openCartDrawer(); }
 });
 
-// ---- Product Page ----
-function renderProductPage() {
-  const id = parseInt(localStorage.getItem('kalixCurrentProduct')) || 1;
-  const f = FLAVORS.find(x=>x.id===id) || FLAVORS[0];
+// ---- Product Page with Dynamic Flavor & Color Morphing ----
+function selectProductFlavor(id) {
+  const f = FLAVORS.find(x => x.id === id);
+  if (!f) return;
+  localStorage.setItem('kalixCurrentProduct', id);
+
   document.title = `${f.name} | Kalix Artisanal Ice Cream`;
 
   const el = id => document.getElementById(id);
-  if(el('prodImage')) {
-    el('prodImage').src = f.image;
-    el('prodImage').alt = f.name;
+
+  // 1. Morph background color and ambient shadow glow
+  const galleryMain = el('prodGalleryMain');
+  if (galleryMain) {
+    galleryMain.style.background = f.bg;
+    galleryMain.style.boxShadow = `0 24px 50px ${f.glowColor}, var(--shadow-md)`;
+    galleryMain.style.border = `1.5px solid ${f.swatchColor}33`;
   }
-  if(el('prodBreadcrumb')) el('prodBreadcrumb').textContent = f.subtitle;
-  if(el('prodEmoji')) el('prodEmoji').textContent = f.emoji;
-  if(el('prodEmojiBg')) el('prodEmojiBg').style.background = f.bg;
-  if(el('prodTag')) {
+
+  // 2. Smooth animated image swap
+  const prodImg = el('prodImage');
+  if (prodImg) {
+    prodImg.classList.add('switching');
+    setTimeout(() => {
+      prodImg.src = f.image;
+      prodImg.alt = f.name;
+      prodImg.onload = () => {
+        prodImg.classList.remove('switching');
+      };
+      setTimeout(() => prodImg.classList.remove('switching'), 220);
+    }, 140);
+  }
+
+  // 3. Update pill & dynamic colors
+  const pill = el('selectedFlavorPill');
+  if (pill) {
+    const shortName = f.name.replace('Kalix ', '').split(' Ice Cream')[0];
+    pill.textContent = shortName;
+    pill.style.color = f.swatchColor;
+    pill.style.background = `${f.swatchColor}18`;
+    pill.style.border = `1px solid ${f.swatchColor}44`;
+  }
+
+  // 4. Update texts and chips
+  if (el('prodBreadcrumb')) el('prodBreadcrumb').textContent = f.subtitle;
+  if (el('prodTag')) {
     el('prodTag').textContent = f.tag;
-    el('prodTag').style.color = f.tagColor==='berry'?'var(--tertiary)':f.tagColor==='green'?'var(--pistachio)':'var(--amber)';
+    el('prodTag').style.color = f.swatchColor;
   }
-  if(el('prodTitle')) el('prodTitle').textContent = f.name;
-  if(el('prodSubtitle')) el('prodSubtitle').textContent = f.subtitle;
-  if(el('prodDesc')) el('prodDesc').textContent = f.desc;
-  if(el('prodPrice')) el('prodPrice').textContent = '₹'+f.price;
-  if(el('sweetBar')) el('sweetBar').style.width = f.sweetness+'%';
-  if(el('tartBar')) el('tartBar').style.width = f.tartness+'%';
-  if(el('creamBar')) el('creamBar').style.width = f.creaminess+'%';
-  if(el('sweetPct')) el('sweetPct').textContent = f.sweetness+'%';
-  if(el('tartPct')) el('tartPct').textContent = f.tartness+'%';
-  if(el('creamPct')) el('creamPct').textContent = f.creaminess+'%';
-  if(el('ingChips')) {
-    el('ingChips').innerHTML = f.ingredients.map(i=>`<span class="ingr-chip">${i}</span>`).join('');
+  if (el('prodTitle')) el('prodTitle').textContent = f.name;
+  if (el('prodSubtitle')) el('prodSubtitle').textContent = f.subtitle;
+  if (el('prodDesc')) el('prodDesc').textContent = f.desc;
+  if (el('prodPrice')) el('prodPrice').textContent = '₹' + f.price;
+
+  // 5. Update sensory spectrum bars with animated width & matching colors
+  if (el('sweetBar')) {
+    el('sweetBar').style.width = f.sweetness + '%';
+    el('sweetBar').style.background = `linear-gradient(90deg, ${f.swatchColor}, var(--amber))`;
   }
-  if(el('addCartBtn')) {
-    el('addCartBtn').onclick = ()=>{
+  if (el('tartBar')) el('tartBar').style.width = f.tartness + '%';
+  if (el('creamBar')) el('creamBar').style.width = f.creaminess + '%';
+  if (el('sweetPct')) el('sweetPct').textContent = f.sweetness + '%';
+  if (el('tartPct')) el('tartPct').textContent = f.tartness + '%';
+  if (el('creamPct')) el('creamPct').textContent = f.creaminess + '%';
+
+  if (el('ingChips')) {
+    el('ingChips').innerHTML = f.ingredients.map(i => `<span class="ingr-chip">${i}</span>`).join('');
+  }
+
+  // 6. Update Add to Cart & Wishlist buttons
+  if (el('addCartBtn')) {
+    el('addCartBtn').onclick = () => {
       const q = parseInt(el('qtyNum')?.textContent || 1);
       addToCart(f.id, q);
     };
   }
-  if(el('wishBtn')) {
+  if (el('wishBtn')) {
     el('wishBtn').classList.toggle('active', isWishlisted(f.id));
     el('wishBtn').setAttribute('data-wish', f.id);
     el('wishBtn').onclick = () => toggleWishlist(f.id);
   }
 
-  // Related
-  const others = FLAVORS.filter(x=>x.id!==f.id).slice(0, 3);
+  // 7. Update Swatch Cards Active State
+  document.querySelectorAll('.flavor-swatch-card').forEach(card => {
+    const cardId = parseInt(card.getAttribute('data-flavor-id'));
+    const isActive = cardId === f.id;
+    card.classList.toggle('active', isActive);
+    if (isActive) {
+      card.style.borderColor = f.swatchColor;
+      card.style.boxShadow = `0 0 0 2px ${f.swatchColor}, 0 8px 20px ${f.glowColor}`;
+    } else {
+      card.style.borderColor = '';
+      card.style.boxShadow = '';
+    }
+  });
+
+  // 8. Update Related Grid
+  const others = FLAVORS.filter(x => x.id !== f.id).slice(0, 3);
   const relGrid = el('relatedGrid');
-  if(relGrid) {
-    relGrid.innerHTML = others.map(r=>`
-      <div class="flavor-card" onclick="goToProduct(${r.id})" style="cursor:pointer">
-        <div class="flavor-card-img">
-          <img src="${r.image}" alt="${r.name}" class="flavor-img" />
-          <span class="flavor-badge-pill">${r.tag}</span>
+  if (relGrid) {
+    relGrid.innerHTML = others.map(r => `
+      <div class="flavor-card" onclick="selectProductFlavor(${r.id});window.scrollTo({top:0,behavior:'smooth'});" style="cursor:pointer">
+        <div class="flavor-card-stage" style="background:${r.bg}">
+          <div class="card-stage-top">
+            <span class="card-origin-pill">✦ 500 ML · ARTISANAL GLACÉ</span>
+          </div>
+          <div class="card-tub-wrap">
+            <img src="${r.image}" alt="${r.name}" class="flavor-tub-img" />
+          </div>
         </div>
         <div class="flavor-card-body">
-          <div class="flavor-tag" style="color:var(--amber)">${r.tag}</div>
-          <div class="flavor-name">${r.name.split(' & ')[0]} Ice Cream</div>
+          <div class="card-badge-row">
+            <span class="flavor-tag-chip tag-${r.tagColor}">${r.tag}</span>
+          </div>
+          <h3 class="flavor-name">${r.name.replace('Kalix ', '').split(' Ice Cream')[0]}</h3>
           <div class="flavor-footer">
             <span class="flavor-price">₹${r.price}</span>
-            <button class="quick-add-btn" onclick="event.stopPropagation();addToCart(${r.id})">
-              <span class="material-icons">add_shopping_cart</span>
+            <button class="boutique-add-btn" onclick="event.stopPropagation();addToCart(${r.id})">
+              <span class="btn-caption">Add</span>
+              <span class="material-icons">shopping_bag</span>
             </button>
           </div>
         </div>
       </div>`).join('');
   }
+}
 
-  // stepper
+function renderProductPage() {
+  const id = parseInt(localStorage.getItem('kalixCurrentProduct')) || 1;
+  const initial = FLAVORS.find(x => x.id === id) || FLAVORS[0];
+
+  // Render Swatch Grid
+  const swatchContainer = document.getElementById('flavorSwatchesGrid');
+  if (swatchContainer) {
+    swatchContainer.innerHTML = FLAVORS.map(f => {
+      const shortTitle = f.name.replace('Kalix ', '').split(' Ice Cream')[0];
+      return `
+      <div class="flavor-swatch-card ${f.id === initial.id ? 'active' : ''}" 
+           data-flavor-id="${f.id}" 
+           onclick="selectProductFlavor(${f.id})"
+           title="${f.name}">
+        <span class="flavor-swatch-dot" style="background:${f.swatchColor}"></span>
+        <div class="flavor-swatch-info">
+          <span class="flavor-swatch-name">${shortTitle}</span>
+          <span class="flavor-swatch-price">₹${f.price}</span>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Populate data for initial flavor
+  selectProductFlavor(initial.id);
+
+  // Stepper handlers
   let qty = 1;
-  el('qtyMinus')?.addEventListener('click', ()=>{
-    if(qty > 1) { qty--; if(el('qtyNum')) el('qtyNum').textContent = qty; }
-  });
-  el('qtyPlus')?.addEventListener('click', ()=>{
-    qty++; if(el('qtyNum')) el('qtyNum').textContent = qty;
-  });
+  const qtyMinus = document.getElementById('qtyMinus');
+  const qtyPlus = document.getElementById('qtyPlus');
+  const qtyNum = document.getElementById('qtyNum');
+  if (qtyMinus && !qtyMinus._bound) {
+    qtyMinus._bound = true;
+    qtyMinus.addEventListener('click', () => {
+      if (qty > 1) { qty--; if (qtyNum) qtyNum.textContent = qty; }
+    });
+  }
+  if (qtyPlus && !qtyPlus._bound) {
+    qtyPlus._bound = true;
+    qtyPlus.addEventListener('click', () => {
+      qty++; if (qtyNum) qtyNum.textContent = qty;
+    });
+  }
 }
 
 // ---- Cart Page ----
@@ -865,6 +972,8 @@ function ensureMilestoneModal() {
   modal.id = 'milestoneModal';
   modal.className = 'milestone-modal';
   modal.innerHTML = `
+    <div class="milestone-aurora" aria-hidden="true"></div>
+    <div class="milestone-stars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
     <!-- Top Sliding Notification Banner -->
     <div class="milestone-notify-banner">
       <div class="notify-icon-glow">
@@ -944,6 +1053,9 @@ function ensureFutModal() {
   modal.className = 'fut-modal';
   modal.innerHTML = `
     <canvas id="futCanvas" class="fut-confetti-canvas"></canvas>
+    <div class="fut-grain" aria-hidden="true"></div>
+    <div class="fut-vault-orbit fut-vault-orbit-one" aria-hidden="true"></div>
+    <div class="fut-vault-orbit fut-vault-orbit-two" aria-hidden="true"></div>
     
     <div class="fut-stadium-lights">
       <div class="fut-beam"></div>
@@ -956,8 +1068,11 @@ function ensureFutModal() {
       <!-- PHASE 1: UNOPENED PACK -->
       <div id="futPackUnopened">
         <p class="fut-stage-eye">✦ ${MILESTONE_TARGET} ICE CREAMS SPECIAL UNLOCK ✦</p>
+        <div class="fut-vault-status"><span></span>ROYAL VAULT SECURED<span></span></div>
         <div class="fut-card" id="futCardElement" onclick="startPackOpening()">
           <div class="fut-card-shimmer"></div>
+          <div class="fut-card-corner top-left"></div><div class="fut-card-corner top-right"></div>
+          <div class="fut-card-corner bottom-left"></div><div class="fut-card-corner bottom-right"></div>
           <div class="fut-card-header">
             <div>
               <div class="fut-card-rating">100</div>
@@ -973,6 +1088,7 @@ function ensureFutModal() {
             <div class="fut-card-sub">MYSTERY COIN DROP (1–100)</div>
           </div>
         </div>
+        <div class="fut-tap-prompt"><span class="material-icons">touch_app</span> Tap the pack to reveal your drop</div>
         <p class="fut-stage-hint">Every coin is worth <strong style="color:#fbbf24">₹5 Discount</strong> on your ice creams!</p>
         <button class="btn-primary btn-lg btn-claim-checkout" onclick="startPackOpening()" id="openPackBtn">
           <ion-icon name="flash" style="font-size:20px"></ion-icon>
@@ -1163,6 +1279,7 @@ window.addEventListener('focus', refreshCartDependentUI);
 
 // Trigger EA FC Pack Opening
 let currentPackCoins = 0;
+let packOpeningInProgress = false;
 function triggerPackOpening(forcedCoins = null, forceUnlock = false) {
   const isPending = sessionStorage.getItem('kalixPendingRewardPack') === 'true';
   const progress = getMysteryPackProgress();
@@ -1185,11 +1302,14 @@ function triggerPackOpening(forcedCoins = null, forceUnlock = false) {
   unopened.style.display = 'block';
   reveal.style.display = 'none';
   if (card) card.classList.remove('shaking');
+  packOpeningInProgress = false;
+  modal.classList.remove('is-opening', 'is-revealed');
 
   modal.classList.add('active');
 }
 
 function startPackOpening() {
+  if (packOpeningInProgress) return;
   const isPending = sessionStorage.getItem('kalixPendingRewardPack') === 'true';
   const progress = getMysteryPackProgress();
   if (!isPending && !progress.unlocked) {
@@ -1205,6 +1325,9 @@ function startPackOpening() {
   const tierBadgeEl = document.getElementById('revealedTierBadge');
 
   if (!card) return;
+  packOpeningInProgress = true;
+  const modal = document.getElementById('futModal');
+  if (modal) modal.classList.add('is-opening');
 
   // Shake animation & rumble sound
   card.classList.add('shaking');
@@ -1214,6 +1337,10 @@ function startPackOpening() {
     card.classList.remove('shaking');
     unopened.style.display = 'none';
     reveal.style.display = 'flex';
+    if (modal) {
+      modal.classList.remove('is-opening');
+      modal.classList.add('is-revealed');
+    }
 
     // Play impact boom & fanfare
     playFutAudio('boom');
