@@ -2943,3 +2943,33 @@ body.sommelier-screen-active { overflow: hidden; }
   .price-val { font-size: 20px; }
   .city-pill { font-size: 13px; }
 }
+
+/* ---- COMPACT MOBILE HEADER ---- */
+@media (max-width: 600px) {
+  .navbar { top: 6px; width: calc(100% - 12px); border-radius: 16px; }
+  .nav-inner { display: grid; grid-template-columns: minmax(0, 1fr) auto; height: 56px; padding: 0 .65rem; gap: .35rem; }
+  .nav-logo { gap: .35rem; min-width: 0; font-size: 0; }
+  .nav-logo > span:last-child { min-width: 0; max-width: none; font-size: 0; overflow: visible; }
+  .nav-logo > span:last-child::before { content: 'KALIX'; color: var(--on-surface); font-family: var(--font-display); font-size: 18px; font-weight: 700; letter-spacing: .04em; }
+  .nav-logo > span:last-child em { display: none; }
+  .logo-icon { width: 24px; height: 24px; font-size: 14px; }
+  .nav-actions { display: flex; justify-content: flex-end; gap: .15rem; min-width: 0; }
+  .sommelier-nav-btn, .rewards-nav-btn, .nav-actions .nav-icon-btn, .hamburger { width: 34px; height: 34px; min-width: 34px; border-radius: 11px; }
+  .sommelier-nav-btn, .rewards-nav-btn { display: inline-flex; padding: 0; align-items: center; justify-content: center; }
+  .rewards-nav-btn { background: rgba(217,119,6,.1); border-color: rgba(217,119,6,.26); }
+  .rewards-nav-btn .rewards-coin-icon { font-size: 16px !important; }
+  .nav-actions .nav-icon-btn:first-of-type { display: none; }
+  .nav-actions .nav-icon-btn:last-of-type { display: flex; }
+  .hamburger { display: flex; margin-left: .1rem; padding: 0; }
+  .nav-links { top: calc(100% + 7px); left: .4rem; right: .4rem; }
+  .hero { padding-top: 85px; }
+}
+
+@media (max-width: 380px) {
+  .nav-inner { padding-inline: .55rem; }
+  .nav-actions { gap: .05rem; }
+  .sommelier-nav-btn { display: none; }
+  .rewards-nav-btn, .nav-actions .nav-icon-btn, .hamburger { width: 32px; height: 32px; min-width: 32px; }
+  .nav-actions .nav-icon-btn:last-of-type { display: flex; }
+  .nav-logo > span:last-child::before { font-size: 16px; }
+}
