@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kalix Royal Pistachio &amp; Damask Rose | Kalix Artisanal Glacé</title>
+  <title>Kalix Royal Pistachio &amp; Damask Rose | Kalix Premium Ice Cream</title>
   <meta name="description" content="Kalix Royal Pistachio & Damask Rose Artisanal Pint — 412 verified tastings. Order now with pan-India cold chain delivery." />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
@@ -14,11 +14,11 @@
 
 <nav class="navbar" id="navbar">
   <div class="nav-inner">
-    <a href="index.html" class="nav-logo"><span class="logo-icon">✦</span><span>Kalix <em>Artisanal Glacé</em></span></a>
+    <a href="index.html" class="nav-logo"><span class="logo-icon">✦</span><span>Kalix <em>Premium Ice Cream</em></span></a>
     <ul class="nav-links">
-      <li><a href="index.html#flavors">Ice Cream Pints</a></li>
-      <li><a href="index.html#craft">Vedic Craft</a></li>
-      <li><a href="index.html#cities">Delivery</a></li>
+      <li><a href="index.html#flavors">Ice Cream Tubs</a></li>
+      <li><a href="index.html#craft">Our Purity Promise</a></li>
+      <li><a href="index.html#cities">City Delivery</a></li>
     </ul>
     <div class="nav-actions">
       <button class="rewards-nav-btn" onclick="openRewardsModal()" title="Kalix Rewards & Coins"><span class="rewards-coin-icon">🪙</span><span id="navRewardsCount">0</span> Coins</button>
@@ -65,7 +65,7 @@
       <p class="product-subtitle" id="prodSubtitle">Pistachio Rose Artisanal Tub</p>
       <div class="stars">
         <span class="s">★</span><span class="s">★</span><span class="s">★</span><span class="s">★</span><span class="s">★</span>
-        <span class="count"><a href="#reviews" style="color:inherit;text-decoration:none">(412 verified royal tastings)</a></span>
+        <span class="count"><a href="#reviews" id="prodReviewCount" style="color:inherit;text-decoration:none">(412 verified royal tastings)</a></span>
       </div>
       <div class="product-price-row">
         <span class="product-price" id="prodPrice">₹699</span>
@@ -74,17 +74,6 @@
       <p style="font-size:14px;color:var(--on-surface-variant);margin-bottom:1.5rem;line-height:1.7" id="prodDesc">
         Slow-churned 100% single-herd A2 Gir cow cream infused with copper-distilled Kannauj damask rose, folded with slow-roasted green pistachios and raw misri.
       </p>
-
-      <!-- Interactive Flavor Switcher & Dynamic Color Selector -->
-      <div class="flavor-swatch-section">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem">
-          <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--outline);display:flex;align-items:center;gap:0.35rem">
-            <span class="material-icons" style="font-size:16px;color:var(--amber)">palette</span> Select Artisanal Flavor
-          </label>
-          <span id="selectedFlavorPill" style="font-size:12px;font-weight:700;color:var(--amber);background:rgba(217,119,6,0.1);padding:3px 10px;border-radius:var(--r-full);transition:all 0.3s ease">Pistachio &amp; Damask Rose</span>
-        </div>
-        <div class="flavor-swatches-grid" id="flavorSwatchesGrid"></div>
-      </div>
 
       <!-- Sensory Spectrum -->
       <div class="spectrum-section">
@@ -120,35 +109,41 @@
     </div>
   </div>
 
-  <!-- REVIEWS -->
-  <section id="reviews" style="padding:4rem 0">
-    <p class="section-eye">CONNOISSEUR REVIEWS</p>
-    <h2 class="section-title">Royal <em>Tasting Journals</em></h2>
-    <p class="section-desc" style="margin-bottom:2.5rem">Read sensory journals from verified culinary club patrons across Indian metropolises.</p>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem">
-      <div class="social-card">
-        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem">
-          <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--amber),#b45309);display:flex;align-items:center;justify-content:center;color:white;font-weight:700">A</div>
-          <div><div style="font-size:14px;font-weight:700">Arunima Krishnan</div><div style="font-size:12px;color:var(--outline)">Mumbai, Verified Purchase</div></div>
-        </div>
-        <div style="color:var(--amber);margin-bottom:0.5rem">★★★★★</div>
-        <p>"Rock-solid in Mumbai's 38°C humidity. Kalix's sub-zero dry-ice packaging was so cold frost was peeling off the pint! The Pampore saffron is authentic, intensely aromatic without cloying sweetness."</p>
+  <!-- PRODUCT REVIEWS -->
+  <section id="reviews" class="product-reviews-section">
+    <div class="reviews-heading">
+      <div>
+        <p class="section-eye">CONNOISSEUR REVIEWS</p>
+        <h2 class="section-title">Royal <em>Tasting Journals</em></h2>
+        <p>Every product has its own live tasting journal. Share your experience without creating an account.</p>
       </div>
-      <div class="social-card">
-        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem">
-          <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--pistachio),#234f1e);display:flex;align-items:center;justify-content:center;color:white;font-weight:700">R</div>
-          <div><div style="font-size:14px;font-weight:700">Raghav Malhotra</div><div style="font-size:12px;color:var(--outline)">Delhi NCR, Verified Purchase</div></div>
+      <div class="review-account-panel"><span id="reviewAccount">Share your tasting experience</span></div>
+    </div>
+    <div class="reviews-layout">
+      <form class="review-form" id="reviewForm">
+        <div class="review-form-title"><span class="material-icons">rate_review</span> Write a tasting journal</div>
+        <label for="reviewName">Your name <small>(optional)</small></label>
+        <input id="reviewName" type="text" maxlength="40" placeholder="Kalix guest" autocomplete="name" />
+        <label>Your rating (Tap stars to rate)</label>
+        <div class="star-rating-picker" id="starRatingPicker" role="radiogroup" aria-label="Select your star rating">
+          <input type="hidden" id="reviewRating" value="5" />
+          <div class="star-buttons-row" id="starButtonsRow">
+            <button type="button" class="star-btn active" data-value="1" aria-label="1 Star" title="1 Star - Needs work"><span class="star-char">★</span></button>
+            <button type="button" class="star-btn active" data-value="2" aria-label="2 Stars" title="2 Stars - Fair"><span class="star-char">★</span></button>
+            <button type="button" class="star-btn active" data-value="3" aria-label="3 Stars" title="3 Stars - Good"><span class="star-char">★</span></button>
+            <button type="button" class="star-btn active" data-value="4" aria-label="4 Stars" title="4 Stars - Very good"><span class="star-char">★</span></button>
+            <button type="button" class="star-btn active" data-value="5" aria-label="5 Stars" title="5 Stars - Outstanding"><span class="star-char">★</span></button>
+          </div>
+          <span class="star-rating-text" id="starRatingText">★★★★★ · Outstanding</span>
         </div>
-        <div style="color:var(--amber);margin-bottom:0.5rem">★★★★★</div>
-        <p>"Unrivaled A2 creaminess &amp; Royal heritage. Delivered to Jor Bagh during peak Loo heat. Pristine condition, frozen brick-hard. Truly a bespoke darbar experience."</p>
-      </div>
-      <div class="social-card">
-        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem">
-          <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--tertiary),#8f0042);display:flex;align-items:center;justify-content:center;color:white;font-weight:700">P</div>
-          <div><div style="font-size:14px;font-weight:700">Priya Venkataraman</div><div style="font-size:12px;color:var(--outline)">Bengaluru, Verified Purchase</div></div>
-        </div>
-        <div style="color:var(--amber);margin-bottom:0.5rem">★★★★★</div>
-        <p>"Ordered the 4-Pint Darbar Flight. Paired the glacé with the Coorg dark espresso reduction. The slow-churned Gir cow malai has no excess air — just thick, velvety indulgence."</p>
+        <label for="reviewComment">Your review</label>
+        <textarea id="reviewComment" rows="5" maxlength="800" placeholder="Tell us about the flavour, texture, and delivery experience…" required></textarea>
+        <button class="btn-primary" type="submit" id="reviewSubmitBtn">Post review <span class="material-icons">arrow_forward</span></button>
+        <p class="review-status" id="reviewStatus" role="status"></p>
+      </form>
+      <div class="reviews-feed-wrap">
+        <div class="reviews-feed" id="reviewsList" aria-live="polite"></div>
+        <div class="reviews-empty" id="reviewsEmpty"><span class="material-icons">forum</span><strong>No reviews yet</strong><p>Be the first to add a tasting journal for this flavour.</p></div>
       </div>
     </div>
   </section>
@@ -164,11 +159,13 @@
 <footer class="footer">
   <div class="container">
     <div style="text-align:center;padding:2rem 0;border-top:var(--ghost-border)">
-      <p style="font-size:13px;color:var(--outline)">© 2024 Kalix Artisanal Glacé Pvt. Ltd. | <a href="index.html" style="color:var(--amber);text-decoration:none">Back to Boutique</a> | FSSAI Lic. No. 10022022000841</p>
+      <p style="font-size:13px;color:var(--outline)">© 2024 Kalix Premium Ice Cream Pvt. Ltd. | <a href="index.html" style="color:var(--amber);text-decoration:none">Back to Boutique</a> | FSSAI Lic. No. 10022022000841</p>
     </div>
   </div>
 </footer>
 
+<script src="firebase-config.js"></script>
 <script src="app.js"></script>
+<script type="module" src="reviews.js"></script>
 </body>
 </html>

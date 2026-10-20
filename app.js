@@ -1,4 +1,4 @@
-// ============ KALIX ARTISANAL GLACÉ — APP.JS ============
+// ============ KALIX PREMIUM ICE CREAM — APP.JS ============
 
 // ---- Data ----
 const FLAVORS = [
@@ -22,7 +22,7 @@ const FLAVORS = [
   {
     id: 2,
     name: 'Kalix Salted Butterscotch Crunch Ice Cream',
-    subtitle: 'Butterscotch & Salted Jaggery Glacé Tub',
+    subtitle: 'Butterscotch & Salted Jaggery Ice Cream Tub',
     desc: 'Slow-simmered palm jaggery golden caramel ribboned through rich A2 cow cream, studded with roasted butter toffee shards and pink Himalayan salt.',
     price: 749,
     tag: 'SIGNATURE CRUNCH',
@@ -90,7 +90,7 @@ const FLAVORS = [
   {
     id: 6,
     name: 'Kalix Rich Choco Almond Artisanal Ice Cream',
-    subtitle: 'Rich Choco Almond Glacé Tub',
+    subtitle: 'Rich Choco Almond Ice Cream Tub',
     desc: 'Velvety single-origin dark cocoa and slow-churned A2 Gir cow cream, laced with dark chocolate fudge swirl and roasted Californian almond shards.',
     price: 799,
     tag: 'ROYAL INDULGENCE',
@@ -213,7 +213,7 @@ function addFlightToCart() {
   syncCartFromStorage();
   const flight = {
     id: 'flight1',
-    name: 'The Royal Darbar 4-Pint Ice Cream Flight',
+    name: 'The Royal Darbar 4-Tub Ice Cream Box',
     price: 2199,
     image: 'images/royal_flight.jpg',
     emoji: '🍨',
@@ -223,7 +223,7 @@ function addFlightToCart() {
   if(existing) existing.qty += 1;
   else cart.push(flight);
   saveCart();
-  showToast('🍨 Royal Darbar 4-Pint Flight added to Cryo-Bag!');
+  showToast('🍨 Royal Darbar 4-Tub Box added to Cryo-Bag!');
   updateDrawer();
 }
 
@@ -284,7 +284,7 @@ function updateDrawer() {
   const footer = document.getElementById('drawerFooter');
   if(!el) return;
   if(cart.length===0) {
-    el.innerHTML=`<div class="empty-state"><span class="material-icons" style="font-size:48px;color:var(--outline)">shopping_bag</span><p>Your cryo-bag is empty.<br/>Start exploring Heritage Ice Cream Pints.</p><a href="index.html#flavors" class="btn-primary btn-sm" onclick="closeCartDrawer()">Explore Flavors</a></div>`;
+    el.innerHTML=`<div class="empty-state"><span class="material-icons" style="font-size:48px;color:var(--outline)">shopping_bag</span><p>Your cryo-bag is empty.<br/>Start exploring our Ice Cream Tubs.</p><a href="index.html#flavors" class="btn-primary btn-sm" onclick="closeCartDrawer()">Explore Flavours</a></div>`;
     if(footer) footer.style.display='none';
     return;
   }
@@ -319,7 +319,7 @@ function renderFlavors(filter='all') {
     <div class="flavor-card" onclick="goToProduct(${f.id})" tabindex="0" role="button" aria-label="View ${f.name}">
       <div class="flavor-card-stage" style="background:${f.bg}">
         <div class="card-stage-top">
-          <span class="card-origin-pill">✦ 500 ML · ARTISANAL GLACÉ</span>
+          <span class="card-origin-pill">✦ 500 ML · PREMIUM ICE CREAM</span>
           <button class="card-wish-btn ${wishActive?'active':''}" data-wish="${f.id}" onclick="event.stopPropagation();toggleWishlist(${f.id})" title="${wishActive?'Remove from wishlist':'Save to wishlist'}">
             <span class="material-icons">${wishActive?'favorite':'favorite_border'}</span>
           </button>
@@ -412,6 +412,7 @@ function selectProductFlavor(id) {
   const f = FLAVORS.find(x => x.id === id);
   if (!f) return;
   localStorage.setItem('kalixCurrentProduct', id);
+  if (typeof window.setReviewsProduct === 'function') window.setReviewsProduct(id);
 
   document.title = `${f.name} | Kalix Artisanal Ice Cream`;
 
@@ -510,7 +511,7 @@ function selectProductFlavor(id) {
       <div class="flavor-card" onclick="selectProductFlavor(${r.id});window.scrollTo({top:0,behavior:'smooth'});" style="cursor:pointer">
         <div class="flavor-card-stage" style="background:${r.bg}">
           <div class="card-stage-top">
-            <span class="card-origin-pill">✦ 500 ML · ARTISANAL GLACÉ</span>
+            <span class="card-origin-pill">✦ 500 ML · PREMIUM ICE CREAM</span>
           </div>
           <div class="card-tub-wrap">
             <img src="${r.image}" alt="${r.name}" class="flavor-tub-img" />
@@ -530,6 +531,11 @@ function selectProductFlavor(id) {
           </div>
         </div>
       </div>`).join('');
+  }
+
+  // 9. Sync product reviews for current flavor
+  if (typeof window.setReviewsProduct === 'function') {
+    window.setReviewsProduct(f.id);
   }
 }
 
@@ -583,6 +589,12 @@ function renderCartPage() {
   const el = id => document.getElementById(id);
   const list = el('cartItemsList');
   if(!list) return;
+  const checkoutBtn = el('checkoutBtn');
+  const hasCartItems = cart.length > 0;
+  if (checkoutBtn) {
+    checkoutBtn.disabled = !hasCartItems;
+    checkoutBtn.setAttribute('aria-disabled', String(!hasCartItems));
+  }
   if(cart.length===0) {
     list.innerHTML=`<div class="empty-state" style="padding:4rem 0"><span class="material-icons" style="font-size:64px;color:var(--outline)">shopping_bag</span><p style="font-size:18px;margin:1rem 0">Your cryo-bag is empty.</p><a href="index.html#flavors" class="btn-primary">Explore Ice Cream Flavors</a></div>`;
     return;
@@ -596,7 +608,7 @@ function renderCartPage() {
         <img src="${img}" alt="${item.name}" class="cart-item-img" />
       </div>
       <div class="cart-item-info">
-        <div class="cart-item-tag">ARTISANAL ICE CREAM PINT</div>
+        <div class="cart-item-tag">REAL A2 MALAI ICE CREAM TUB</div>
         <div class="cart-item-name">${item.name}</div>
         <div class="cart-item-meta">500ml · 100% Single-Herd A2 Malai · Dry-Ice Cryo Packed</div>
       </div>
@@ -713,6 +725,15 @@ function renderCartPage() {
   const pct = Math.min((subtotal/1500)*100,100);
   if(el('pbFill')) el('pbFill').style.width=pct+'%';
   if(el('pbText')) el('pbText').textContent = subtotal<1500 ? `You're ₹${(1500-subtotal).toLocaleString('en-IN')} away from complimentary Insulated Cryo-Shipping & a handcrafted brass tasting spoon set!` : '🎉 Complimentary Cryo-Shipping & Brass Spoon Set Unlocked!';
+}
+
+function goToCheckout() {
+  syncCartFromStorage();
+  if (!cart.length) {
+    showToast('Your cart is empty. Add an ice cream before checkout.');
+    return;
+  }
+  window.location.href = 'checkout.html';
 }
 
 function changeQty(id, delta) {
@@ -1137,58 +1158,40 @@ function ensureRewardsInfoModal() {
   if (document.getElementById('rewardsInfoModal')) return;
   const modal = document.createElement('div');
   modal.id = 'rewardsInfoModal';
-  modal.style.cssText = 'display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.75);align-items:center;justify-content:center;padding:1.5rem';
+  modal.className = 'rewards-modal';
   modal.innerHTML = `
-    <div style="background:white;border-radius:var(--r-xl);max-width:460px;width:100%;overflow:hidden;box-shadow:var(--shadow-lg);position:relative">
-      <div style="background:linear-gradient(135deg,#1f1b13,#0d0b07);color:white;padding:2rem 1.5rem;text-align:center;position:relative">
-        <button onclick="closeRewardsInfoModal()" style="position:absolute;top:1rem;right:1rem;background:transparent;border:none;color:white;cursor:pointer"><span class="material-icons">close</span></button>
-        <div style="font-size:42px;margin-bottom:0.5rem">👑</div>
-        <h2 style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:#fef3c7;margin-bottom:0.25rem">Kalix Royal Rewards</h2>
-        <p style="font-size:13px;color:#fbbf24">Order ${MILESTONE_STEP} Ice Creams &amp; Unlock Mystery Packs</p>
-        
-        <div style="background:rgba(255,255,255,0.08);border:1px solid rgba(245,158,11,0.4);border-radius:var(--r-lg);padding:1rem;margin-top:1.25rem;display:flex;align-items:center;justify-content:space-around">
-          <div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.7);text-transform:uppercase">Your Coin Balance</div>
-            <div style="font-size:28px;font-weight:700;color:#fbbf24;margin-top:2px">🪙 <span id="modalCoinCount">0</span></div>
-          </div>
-          <div style="width:1px;height:40px;background:rgba(255,255,255,0.15)"></div>
-          <div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.7);text-transform:uppercase">Cash Value (₹5/coin)</div>
-            <div style="font-size:26px;font-weight:700;color:#a7f3d0;margin-top:2px">₹<span id="modalCashValue">0</span></div>
-          </div>
+    <div class="rewards-modal-card" role="dialog" aria-modal="true" aria-labelledby="rewardsModalTitle">
+      <div class="rewards-modal-hero">
+        <div class="rewards-hero-orbit orbit-one"></div><div class="rewards-hero-orbit orbit-two"></div>
+        <button class="rewards-modal-close" onclick="closeRewardsInfoModal()" aria-label="Close rewards"><span class="material-icons">close</span></button>
+        <div class="rewards-crown">👑</div>
+        <p class="rewards-kicker">KALIX PRIVATE CLUB</p>
+        <h2 id="rewardsModalTitle">Royal Rewards</h2>
+        <p class="rewards-hero-sub">Every ${MILESTONE_STEP} ice creams unlock a mystery coin pack.</p>
+        <div class="rewards-wallet-grid">
+          <div class="rewards-wallet-stat"><span>YOUR WALLET</span><strong>🪙 <b id="modalCoinCount">0</b></strong></div>
+          <div class="rewards-wallet-divider"></div>
+          <div class="rewards-wallet-stat"><span>CASH VALUE</span><strong class="rewards-cash">₹<b id="modalCashValue">0</b></strong></div>
         </div>
       </div>
-      
-      <div style="padding:1.5rem">
-        <div style="margin-bottom:1.25rem">
-          <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:0.4rem">
-            <span id="modalPackTitle">Progress to Pack #1 (${MILESTONE_STEP} Ice Creams)</span>
-            <span id="modalProgressText" style="color:var(--amber)">0 / ${MILESTONE_STEP}</span>
-          </div>
-          <div class="coin-progress-bar">
-            <div class="coin-progress-fill" id="modalProgressFill" style="width:0%"></div>
-          </div>
-          <p style="font-size:12px;color:var(--outline);margin-top:0.4rem" id="modalProgressSub">Add ${MILESTONE_STEP} ice creams to unlock a random 1–100 coins pack!</p>
+      <div class="rewards-modal-body">
+        <div class="rewards-progress-head">
+          <span id="modalPackTitle">Progress to Pack #1 (${MILESTONE_STEP} Ice Creams)</span>
+          <strong id="modalProgressText">0 / ${MILESTONE_STEP}</strong>
         </div>
-
-        <div style="background:var(--surface-container-low);border-radius:var(--r-md);padding:1rem;margin-bottom:1.5rem;font-size:12px;color:var(--on-surface-variant);line-height:1.6">
-          <div style="font-weight:700;color:var(--on-surface);margin-bottom:0.25rem;display:flex;align-items:center;gap:0.35rem">
-            <span class="material-icons" style="font-size:16px;color:var(--amber)">info</span> How it works:
-          </div>
-          • Every ${MILESTONE_STEP} Ice Creams purchased unlocks 1 Mystery Gold Pack.<br/>
-          • After claiming, progress resets to 0/${MILESTONE_STEP} and the next pack strictly requires the <strong>next ${MILESTONE_STEP} orders/products</strong>.<br/>
-          • Every pack contains a random drop of <strong>1 to 100 Coins</strong>.<br/>
-          • <strong>1–20 Coins have high drop probability (80%)</strong>.<br/>
-          • <strong>1 Coin = ₹5 discount value</strong>.<br/>
-          • Redeem your coins directly on any order at checkout or in your cart!
+        <div class="coin-progress-bar"><div class="coin-progress-fill" id="modalProgressFill" style="width:0%"></div></div>
+        <p class="rewards-progress-sub" id="modalProgressSub">Add ${MILESTONE_STEP} ice creams to unlock a random 1–100 coins pack!</p>
+        <div class="rewards-how-card">
+          <div class="rewards-how-title"><span class="material-icons">auto_awesome</span> How the royal drop works</div>
+          <ul>
+            <li>Every ${MILESTONE_STEP} ice creams unlocks one Mystery Gold Pack.</li>
+            <li>Each pack drops <strong>1–100 Reward Coins</strong>.</li>
+            <li><strong>1 coin = ₹5</strong> discount at checkout.</li>
+          </ul>
         </div>
-
-        <div style="display:flex;gap:0.75rem">
-          <button class="btn-primary btn-full btn-claim-checkout" onclick="closeRewardsInfoModal();triggerPackOpening(null, true)" id="modalOpenPackBtn">
-            <ion-icon name="flash"></ion-icon>
-            <span>Open Mystery Pack Now</span>
-          </button>
-        </div>
+        <button class="btn-primary btn-full btn-claim-checkout" onclick="closeRewardsInfoModal();triggerPackOpening(null, true)" id="modalOpenPackBtn">
+          <ion-icon name="flash"></ion-icon><span>Open Mystery Pack Now</span>
+        </button>
       </div>
     </div>
   `;
@@ -1668,7 +1671,7 @@ const SOMMELIER_PALETTES = [
     primaryName: 'Salted Butterscotch Crunch',
     keywords: ['butterscotch', 'crunch', 'crunchy', 'caramel', 'toffee', 'jaggery', 'salt', 'salted', 'sweet', 'palm', 'shard', 'shards', 'nutty', 'crispy'],
     sommelierIntro: 'An exquisite indulgence for a rich caramel craving!',
-    sommelierNote: 'The Royal Sommelier presents our signature Salted Butterscotch Crunch — slow-simmered palm jaggery caramel laced with crunchy butter toffee shards and pink Himalayan salt.',
+    sommelierNote: 'Kalix AI Voice presents our signature Salted Butterscotch Crunch — slow-simmered palm jaggery caramel laced with crunchy butter toffee shards and pink Himalayan salt.',
     cueColor: '#d97706',
     audioFreq: 528
   },
@@ -1677,7 +1680,7 @@ const SOMMELIER_PALETTES = [
     primaryName: 'Royal Pistachio & Damask Rose',
     keywords: ['pistachio', 'rose', 'damask', 'pista', 'green', 'nut', 'nuts', 'floral', 'relaxing', 'saffron', 'kannauj', 'aromatic', 'calm', 'sweet', 'shahi', 'peaceful'],
     sommelierIntro: 'A serene and poetic royal choice for your palate!',
-    sommelierNote: 'The Royal Sommelier curates our Award-Winning Royal Pistachio & Damask Rose — slow-churned A2 Gir cow cream infused with copper-distilled Kannauj rose and slow-roasted green pistachios.',
+    sommelierNote: 'Kalix AI Voice curates our Award-Winning Royal Pistachio & Damask Rose — slow-churned A2 Gir cow cream infused with copper-distilled Kannauj rose and slow-roasted green pistachios.',
     cueColor: '#2e7d32',
     audioFreq: 639
   },
@@ -1686,7 +1689,7 @@ const SOMMELIER_PALETTES = [
     primaryName: 'Rich Choco Almond',
     keywords: ['chocolate', 'choco', 'almond', 'almonds', 'cocoa', 'fudge', 'dark', 'rich', 'decadent', 'brown', 'belgian', 'creamy', 'choc', 'chocolaty', 'intense'],
     sommelierIntro: 'A decadent masterpiece of dark velvety cocoa!',
-    sommelierNote: 'The Royal Sommelier summons our Rich Choco Almond Glacé — single-origin dark cocoa churned with velvety malai, dark chocolate fudge ribbons, and toasted Californian almonds.',
+    sommelierNote: 'Kalix AI Voice summons our Rich Choco Almond Ice Cream — single-origin dark cocoa churned with velvety malai, dark chocolate fudge ribbons, and toasted Californian almonds.',
     cueColor: '#5c3826',
     audioFreq: 432
   },
@@ -1695,7 +1698,7 @@ const SOMMELIER_PALETTES = [
     primaryName: 'Ratnagiri Alphonso Mango',
     keywords: ['mango', 'alphonso', 'chili', 'spicy', 'tangy', 'citrus', 'lime', 'fruit', 'fruity', 'tropical', 'kashmiri', 'warm', 'refreshing', 'sweet', 'sunshine', 'spice'],
     sommelierIntro: 'A vibrant tropical sunburst with an unforgettable spark!',
-    sommelierNote: 'The Royal Sommelier selects our Ratnagiri Alphonso Mango — tree-ripened Devgad Alphonso pulp folded into sweet malai, energized with Kashmiri chili flakes and fresh lime zest.',
+    sommelierNote: 'Kalix AI Voice selects our Ratnagiri Alphonso Mango — tree-ripened Devgad Alphonso pulp folded into sweet malai, energized with Kashmiri chili flakes and fresh lime zest.',
     cueColor: '#ea580c',
     audioFreq: 741
   },
@@ -1704,7 +1707,7 @@ const SOMMELIER_PALETTES = [
     primaryName: 'Midnight Blackberry Swirl',
     keywords: ['blackberry', 'berry', 'berries', 'lavender', 'midnight', 'purple', 'violet', 'tart', 'botanical', 'wild', 'night', 'mysterious'],
     sommelierIntro: 'A rare botanical journey into the cool Himalayan night!',
-    sommelierNote: 'The Royal Sommelier welcomes you to Midnight Blackberry Swirl — cold-steeped wild Himalayan blackberries with French lavender notes and golden butter biscuit crumble.',
+    sommelierNote: 'Kalix AI Voice welcomes you to Midnight Blackberry Swirl — cold-steeped wild Himalayan blackberries with French lavender notes and golden butter biscuit crumble.',
     cueColor: '#7c3aed',
     audioFreq: 852
   },
@@ -1713,7 +1716,7 @@ const SOMMELIER_PALETTES = [
     primaryName: 'Mahabaleshwar Strawberry & Lychee',
     keywords: ['strawberry', 'strawberries', 'lychee', 'litchi', 'pink', 'sweet', 'vanilla', 'delicate', 'romantic', 'summer', 'fresh', 'fruity'],
     sommelierIntro: 'A pure romantic celebration of India’s freshest harvest!',
-    sommelierNote: 'The Royal Sommelier unveils Mahabaleshwar Strawberry & Lychee — hand-picked winter strawberries paired with succulent Muzaffarpur lychee pearls and bourbon vanilla.',
+    sommelierNote: 'Kalix AI Voice unveils Mahabaleshwar Strawberry & Lychee — hand-picked winter strawberries paired with succulent Muzaffarpur lychee pearls and bourbon vanilla.',
     cueColor: '#e11d48',
     audioFreq: 963
   }
@@ -1847,7 +1850,7 @@ function updateSommelierListeningUI(listening) {
 
   if (micBtn) micBtn.classList.toggle('listening', listening);
   if (micIcon) micIcon.textContent = listening ? 'mic' : 'mic_none';
-  if (micLabel) micLabel.textContent = listening ? 'Listening to your palate...' : 'Speak to the Royal Sommelier';
+  if (micLabel) micLabel.textContent = listening ? 'Listening to your flavor craving...' : 'Tap to Speak (AI Voice)';
   if (audioBars) audioBars.style.display = listening ? 'flex' : 'none';
   if (speechBubble && listening) {
     speechBubble.style.display = 'inline-flex';
@@ -1987,13 +1990,13 @@ function renderSommelierSpotlight(flavor, pal, matchedKeywords) {
     </div>
     <div class="spotlight-info-col">
       <span class="spotlight-badge" style="background:${pal.cueColor}18;color:${pal.cueColor};border:1px solid ${pal.cueColor}44">
-        👑 Royal Sommelier Spotlight Match
+        ✨ AI Voice Flavor Match
       </span>
       <h3 class="spotlight-flavor-title">${flavor.name}</h3>
       <div style="font-size:13px;font-style:italic;color:var(--outline);margin-bottom:0.85rem">${flavor.subtitle}</div>
       
       <div class="spotlight-tasting-note" style="border-left-color:${pal.cueColor}">
-        <strong>Sommelier Tasting Profile:</strong><br />
+        <strong>AI Voice Tasting Profile:</strong><br />
         ${pal.sommelierNote}
       </div>
 
@@ -2029,10 +2032,11 @@ function highlightCatalogCard(flavorId) {
   }
 }
 
-function scrollToSommelier() {
+function openSommelierScreen() {
   const el = document.getElementById('sommelier');
   if (el) {
-    el.scrollIntoView({ behavior: 'smooth' });
+    el.classList.add('sommelier-screen-open');
+    document.body.classList.add('sommelier-screen-active');
     const mic = document.getElementById('sommelierMicBtn');
     if (mic) {
       mic.style.transform = 'scale(1.15)';
@@ -2040,6 +2044,20 @@ function scrollToSommelier() {
     }
   }
 }
+
+function closeSommelierScreen() {
+  const el = document.getElementById('sommelier');
+  if (el) el.classList.remove('sommelier-screen-open');
+  document.body.classList.remove('sommelier-screen-active');
+}
+
+function scrollToSommelier() {
+  openSommelierScreen();
+}
+
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') closeSommelierScreen();
+});
 
 // ---- Init per page ----
 document.addEventListener('DOMContentLoaded', ()=>{

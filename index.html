@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kalix Artisanal Glacé | Indian Native Heritage & Slow-Churned Malai</title>
+  <title>Kalix Premium Ice Cream | Indian Native Heritage & Slow-Churned Malai</title>
   <meta name="description"
     content="Royal Vedic Churn. Slow-churned malai infused with GI-tagged Kashmiri Saffron, Ratnagiri Alphonso, and wild forest honey. 100% A2 Gir cow milk." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -22,15 +22,14 @@
 
   <nav class="navbar" id="navbar">
     <div class="nav-inner">
-      <a href="index.html" class="nav-logo"><span class="logo-icon">✦</span><span>Kalix <em>Artisanal
-            Glacé</em></span></a>
+      <a href="index.html" class="nav-logo"><span class="logo-icon">✦</span><span>Kalix <em>Premium Ice Cream</em></span></a>
       <ul class="nav-links" id="navLinks">
-        <li><a href="#flavors">Ice Cream Pints</a></li>
-        <li><a href="#craft">Vedic Craft</a></li>
-        <li><a href="#cities">Delivery</a></li>
+        <li><a href="#flavors">Ice Cream Tubs</a></li>
+        <li><a href="#craft">Our Purity Promise</a></li>
+        <li><a href="#cities">City Delivery</a></li>
       </ul>
       <div class="nav-actions">
-        <button class="sommelier-nav-btn" onclick="scrollToSommelier()" title="Speak to the Royal Sommelier"><span class="material-icons" style="font-size:16px">mic</span> <span>Sommelier</span></button>
+        <button class="sommelier-nav-btn" onclick="openSommelierScreen()" title="Kalix AI Voice Tasting"><span class="material-icons" style="font-size:16px">mic</span> <span>AI Voice</span></button>
         <button class="rewards-nav-btn" onclick="openRewardsModal()" title="Kalix Rewards & Coins"><span
             class="rewards-coin-icon">🪙</span><span id="navRewardsCount">0</span> Coins</button>
         <a href="wishlist.html" class="nav-icon-btn" title="Wishlist"><span class="material-icons">favorite</span><span
@@ -45,64 +44,63 @@
 
   <section class="hero" id="hero">
     <div class="hero-content">
-      <p class="hero-eye">SMALL-BATCH · VEDIC CRAFT · 100% SINGLE-HERD A2 GIR COW MILK</p>
-      <h1 class="hero-headline">Royal Vedic Churn.<br /><em>Artisanal Indian Ice Cream.</em></h1>
-      <p class="hero-sub">Slow-churned malai ice cream infused with GI-tagged Kashmiri Saffron, Ratnagiri Alphonso, and
-        wild forest honey. Handcrafted with certified 100% single-herd A2 Gir cow milk, tempered in bell-metal brass
-        turbines for royal velvety silkiness.</p>
+      <p class="hero-eye">100% PURE A2 GIR COW MILK · SLOW-CHURNED FRESH MALAI · REAL INDIAN FLAVOURS</p>
+      <h1 class="hero-headline">Real Desi Malai.<br /><em>Handcrafted Indian Ice Cream.</em></h1>
+      <p class="hero-sub">Thick, slow-churned malai ice cream made with 100% pure A2 Gir cow milk, authentic Kashmiri Kesar, hand-picked Devgad Alphonso Mangoes, and rich crunchy dry fruits. Zero vegetable oil, no artificial colours — just pure and velvety Indian goodness delivered fresh to your doorstep.</p>
       <div class="hero-ctas">
-        <a href="#flavors" class="btn-primary btn-lg">Explore Artisanal Pints <span
+        <a href="#flavors" class="btn-primary btn-lg">Explore All Flavours <span
             class="material-icons">arrow_forward</span></a>
-        <a href="#craft" class="btn-secondary btn-lg">The Vedic Craft</a>
+        <a href="#craft" class="btn-secondary btn-lg">Our Purity Promise</a>
       </div>
       <div class="hero-trust">
-        <div class="trust-item"><span class="material-icons">verified</span> FSSAI Certified</div>
-        <div class="trust-item"><span class="material-icons">ac_unit</span> Sub-Zero Cold Chain</div>
-        <div class="trust-item"><span class="material-icons">eco</span> Zero Plastic Packaging</div>
+        <div class="trust-item"><span class="material-icons">verified</span> 100% FSSAI Certified</div>
+        <div class="trust-item"><span class="material-icons">ac_unit</span> Melt-Free Delivery (-18°C)</div>
+        <div class="trust-item"><span class="material-icons">eco</span> Pure Milk · No Dalda</div>
       </div>
     </div>
     <div class="hero-visual">
       <div class="hero-img-wrap">
         <img src="hero_icecream.png" alt="Kalix Artisanal Ice Cream scoops" loading="eager" />
-        <div class="hero-tag"><span class="tag-label">ROYAL ICE CREAM EDITION</span><span class="tag-name">Shahi Kesar
+        <div class="hero-tag"><span class="tag-label">SPECIAL ROYAL EDITION</span><span class="tag-name">Shahi Kesar
             Pista &amp; Damask Rose</span></div>
       </div>
-      <div class="floating-badge"><span class="fb-num">412</span><span class="fb-text">Royal Tastings</span></div>
+      <div class="floating-badge"><span class="fb-num">412+</span><span class="fb-text">Verified Customer Reviews</span></div>
     </div>
   </section>
 
   <div class="marquee-bar">
     <div class="marquee-track">
-      <span>✦ GI-Tagged Kashmiri Saffron</span><span>✦ A2 Gir Cow Milk</span><span>✦ 72-Hour Brass Churn</span>
-      <span>✦ Ratnagiri Alphonso Ice Cream</span><span>✦ Kannauj Damask Rose</span><span>✦ -18°C Cold Chain</span>
-      <span>✦ Coorg Green Cardamom</span><span>✦ Pan-India Ice Cream Delivery</span>
-      <span>✦ GI-Tagged Kashmiri Saffron</span><span>✦ A2 Gir Cow Milk</span><span>✦ 72-Hour Brass Churn</span>
-      <span>✦ Ratnagiri Alphonso Ice Cream</span><span>✦ Kannauj Damask Rose</span><span>✦ -18°C Cold Chain</span>
-      <span>✦ Coorg Green Cardamom</span><span>✦ Pan-India Ice Cream Delivery</span>
+      <span>✦ 100% Pure A2 Gir Cow Milk</span><span>✦ Real Kashmiri Kesar</span><span>✦ Slow-Churned Fresh Malai</span>
+      <span>✦ Ratnagiri Alphonso Mango</span><span>✦ Shahi Pistachio &amp; Rose</span><span>✦ Melt-Free Express Delivery Across India</span>
+      <span>✦ Coorg Green Cardamom</span><span>✦ Zero Artificial Flavours or Oils</span>
+      <span>✦ 100% Pure A2 Gir Cow Milk</span><span>✦ Real Kashmiri Kesar</span><span>✦ Slow-Churned Fresh Malai</span>
+      <span>✦ Ratnagiri Alphonso Mango</span><span>✦ Shahi Pistachio &amp; Rose</span><span>✦ Melt-Free Express Delivery Across India</span>
+      <span>✦ Coorg Green Cardamom</span><span>✦ Zero Artificial Flavours or Oils</span>
     </div>
   </div>
 
-  <!-- ROYAL SOMMELIER: VOICE-ACTIVATED TASTING LOUNGE -->
+  <!-- KALIX AI VOICE: VOICE-ACTIVATED TASTING LOUNGE -->
   <section class="section sommelier-section" id="sommelier">
     <div class="container">
       <div class="sommelier-card">
+        <button class="sommelier-screen-close" onclick="closeSommelierScreen()" aria-label="Close AI Voice"><span class="material-icons">close</span></button>
         <div class="sommelier-header">
-          <span class="sommelier-crown-icon">👑</span>
-          <p class="section-eye">AI PALATE CONCIERGE · VOICE SENSORY MATCHING</p>
-          <h2 class="sommelier-title">The Royal <em>Tasting Sommelier</em></h2>
+          <span class="sommelier-crown-icon material-icons" aria-hidden="true">graphic_eq</span>
+          <p class="section-eye">SMART AI VOICE ASSISTANT · VOICE SENSORY MATCHING</p>
+          <h2 class="sommelier-title">Kalix <em>AI Voice Flavour Finder</em></h2>
           <p class="sommelier-desc">
-            Speak your craving, mood, or favorite notes into your microphone. Our royal culinary sommelier analyzes your palate in real-time and summons your bespoke artisanal glacé.
+            Tell us what you are craving! Speak into your phone or laptop microphone — like "crunchy butterscotch" or "sweet mango" — and our AI Voice assistant will find your perfect handcrafted ice cream.
           </p>
         </div>
 
         <!-- Glowing Microphone Centerpiece -->
         <div class="sommelier-mic-wrapper">
-          <button class="sommelier-mic-btn" id="sommelierMicBtn" onclick="toggleSommelierListening()" aria-label="Speak to the Royal Sommelier" title="Click to Speak">
+          <button class="sommelier-mic-btn" id="sommelierMicBtn" onclick="toggleSommelierListening()" aria-label="Speak to AI Voice" title="Click to Speak">
             <span class="material-icons mic-icon" id="sommelierMicIcon">mic</span>
             <span class="mic-wave-ring"></span>
             <span class="mic-wave-ring ring-2"></span>
           </button>
-          <span class="sommelier-mic-label" id="sommelierMicLabel">Speak to the Royal Sommelier</span>
+          <span class="sommelier-mic-label" id="sommelierMicLabel">Tap to Speak (AI Voice)</span>
 
           <!-- Live Audio Visualizer Bars -->
           <div class="audio-bars" id="sommelierAudioBars" style="display:none">
@@ -120,14 +118,14 @@
 
         <!-- Suggestion Voice Chips -->
         <div class="sommelier-suggestions">
-          <span style="font-size:11px;font-weight:700;color:var(--outline);text-transform:uppercase;letter-spacing:0.06em">Or tap a royal tasting craving:</span>
+          <span style="font-size:11px;font-weight:700;color:var(--outline);text-transform:uppercase;letter-spacing:0.06em">Or simply tap your craving:</span>
           <div class="voice-chips-list">
             <button type="button" class="voice-chip" onclick="simulateVoiceInput('crunchy butterscotch with salted caramel')">🎙️ "Crunchy Butterscotch"</button>
-            <button type="button" class="voice-chip" onclick="simulateVoiceInput('relaxing saffron sweet pistachio rose')">🎙️ "Relaxing Saffron Sweet"</button>
-            <button type="button" class="voice-chip" onclick="simulateVoiceInput('rich dark cocoa with roasted almonds')">🎙️ "Rich Dark Cocoa &amp; Almond"</button>
-            <button type="button" class="voice-chip" onclick="simulateVoiceInput('sweet ripe alphonso mango with chili spark')">🎙️ "Ripe Alphonso Mango"</button>
-            <button type="button" class="voice-chip" onclick="simulateVoiceInput('wild midnight blackberry with floral lavender')">🎙️ "Midnight Blackberry"</button>
-            <button type="button" class="voice-chip" onclick="simulateVoiceInput('fresh sweet strawberry with fragrant lychee')">🎙️ "Strawberry &amp; Lychee"</button>
+            <button type="button" class="voice-chip" onclick="simulateVoiceInput('relaxing saffron sweet pistachio rose')">🎙️ "Royal Kesar Pista Rose"</button>
+            <button type="button" class="voice-chip" onclick="simulateVoiceInput('rich dark cocoa with roasted almonds')">🎙️ "Rich Dark Chocolate &amp; Almond"</button>
+            <button type="button" class="voice-chip" onclick="simulateVoiceInput('sweet ripe alphonso mango with chili spark')">🎙️ "Sweet Alphonso Mango"</button>
+            <button type="button" class="voice-chip" onclick="simulateVoiceInput('wild midnight blackberry with floral lavender')">🎙️ "Wild Blackberry Swirl"</button>
+            <button type="button" class="voice-chip" onclick="simulateVoiceInput('fresh sweet strawberry with fragrant lychee')">🎙️ "Fresh Strawberry &amp; Lychee"</button>
           </div>
         </div>
 
@@ -145,17 +143,16 @@
   <section class="section" id="flavors">
     <div class="container">
       <div class="section-header">
-        <p class="section-eye">HANDCRAFTED ICE CREAM ARCHIVE</p>
-        <h2 class="section-title">Artisanal Ice Cream <em>Pints</em></h2>
-        <p class="section-desc">Each 500ml pint is a journey across India's most prized botanical terroirs, slow-folded
-          into single-herd A2 malai ice cream.</p>
+        <p class="section-eye">OUR HANDCRAFTED FLAVOURS</p>
+        <h2 class="section-title">Real Desi Malai <em>Ice Cream Tubs</em></h2>
+        <p class="section-desc">Every 500ml tub is freshly crafted using 100% pure A2 Gir cow milk and India's finest regional fruits, nuts, and spices.</p>
       </div>
       <div class="flavor-filters">
-        <button class="pill active" data-filter="all">All Artisanal Pints</button>
-        <button class="pill" data-filter="saffron">Pistachio &amp; Nuts</button>
+        <button class="pill active" data-filter="all">All Flavours</button>
+        <button class="pill" data-filter="saffron">Kesar, Pista &amp; Nuts</button>
         <button class="pill" data-filter="heritage">Butterscotch &amp; Heritage</button>
-        <button class="pill" data-filter="fruit">Fresh Fruits</button>
-        <button class="pill" data-filter="floral">Florals &amp; Berries</button>
+        <button class="pill" data-filter="fruit">Real Fresh Fruits</button>
+        <button class="pill" data-filter="floral">Chocolate &amp; Berries</button>
       </div>
       <div class="flavors-grid" id="flavorsGrid"></div>
     </div>
@@ -169,43 +166,40 @@
             style="background:linear-gradient(145deg, #eaf5ea 0%, #d5edd6 100%);padding:2rem;border-radius:var(--r-xl)" />
           <div class="craft-stat-card">
             <div class="cs-num">72h</div>
-            <div class="cs-label">Slow Brass Churn</div>
+            <div class="cs-label">Traditional Churn</div>
           </div>
           <div class="craft-stat-card craft-stat-2">
-            <div class="cs-num">A2</div>
-            <div class="cs-label">Gir Cow Malai</div>
+            <div class="cs-num">100%</div>
+            <div class="cs-label">A2 Gir Cow Milk</div>
           </div>
         </div>
         <div class="craft-text">
-          <p class="section-eye">THE VEDIC CRAFT</p>
-          <h2 class="section-title">The Craft of Indian<br /><em>Slow-Folded Ice Cream</em></h2>
+          <p class="section-eye">OUR PURITY PROMISE</p>
+          <h2 class="section-title">How We Make India's<br /><em>Purest Malai Ice Cream</em></h2>
           <div class="craft-pillars">
             <div class="pillar">
-              <div class="pillar-icon">🪬</div>
+              <div class="pillar-icon">🥛</div>
               <div>
-                <h3>100% Single-Herd A2 Gir Cow Milk</h3>
-                <p>Sourced exclusively from ethically nurtured, free-grazing Gir cows in Gujarat. Rich in A2 beta-casein
-                  proteins and golden butterfat (18%+) with zero synthetic gums.</p>
+                <h3>100% Pure A2 Desi Gir Cow Milk</h3>
+                <p>Sourced directly from free-grazing indigenous Gir cows in Gujarat. Naturally rich in A2 protein and thick golden cream, with zero palm oil, dalda, or artificial thickeners.</p>
               </div>
             </div>
             <div class="pillar">
-              <div class="pillar-icon">🔔</div>
+              <div class="pillar-icon">🍨</div>
               <div>
-                <h3>72-Hour Slow Malai Churn in Brass</h3>
-                <p>We slow-reduce full-cream malai for 36 hours before transferring to sub-zero bell-brass kulfi churn
-                  barrels, yielding silk-sheet density.</p>
+                <h3>Traditional Slow Malai Churning</h3>
+                <p>We slowly reduce full-cream malai to thick rabri consistency before slow-churning in sub-zero barrels. That gives you dense, velvety scoops with zero icy crystals and no excess air.</p>
               </div>
             </div>
             <div class="pillar">
-              <div class="pillar-icon">🌿</div>
+              <div class="pillar-icon">🥭</div>
               <div>
-                <h3>Direct-Origin Terroirs Across India</h3>
-                <p>GI-tagged saffron from Pampore, Alphonso mangoes from Devgad &amp; Ratnagiri, mountain cardamom from
-                  Coorg, and wild forest honey from the Nilgiris.</p>
+                <h3>Real Regional Ingredients from Across India</h3>
+                <p>Real GI-tagged Kashmiri Kesar from Pampore, Devgad &amp; Ratnagiri Alphonso mangoes, fragrant green cardamom from Coorg, and natural wild forest honey.</p>
               </div>
             </div>
           </div>
-          <a href="#flavors" class="btn-primary">Shop The Collection <span
+          <a href="#flavors" class="btn-primary">Shop All Flavours <span
               class="material-icons">arrow_forward</span></a>
         </div>
       </div>
@@ -215,27 +209,24 @@
   <section class="section bg-warm" id="social">
     <div class="container">
       <div class="section-header">
-        <p class="section-eye">THE MALAI RITUAL</p>
-        <h2 class="section-title"><span class="tertiary">#KalixMalaiRitual</span></h2>
-        <p class="section-desc">Tag us in your darbar moments and get featured on our royal court feed.</p>
+        <p class="section-eye">CUSTOMER REVIEWS</p>
+        <h2 class="section-title">Loved by Ice Cream Lovers <span class="tertiary">Across India</span></h2>
+        <p class="section-desc">Real feedback from families enjoying Kalix real milk ice creams at home.</p>
       </div>
       <div class="social-grid">
         <div class="social-card">
           <div class="social-emoji">🍨</div>
-          <p>"The Pampore saffron ice cream is authentic, intensely aromatic without cloying sweetness. Sub-zero
-            packaging was frost-cold!"</p>
+          <p>"The Kashmiri Kesar and Pistachio flavour is outstanding! It tastes just like authentic wedding shahi kulfi, and the dry-ice box arrived frost-cold!"</p>
           <span class="social-handle">@foodie_mumbai</span>
         </div>
         <div class="social-card">
           <div class="social-emoji">🥭</div>
-          <p>"Delivered to Jor Bagh during peak Loo heat. Pristine condition, frozen brick-hard. Truly a bespoke
-            artisanal ice cream experience."</p>
+          <p>"Ordered in Delhi during peak 44°C summer heat. It arrived rock-solid and freezing cold. The Alphonso mango has real fruit pulp and no fake taste."</p>
           <span class="social-handle">@delhi_gourmand</span>
         </div>
         <div class="social-card">
           <div class="social-emoji">🌹</div>
-          <p>"Ordered the 4-Pint Darbar Flight. The slow-churned A2 malai ice cream has no excess air — just thick,
-            velvety indulgence."</p>
+          <p>"Ordered the 4-Tub Family Box in Bengaluru. The slow-churned A2 Gir cow malai is so thick and velvety. Truly worth every single rupee."</p>
           <span class="social-handle">@blr_eats</span>
         </div>
       </div>
@@ -245,10 +236,9 @@
   <section class="section bg-warm" id="cities">
     <div class="container">
       <div class="section-header">
-        <p class="section-eye">PAN-INDIA COLD CHAIN</p>
-        <h2 class="section-title">Sub-Zero Express<br /><em>Delivery Across India</em></h2>
-        <p class="section-desc">Packed in reusable thermal dry-ice chests. Guaranteed solid delivery or instant
-          replacement.</p>
+        <p class="section-eye">ALL-INDIA COLD-CHAIN DELIVERY</p>
+        <h2 class="section-title">100% Melt-Free<br /><em>Express Delivery Across India</em></h2>
+        <p class="section-desc">Packed in specialised reusable dry-ice thermal boxes. Guaranteed solid frozen delivery right to your door or an immediate free replacement.</p>
       </div>
       <div class="cities-grid">
         <div class="city-pill active"><span class="material-icons city-icon">sailing</span>Mumbai &amp; Navi Mumbai</div>
@@ -262,16 +252,16 @@
         <div class="city-pill"><span class="material-icons city-icon">directions_boat</span>Kerala</div>
       </div>
       <div class="pin-check-box">
-        <input type="text" id="pinInput" placeholder="Enter your PIN code to check availability..." class="pin-input"
+        <input type="text" id="pinInput" placeholder="Enter your 6-digit PIN code (e.g. 560001)..." class="pin-input"
           maxlength="6" />
-        <button class="btn-primary" onclick="checkPin()">Check Delivery</button>
+        <button class="btn-primary" onclick="checkPin()">Check Delivery PIN</button>
       </div>
       <p class="pin-result" id="pinResult"></p>
       <div class="delivery-features">
-        <div class="df-item"><span class="material-icons">ac_unit</span><span>-18°C Guaranteed</span></div>
-        <div class="df-item"><span class="material-icons">timer</span><span>48-Hour Transit</span></div>
-        <div class="df-item"><span class="material-icons">eco</span><span>Biodegradable Cryo-Box</span></div>
-        <div class="df-item"><span class="material-icons">replay</span><span>Free Replacement Policy</span></div>
+        <div class="df-item"><span class="material-icons">ac_unit</span><span>-18°C Deep Frozen Guaranteed</span></div>
+        <div class="df-item"><span class="material-icons">timer</span><span>Express Transit</span></div>
+        <div class="df-item"><span class="material-icons">eco</span><span>Reusable Thermal Box</span></div>
+        <div class="df-item"><span class="material-icons">replay</span><span>Melt-Free Replacement Guarantee</span></div>
       </div>
     </div>
   </section>
@@ -280,15 +270,13 @@
     <div class="container">
       <div class="newsletter-inner">
         <div>
-          <p class="section-eye" style="color:var(--primary-fixed-dim)">JOIN THE ROYAL COURT</p>
-          <h2 style="color:white;font-family:'Playfair Display',serif;font-size:32px;margin:0.5rem 0">Receive a
-            Complimentary Heritage Pint on Your First Order</h2>
-          <p style="color:rgba(255,255,255,0.75);font-size:15px;">Join our private court dispatches for early access to
-            scarce seasonal harvest batches.</p>
+          <p class="section-eye" style="color:var(--primary-fixed-dim)">SPECIAL WELCOME OFFER</p>
+          <h2 style="color:white;font-family:'Playfair Display',serif;font-size:32px;margin:0.5rem 0">Get a Free 500ml Tub on Your First Order Above ₹1,499</h2>
+          <p style="color:rgba(255,255,255,0.75);font-size:15px;">Join the Kalix Club to receive exclusive festival discount codes, secret seasonal flavour drops, and fresh batch alerts.</p>
         </div>
         <form class="newsletter-form" onsubmit="subscribeNewsletter(event)">
-          <input type="email" id="nlEmail" placeholder="your@email.com" required />
-          <button type="submit" class="btn-primary">Join the Darbar</button>
+          <input type="email" id="nlEmail" placeholder="Enter your email address" required />
+          <button type="submit" class="btn-primary">Claim Welcome Offer</button>
         </form>
       </div>
     </div>
@@ -298,21 +286,19 @@
     <div class="container">
       <div class="footer-top">
         <div class="footer-brand">
-          <a href="index.html" class="nav-logo"><span class="logo-icon">✦</span><span>Kalix <em>Artisanal
-                Glacé</em></span></a>
-          <p>Reviving royal Indian frozen gastronomy with single-herd A2 Gir cow milk, GI-tagged botanical harvests, and
-            meticulous sub-zero cold chain logistics across India.</p>
+          <a href="index.html" class="nav-logo"><span class="logo-icon">✦</span><span>Kalix <em>Premium Ice Cream</em></span></a>
+          <p>Handcrafting India's finest real milk ice creams with 100% pure A2 Gir cow milk, real regional fruits, and certified melt-free cold chain delivery across Indian cities.</p>
           <div class="footer-social">
             <a href="#" class="social-btn">📸 Instagram</a>
-            <a href="#" class="social-btn">📓 Darbar Journal</a>
+            <a href="#" class="social-btn">📓 Tasting Journal</a>
           </div>
         </div>
         <div class="footer-links">
           <h4>Explore</h4>
           <ul>
-            <li><a href="#flavors">Artisanal Ice Cream Pints</a></li>
-            <li><a href="#craft">A2 Vedic Dairy Provenance</a></li>
-            <li><a href="#cities">Cold-Chain Delivery</a></li>
+            <li><a href="#flavors">Ice Cream Tubs</a></li>
+            <li><a href="#craft">Our Purity Promise</a></li>
+            <li><a href="#cities">City Delivery</a></li>
           </ul>
         </div>
         <div class="footer-links">
@@ -328,14 +314,13 @@
           <ul>
             <li><a href="#">Privacy Policy</a></li>
             <li><a href="#">Terms of Service</a></li>
-            <li><a href="#">Melt-Free Guarantee</a></li>
+            <li><a href="#">100% Melt-Free Guarantee</a></li>
             <li><a href="#">FSSAI Compliance</a></li>
           </ul>
         </div>
       </div>
       <div class="footer-bottom">
-        <p>© 2024 Kalix Artisanal Glacé Pvt. Ltd. Churned in small batches with rare botanicals across India. FSSAI Lic.
-          No. 10022022000841.</p>
+        <p>© 2024 Kalix Premium Ice Cream Pvt. Ltd. Churned with 100% pure A2 milk and natural fruits. FSSAI Lic. No. 10022022000841.</p>
       </div>
     </div>
   </footer>
@@ -348,8 +333,8 @@
     <div class="drawer-items" id="drawerItems">
       <div class="empty-state">
         <span class="material-icons" style="font-size:48px;color:var(--outline)">shopping_bag</span>
-        <p>Your cryo-bag is empty.<br />Start exploring Heritage Pints.</p>
-        <a href="#flavors" class="btn-primary btn-sm" onclick="closeCartDrawer()">Explore Flavors</a>
+        <p>Your cryo-bag is empty.<br />Start exploring our Ice Cream Tubs.</p>
+        <a href="#flavors" class="btn-primary btn-sm" onclick="closeCartDrawer()">Explore Flavours</a>
       </div>
     </div>
     <div class="drawer-footer" id="drawerFooter" style="display:none">
