@@ -30,6 +30,7 @@
         <li><a href="#cities">Delivery</a></li>
       </ul>
       <div class="nav-actions">
+        <button class="sommelier-nav-btn" onclick="scrollToSommelier()" title="Speak to the Royal Sommelier"><span class="material-icons" style="font-size:16px">mic</span> <span>Sommelier</span></button>
         <button class="rewards-nav-btn" onclick="openRewardsModal()" title="Kalix Rewards & Coins"><span
             class="rewards-coin-icon">🪙</span><span id="navRewardsCount">0</span> Coins</button>
         <a href="wishlist.html" class="nav-icon-btn" title="Wishlist"><span class="material-icons">favorite</span><span
@@ -80,6 +81,66 @@
       <span>✦ Coorg Green Cardamom</span><span>✦ Pan-India Ice Cream Delivery</span>
     </div>
   </div>
+
+  <!-- ROYAL SOMMELIER: VOICE-ACTIVATED TASTING LOUNGE -->
+  <section class="section sommelier-section" id="sommelier">
+    <div class="container">
+      <div class="sommelier-card">
+        <div class="sommelier-header">
+          <span class="sommelier-crown-icon">👑</span>
+          <p class="section-eye">AI PALATE CONCIERGE · VOICE SENSORY MATCHING</p>
+          <h2 class="sommelier-title">The Royal <em>Tasting Sommelier</em></h2>
+          <p class="sommelier-desc">
+            Speak your craving, mood, or favorite notes into your microphone. Our royal culinary sommelier analyzes your palate in real-time and summons your bespoke artisanal glacé.
+          </p>
+        </div>
+
+        <!-- Glowing Microphone Centerpiece -->
+        <div class="sommelier-mic-wrapper">
+          <button class="sommelier-mic-btn" id="sommelierMicBtn" onclick="toggleSommelierListening()" aria-label="Speak to the Royal Sommelier" title="Click to Speak">
+            <span class="material-icons mic-icon" id="sommelierMicIcon">mic</span>
+            <span class="mic-wave-ring"></span>
+            <span class="mic-wave-ring ring-2"></span>
+          </button>
+          <span class="sommelier-mic-label" id="sommelierMicLabel">Speak to the Royal Sommelier</span>
+
+          <!-- Live Audio Visualizer Bars -->
+          <div class="audio-bars" id="sommelierAudioBars" style="display:none">
+            <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+            <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+            <span class="bar"></span>
+          </div>
+
+          <!-- Live Voice Transcription Pill -->
+          <div class="sommelier-speech-bubble" id="sommelierSpeechBubble" style="display:none">
+            <span class="material-icons" style="font-size:16px;color:var(--amber)">record_voice_over</span>
+            <span id="speechTranscriptText">Listening for your craving...</span>
+          </div>
+        </div>
+
+        <!-- Suggestion Voice Chips -->
+        <div class="sommelier-suggestions">
+          <span style="font-size:11px;font-weight:700;color:var(--outline);text-transform:uppercase;letter-spacing:0.06em">Or tap a royal tasting craving:</span>
+          <div class="voice-chips-list">
+            <button type="button" class="voice-chip" onclick="simulateVoiceInput('crunchy butterscotch with salted caramel')">🎙️ "Crunchy Butterscotch"</button>
+            <button type="button" class="voice-chip" onclick="simulateVoiceInput('relaxing saffron sweet pistachio rose')">🎙️ "Relaxing Saffron Sweet"</button>
+            <button type="button" class="voice-chip" onclick="simulateVoiceInput('rich dark cocoa with roasted almonds')">🎙️ "Rich Dark Cocoa &amp; Almond"</button>
+            <button type="button" class="voice-chip" onclick="simulateVoiceInput('sweet ripe alphonso mango with chili spark')">🎙️ "Ripe Alphonso Mango"</button>
+            <button type="button" class="voice-chip" onclick="simulateVoiceInput('wild midnight blackberry with floral lavender')">🎙️ "Midnight Blackberry"</button>
+            <button type="button" class="voice-chip" onclick="simulateVoiceInput('fresh sweet strawberry with fragrant lychee')">🎙️ "Strawberry &amp; Lychee"</button>
+          </div>
+        </div>
+
+        <!-- Dynamic Spotlight Reveal Stage -->
+        <div class="sommelier-spotlight-stage" id="sommelierSpotlightStage" style="display:none">
+          <div class="spotlight-card" id="spotlightCard">
+            <!-- Dynamically populated when match found -->
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
 
   <section class="section" id="flavors">
     <div class="container">

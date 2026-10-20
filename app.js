@@ -1658,6 +1658,389 @@ function initialiseMotion() {
   }
 }
 
+// ============================================================================
+// ---- ROYAL SOMMELIER: WEB SPEECH API & VOICE-ACTIVATED TASTING LOUNGE ----
+// ============================================================================
+
+const SOMMELIER_PALETTES = [
+  {
+    flavorId: 2, // Salted Butterscotch Crunch
+    primaryName: 'Salted Butterscotch Crunch',
+    keywords: ['butterscotch', 'crunch', 'crunchy', 'caramel', 'toffee', 'jaggery', 'salt', 'salted', 'sweet', 'palm', 'shard', 'shards', 'nutty', 'crispy'],
+    sommelierIntro: 'An exquisite indulgence for a rich caramel craving!',
+    sommelierNote: 'The Royal Sommelier presents our signature Salted Butterscotch Crunch — slow-simmered palm jaggery caramel laced with crunchy butter toffee shards and pink Himalayan salt.',
+    cueColor: '#d97706',
+    audioFreq: 528
+  },
+  {
+    flavorId: 1, // Royal Pistachio & Damask Rose
+    primaryName: 'Royal Pistachio & Damask Rose',
+    keywords: ['pistachio', 'rose', 'damask', 'pista', 'green', 'nut', 'nuts', 'floral', 'relaxing', 'saffron', 'kannauj', 'aromatic', 'calm', 'sweet', 'shahi', 'peaceful'],
+    sommelierIntro: 'A serene and poetic royal choice for your palate!',
+    sommelierNote: 'The Royal Sommelier curates our Award-Winning Royal Pistachio & Damask Rose — slow-churned A2 Gir cow cream infused with copper-distilled Kannauj rose and slow-roasted green pistachios.',
+    cueColor: '#2e7d32',
+    audioFreq: 639
+  },
+  {
+    flavorId: 6, // Rich Choco Almond
+    primaryName: 'Rich Choco Almond',
+    keywords: ['chocolate', 'choco', 'almond', 'almonds', 'cocoa', 'fudge', 'dark', 'rich', 'decadent', 'brown', 'belgian', 'creamy', 'choc', 'chocolaty', 'intense'],
+    sommelierIntro: 'A decadent masterpiece of dark velvety cocoa!',
+    sommelierNote: 'The Royal Sommelier summons our Rich Choco Almond Glacé — single-origin dark cocoa churned with velvety malai, dark chocolate fudge ribbons, and toasted Californian almonds.',
+    cueColor: '#5c3826',
+    audioFreq: 432
+  },
+  {
+    flavorId: 3, // Ratnagiri Alphonso Mango & Chili
+    primaryName: 'Ratnagiri Alphonso Mango',
+    keywords: ['mango', 'alphonso', 'chili', 'spicy', 'tangy', 'citrus', 'lime', 'fruit', 'fruity', 'tropical', 'kashmiri', 'warm', 'refreshing', 'sweet', 'sunshine', 'spice'],
+    sommelierIntro: 'A vibrant tropical sunburst with an unforgettable spark!',
+    sommelierNote: 'The Royal Sommelier selects our Ratnagiri Alphonso Mango — tree-ripened Devgad Alphonso pulp folded into sweet malai, energized with Kashmiri chili flakes and fresh lime zest.',
+    cueColor: '#ea580c',
+    audioFreq: 741
+  },
+  {
+    flavorId: 4, // Midnight Blackberry Swirl
+    primaryName: 'Midnight Blackberry Swirl',
+    keywords: ['blackberry', 'berry', 'berries', 'lavender', 'midnight', 'purple', 'violet', 'tart', 'botanical', 'wild', 'night', 'mysterious'],
+    sommelierIntro: 'A rare botanical journey into the cool Himalayan night!',
+    sommelierNote: 'The Royal Sommelier welcomes you to Midnight Blackberry Swirl — cold-steeped wild Himalayan blackberries with French lavender notes and golden butter biscuit crumble.',
+    cueColor: '#7c3aed',
+    audioFreq: 852
+  },
+  {
+    flavorId: 5, // Mahabaleshwar Strawberry & Lychee
+    primaryName: 'Mahabaleshwar Strawberry & Lychee',
+    keywords: ['strawberry', 'strawberries', 'lychee', 'litchi', 'pink', 'sweet', 'vanilla', 'delicate', 'romantic', 'summer', 'fresh', 'fruity'],
+    sommelierIntro: 'A pure romantic celebration of India’s freshest harvest!',
+    sommelierNote: 'The Royal Sommelier unveils Mahabaleshwar Strawberry & Lychee — hand-picked winter strawberries paired with succulent Muzaffarpur lychee pearls and bourbon vanilla.',
+    cueColor: '#e11d48',
+    audioFreq: 963
+  }
+];
+
+let sommelierRecognizer = null;
+let isSommelierListening = false;
+let sommelierAudioCtx = null;
+
+// Ambient Web Audio API Crystal Harmonic Chime
+function playSommelierChime(frequency = 528) {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    if (!sommelierAudioCtx || sommelierAudioCtx.state === 'suspended') {
+      sommelierAudioCtx = new AudioCtx();
+    }
+    const ctx = sommelierAudioCtx;
+    if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
+
+    const now = ctx.currentTime;
+    
+    // Primary Tone
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(frequency, now);
+    osc1.frequency.exponentialRampToValueAtTime(frequency * 1.005, now + 0.4);
+    gain1.gain.setValueAtTime(0.22, now);
+    gain1.gain.exponentialRampToValueAtTime(0.0001, now + 1.6);
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start(now);
+    osc1.stop(now + 1.6);
+
+    // Harmonic Overtone (Crystal resonance)
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(frequency * 2.01, now + 0.08);
+    gain2.gain.setValueAtTime(0.12, now + 0.08);
+    gain2.gain.exponentialRampToValueAtTime(0.0001, now + 1.4);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.start(now + 0.08);
+    osc2.stop(now + 1.4);
+  } catch (e) {
+    console.warn('Web Audio Sommelier chime error:', e);
+  }
+}
+
+// Speak Royal Sommelier Confirmation
+function speakSommelierRecommendation(text) {
+  if (!('speechSynthesis' in window)) return;
+  try {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.95;
+    utterance.pitch = 1.05;
+    utterance.volume = 0.9;
+    
+    const voices = window.speechSynthesis.getVoices();
+    const engVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Natural') || v.name.includes('Premium') || v.name.includes('Female') || v.name.includes('Google') || v.name.includes('English')));
+    if (engVoice) utterance.voice = engVoice;
+    
+    window.speechSynthesis.speak(utterance);
+  } catch (e) {
+    console.warn('Speech synthesis error:', e);
+  }
+}
+
+function initSommelierSpeech() {
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRec) return null;
+
+  const recognizer = new SpeechRec();
+  recognizer.continuous = false;
+  recognizer.interimResults = true;
+  recognizer.lang = 'en-US';
+
+  recognizer.onstart = () => {
+    isSommelierListening = true;
+    updateSommelierListeningUI(true);
+  };
+
+  recognizer.onresult = (event) => {
+    let interim = '';
+    let final = '';
+    for (let i = event.resultIndex; i < event.results.length; ++i) {
+      if (event.results[i].isFinal) {
+        final += event.results[i][0].transcript;
+      } else {
+        interim += event.results[i][0].transcript;
+      }
+    }
+    const currentText = final || interim;
+    updateSpeechTranscript(currentText, Boolean(final));
+
+    if (final) {
+      analyzeVoiceCraving(final);
+    }
+  };
+
+  recognizer.onerror = (event) => {
+    console.warn('Speech recognition error:', event.error);
+    isSommelierListening = false;
+    updateSommelierListeningUI(false);
+    if (event.error === 'not-allowed') {
+      showToast('Microphone access blocked. Click any tasting craving below.');
+    } else if (event.error !== 'no-speech') {
+      showToast('Could not hear clearly. Please tap the mic and speak again.');
+    }
+  };
+
+  recognizer.onend = () => {
+    isSommelierListening = false;
+    updateSommelierListeningUI(false);
+  };
+
+  return recognizer;
+}
+
+function updateSommelierListeningUI(listening) {
+  const micBtn = document.getElementById('sommelierMicBtn');
+  const micIcon = document.getElementById('sommelierMicIcon');
+  const micLabel = document.getElementById('sommelierMicLabel');
+  const audioBars = document.getElementById('sommelierAudioBars');
+  const speechBubble = document.getElementById('sommelierSpeechBubble');
+
+  if (micBtn) micBtn.classList.toggle('listening', listening);
+  if (micIcon) micIcon.textContent = listening ? 'mic' : 'mic_none';
+  if (micLabel) micLabel.textContent = listening ? 'Listening to your palate...' : 'Speak to the Royal Sommelier';
+  if (audioBars) audioBars.style.display = listening ? 'flex' : 'none';
+  if (speechBubble && listening) {
+    speechBubble.style.display = 'inline-flex';
+    const textEl = document.getElementById('speechTranscriptText');
+    if (textEl) textEl.innerHTML = '<span style="opacity:0.7">Listening... Speak your flavor craving</span>';
+  }
+}
+
+function updateSpeechTranscript(text, isFinal = false) {
+  const speechBubble = document.getElementById('sommelierSpeechBubble');
+  const textEl = document.getElementById('speechTranscriptText');
+  if (!speechBubble || !textEl) return;
+
+  speechBubble.style.display = 'inline-flex';
+  if (isFinal) {
+    textEl.innerHTML = `Heard: "<strong>${text}</strong>"`;
+  } else {
+    textEl.innerHTML = `Listening: "<em>${text}</em>"`;
+  }
+}
+
+function toggleSommelierListening() {
+  if (!sommelierRecognizer) {
+    sommelierRecognizer = initSommelierSpeech();
+  }
+
+  if (!sommelierRecognizer) {
+    showToast('Speech recognition not available. Please tap any tasting craving below!');
+    const bubble = document.getElementById('sommelierSpeechBubble');
+    if (bubble) {
+      bubble.style.display = 'inline-flex';
+      const textEl = document.getElementById('speechTranscriptText');
+      if (textEl) textEl.textContent = 'Voice recognition unavailable. Tap any craving below!';
+    }
+    return;
+  }
+
+  if (isSommelierListening) {
+    try { sommelierRecognizer.stop(); } catch (_) {}
+    isSommelierListening = false;
+    updateSommelierListeningUI(false);
+  } else {
+    try {
+      sommelierRecognizer.start();
+    } catch (err) {
+      console.warn('Speech start error:', err);
+      sommelierRecognizer = initSommelierSpeech();
+      try { sommelierRecognizer.start(); } catch (e) {
+        showToast('Please tap a tasting craving below.');
+      }
+    }
+  }
+}
+
+function simulateVoiceInput(phrase) {
+  updateSommelierListeningUI(true);
+  const speechBubble = document.getElementById('sommelierSpeechBubble');
+  const textEl = document.getElementById('speechTranscriptText');
+  if (speechBubble) speechBubble.style.display = 'inline-flex';
+  if (textEl) textEl.innerHTML = `Listening: "<em>${phrase}</em>"`;
+
+  setTimeout(() => {
+    updateSommelierListeningUI(false);
+    updateSpeechTranscript(phrase, true);
+    analyzeVoiceCraving(phrase);
+  }, 450);
+}
+
+function analyzeVoiceCraving(spokenText) {
+  if (!spokenText || spokenText.trim() === '') return;
+  const lower = spokenText.toLowerCase();
+
+  let bestMatch = null;
+  let highestScore = -1;
+  let matchedKeywordsList = [];
+
+  SOMMELIER_PALETTES.forEach(pal => {
+    let score = 0;
+    const matched = [];
+    pal.keywords.forEach(kw => {
+      if (lower.includes(kw)) {
+        score += (kw.length > 5 ? 2.5 : 1.5);
+        matched.push(kw);
+      }
+    });
+
+    if (score > highestScore) {
+      highestScore = score;
+      bestMatch = pal;
+      matchedKeywordsList = matched;
+    }
+  });
+
+  if (!bestMatch || highestScore <= 0) {
+    bestMatch = SOMMELIER_PALETTES[0];
+    matchedKeywordsList = ['signature', 'artisanal'];
+  }
+
+  const flavor = FLAVORS.find(f => f.id === bestMatch.flavorId) || FLAVORS[0];
+
+  const textEl = document.getElementById('speechTranscriptText');
+  if (textEl) {
+    let displayHtml = spokenText;
+    matchedKeywordsList.forEach(kw => {
+      const reg = new RegExp(`(${kw})`, 'gi');
+      displayHtml = displayHtml.replace(reg, '<em>$1</em>');
+    });
+    textEl.innerHTML = `Curated for: "${displayHtml}"`;
+  }
+
+  // 1. Play Ambient Audio Chime (Web Audio API)
+  playSommelierChime(bestMatch.audioFreq || 528);
+
+  // 2. Speak Sommelier confirmation
+  speakSommelierRecommendation(`${bestMatch.sommelierIntro} May I present our ${flavor.name.split(' & ')[0].replace('Kalix ', '')}.`);
+
+  // 3. Render Spotlight Reveal Stage
+  renderSommelierSpotlight(flavor, bestMatch, matchedKeywordsList);
+
+  // 4. Highlight matching flavor in the catalog grid
+  highlightCatalogCard(flavor.id);
+}
+
+function renderSommelierSpotlight(flavor, pal, matchedKeywords) {
+  const stage = document.getElementById('sommelierSpotlightStage');
+  const card = document.getElementById('spotlightCard');
+  if (!stage || !card) return;
+
+  stage.style.display = 'block';
+
+  card.style.borderColor = pal.cueColor || 'var(--amber)';
+  card.style.boxShadow = `0 24px 60px ${flavor.glowColor || 'rgba(217,119,6,0.22)'}, var(--shadow-md)`;
+
+  card.innerHTML = `
+    <div class="spotlight-image-col" style="background:${flavor.bg};border:1.5px solid ${pal.cueColor}33">
+      <img src="${flavor.image}" alt="${flavor.name}" class="spotlight-tub-img" />
+    </div>
+    <div class="spotlight-info-col">
+      <span class="spotlight-badge" style="background:${pal.cueColor}18;color:${pal.cueColor};border:1px solid ${pal.cueColor}44">
+        👑 Royal Sommelier Spotlight Match
+      </span>
+      <h3 class="spotlight-flavor-title">${flavor.name}</h3>
+      <div style="font-size:13px;font-style:italic;color:var(--outline);margin-bottom:0.85rem">${flavor.subtitle}</div>
+      
+      <div class="spotlight-tasting-note" style="border-left-color:${pal.cueColor}">
+        <strong>Sommelier Tasting Profile:</strong><br />
+        ${pal.sommelierNote}
+      </div>
+
+      <div class="spotlight-keywords-row">
+        <span>Palate Notes Matched:</span>
+        ${matchedKeywords.map(k => `<span class="keyword-tag" style="background:${pal.cueColor}18;color:${pal.cueColor}">✦ ${k}</span>`).join(' ')}
+      </div>
+
+      <div class="spotlight-actions">
+        <button class="btn-primary btn-md" onclick="addToCart(${flavor.id});showToast('🍨 ${flavor.name.split('&')[0]} added to Cryo-Bag!');">
+          Add to Cryo-Bag (₹${flavor.price}) <span class="material-icons">shopping_bag</span>
+        </button>
+        <button class="btn-secondary btn-md" onclick="goToProduct(${flavor.id})">
+          Explore Flavor Profile <span class="material-icons">arrow_forward</span>
+        </button>
+      </div>
+    </div>
+  `;
+
+  setTimeout(() => {
+    stage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 100);
+}
+
+function highlightCatalogCard(flavorId) {
+  document.querySelectorAll('.flavor-card').forEach(c => c.classList.remove('sommelier-spotlighted'));
+  const targetCard = document.querySelector(`.flavor-card[onclick*="goToProduct(${flavorId})"]`);
+  if (targetCard) {
+    targetCard.classList.add('sommelier-spotlighted');
+    setTimeout(() => {
+      targetCard.classList.remove('sommelier-spotlighted');
+    }, 6000);
+  }
+}
+
+function scrollToSommelier() {
+  const el = document.getElementById('sommelier');
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth' });
+    const mic = document.getElementById('sommelierMicBtn');
+    if (mic) {
+      mic.style.transform = 'scale(1.15)';
+      setTimeout(() => mic.style.transform = '', 500);
+    }
+  }
+}
+
 // ---- Init per page ----
 document.addEventListener('DOMContentLoaded', ()=>{
   updateBadges();
