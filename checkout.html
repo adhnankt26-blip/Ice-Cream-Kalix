@@ -47,12 +47,12 @@
       <p class="checkout-subtitle">Where should our insulated dry-ice cryo-chest be delivered?</p>
 
       <!-- Step Indicator -->
-      <div style="display:flex;align-items:center;gap:0;margin-bottom:2.5rem">
-        <div style="display:flex;align-items:center;gap:0.5rem"><div style="width:32px;height:32px;border-radius:50%;background:var(--amber);color:white;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">1</div><span style="font-size:13px;font-weight:600;color:var(--amber)">Delivery Address</span></div>
-        <div style="flex:1;height:2px;background:var(--surface-container);margin:0 1rem"></div>
-        <div style="display:flex;align-items:center;gap:0.5rem"><div style="width:32px;height:32px;border-radius:50%;background:var(--surface-container);color:var(--outline);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">2</div><span style="font-size:13px;font-weight:600;color:var(--outline)">Payment Method</span></div>
-        <div style="flex:1;height:2px;background:var(--surface-container);margin:0 1rem"></div>
-        <div style="display:flex;align-items:center;gap:0.5rem"><div style="width:32px;height:32px;border-radius:50%;background:var(--surface-container);color:var(--outline);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">3</div><span style="font-size:13px;font-weight:600;color:var(--outline)">Confirmation</span></div>
+      <div class="checkout-steps" style="display:flex;align-items:center;gap:0;margin-bottom:2.5rem">
+        <div class="checkout-step" style="display:flex;align-items:center;gap:0.5rem"><div class="checkout-step-number" style="width:32px;height:32px;border-radius:50%;background:var(--amber);color:white;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">1</div><span class="checkout-step-label" style="font-size:13px;font-weight:600;color:var(--amber)">Delivery Address</span></div>
+        <div class="checkout-step-connector" style="flex:1;height:2px;background:var(--surface-container);margin:0 1rem"></div>
+        <div class="checkout-step" style="display:flex;align-items:center;gap:0.5rem"><div class="checkout-step-number" style="width:32px;height:32px;border-radius:50%;background:var(--surface-container);color:var(--outline);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">2</div><span class="checkout-step-label" style="font-size:13px;font-weight:600;color:var(--outline)">Payment Method</span></div>
+        <div class="checkout-step-connector" style="flex:1;height:2px;background:var(--surface-container);margin:0 1rem"></div>
+        <div class="checkout-step" style="display:flex;align-items:center;gap:0.5rem"><div class="checkout-step-number" style="width:32px;height:32px;border-radius:50%;background:var(--surface-container);color:var(--outline);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">3</div><span class="checkout-step-label" style="font-size:13px;font-weight:600;color:var(--outline)">Confirmation</span></div>
       </div>
 
       <form onsubmit="placeOrder(event)">
