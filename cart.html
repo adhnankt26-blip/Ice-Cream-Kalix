@@ -19,8 +19,10 @@
       <li><a href="index.html#flavors">Ice Cream Tubs</a></li>
       <li><a href="index.html#craft">Our Purity Promise</a></li>
       <li><a href="index.html#cities">City Delivery</a></li>
+      <li><a href="javascript:void(0)" onclick="openOffersModal()" class="nav-link-offers"><span class="material-icons" style="font-size:15px;vertical-align:-2px;margin-right:3px;color:var(--amber)">local_offer</span>Offers <span class="nav-offers-chip">5 Active</span></a></li>
     </ul>
     <div class="nav-actions">
+      <button class="offers-nav-btn" onclick="openOffersModal()" title="Kalix Exclusive Offers & Coupons"><span class="material-icons">local_offer</span> <span>Offers</span> <span class="offers-count-pill">5</span></button>
       <button class="rewards-nav-btn" onclick="openRewardsModal()" title="Kalix Rewards & Coins"><span class="rewards-coin-icon material-icons">monetization_on</span><span id="navRewardsCount">0</span><span class="rewards-label">Coins</span></button>
       <a href="wishlist.html" class="nav-icon-btn" title="Wishlist"><span class="material-icons">favorite</span><span class="badge" id="wishlistBadge">0</span></a>
       <a href="cart.html" class="nav-icon-btn" title="Cart"><span class="material-icons">shopping_bag</span><span class="badge" id="cartBadge">0</span></a>
@@ -56,7 +58,7 @@
         <div style="display:flex;flex-direction:column;gap:0.75rem">
           <div style="display:flex;gap:0.75rem;align-items:center;font-size:13px;color:var(--on-surface-variant)"><span class="material-icons" style="color:var(--pistachio);font-size:18px">ac_unit</span> 100% Melt-Free Guarantee: Reshipped immediately free of charge if internal temperature exceeds -18°C.</div>
           <div style="display:flex;gap:0.75rem;align-items:center;font-size:13px;color:var(--on-surface-variant)"><span class="material-icons" style="color:var(--pistachio);font-size:18px">inventory_2</span> Dry-Ice Cryo-Packaging: Engineered to withstand peak Indian summer heat up to 42°C for 48 hours.</div>
-          <div style="display:flex;gap:0.75rem;align-items:center;font-size:13px;color:var(--on-surface-variant)"><span class="material-icons" style="color:var(--amber);font-size:18px">payments</span> Cash on Delivery (COD) Available: Pay conveniently in cash at your doorstep upon receiving your dry-ice cryo-box.</div>
+          <div style="display:flex;gap:0.75rem;align-items:center;font-size:13px;color:var(--on-surface-variant)"><span class="material-icons" style="color:var(--amber);font-size:18px">verified_user</span> 100% Secure Payments: Instant Razorpay (UPI, Cards, NetBanking) &amp; Cash on Delivery (COD) supported.</div>
         </div>
       </div>
     </div>
@@ -71,12 +73,36 @@
         <div class="summary-body">
           <div class="summary-row"><span>Subtotal</span><span id="subtotal">₹0</span></div>
           <div class="summary-row"><span>Delivery</span><span id="shipping">₹199</span></div>
+          <div class="summary-row" id="couponDiscountRow" style="display:none;color:var(--pistachio);font-weight:700">
+            <span>Coupon (<span id="appliedCouponCode"></span>) <button type="button" onclick="removeAppliedCoupon()" title="Remove coupon" class="btn-remove-coupon">✕</button></span>
+            <span>-₹<span id="appliedCouponDiscount">0</span></span>
+          </div>
+          <div class="summary-row" id="couponGiftRow" style="display:none;color:var(--pistachio);font-weight:700">
+            <span>Free Privilege: 500ml Tub <button type="button" onclick="removeAppliedCoupon()" title="Remove coupon" class="btn-remove-coupon">✕</button></span>
+            <span style="background:#dcfce7;color:#166534;font-size:10px;padding:2px 8px;border-radius:10px">FREE 🍨</span>
+          </div>
           <div class="summary-row" id="coinDiscountRow" style="display:none;color:var(--pistachio);font-weight:700">
             <span>Coin Discount (🪙 <span id="appliedCoinsCount">0</span>)</span>
             <span>-₹<span id="appliedCoinsDiscount">0</span></span>
           </div>
-          <div class="summary-row"><span style="font-size:12px;color:var(--outline)">Orders above ₹1,500 → FREE</span></div>
+          <div class="summary-row"><span style="font-size:12px;color:var(--outline)">Orders above ₹1,500 → FREE Delivery</span></div>
           <div class="summary-row total"><span>Total</span><span id="totalAmt">₹0</span></div>
+
+          <!-- Coupon Redemption Card -->
+          <div class="coupon-redeem-card">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.4rem">
+              <div style="display:flex;align-items:center;gap:0.4rem">
+                <span class="material-icons" style="font-size:18px;color:var(--amber)">local_offer</span>
+                <span style="font-size:13px;font-weight:700">Coupon / Promo Code</span>
+              </div>
+              <button type="button" onclick="openOffersModal()" style="font-size:11px;font-weight:700;color:var(--amber);background:none;border:none;cursor:pointer;text-decoration:underline">View Offers (5)</button>
+            </div>
+            <div class="coupon-input-group">
+              <input type="text" id="cartCouponInput" placeholder="Enter coupon (e.g. WELCOME500)" class="form-input" style="padding:8px 12px;font-size:13px;flex:1;text-transform:uppercase" onkeydown="if(event.key==='Enter'){event.preventDefault();applyCartCoupon();}" />
+              <button type="button" class="btn-primary btn-sm" onclick="applyCartCoupon()" style="padding:8px 14px;white-space:nowrap;font-size:12px">Apply</button>
+            </div>
+            <div id="cartCouponFeedback" style="display:none;margin-top:0.5rem;font-size:11px;font-weight:600"></div>
+          </div>
 
           <!-- Use Coins Widget -->
           <div class="coin-redeem-card" style="margin-top:1.25rem">

@@ -17,6 +17,9 @@
     }
   </script>
   <link rel="stylesheet" href="style.css" />
+  <!-- Razorpay Checkout SDK & Configuration -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script src="razorpay-config.js"></script>
 </head>
 <body data-page="checkout">
 
@@ -24,6 +27,7 @@
   <div class="nav-inner">
     <a href="index.html" class="nav-logo"><span class="logo-icon material-icons">icecream</span><span>Kalix <em>Premium Ice Cream</em></span></a>
     <div class="nav-actions">
+      <button class="offers-nav-btn" onclick="openOffersModal()" title="Kalix Exclusive Offers & Coupons"><span class="material-icons">local_offer</span> <span>Offers</span> <span class="offers-count-pill">5</span></button>
       <button class="rewards-nav-btn" onclick="openRewardsModal()" title="Kalix Rewards & Coins"><span class="rewards-coin-icon material-icons">monetization_on</span><span id="navRewardsCount">0</span><span class="rewards-label">Coins</span></button>
       <a href="cart.html" class="nav-icon-btn"><span class="material-icons">arrow_back</span></a>
       <button class="btn-primary btn-sm">Sign In</button>
@@ -133,29 +137,53 @@
             </div>
             <div class="form-group"><label>PIN Code *</label><input class="form-input" id="pinCodeInput" type="text" placeholder="682001 / 400001" maxlength="6" required /></div>
             <div class="form-group"><label>Mobile Number *</label><input class="form-input" id="mobileInput" type="tel" value="+91 " placeholder="+91 98xxx xxxxx" maxlength="15" required /></div>
+            <div class="form-group full"><label>Email Address * <small style="color:var(--outline);font-weight:400">(For Razorpay instant payment receipt &amp; dispatch updates)</small></label><input class="form-input" id="emailInput" type="email" placeholder="customer@example.com" required /></div>
           </div>
         </div>
 
-
         <!-- Payment -->
         <div class="form-section">
-          <h3><span class="material-icons" style="font-size:20px;vertical-align:middle;margin-right:0.4rem;color:var(--pistachio)">payments</span>Payment Method</h3>
-          <p style="font-size:13px;color:var(--outline);margin-bottom:1rem">Pay directly at the time of delivery at your doorstep.</p>
+          <h3><span class="material-icons" style="font-size:20px;vertical-align:middle;margin-right:0.4rem;color:var(--amber)">payments</span>Payment Method</h3>
+          <p style="font-size:13px;color:var(--outline);margin-bottom:1rem">Choose how you'd like to pay for your cold-chain ice cream order.</p>
           <div class="payment-methods">
-            <label class="payment-option selected" id="payCod" style="border-color:var(--amber);background:rgba(217,119,6,0.04)">
-              <input type="radio" name="payment" value="cod" checked />
+            <label class="payment-option selected" id="payRazorpay" onclick="selectPaymentMethod('razorpay')">
+              <input type="radio" name="payment" value="razorpay" checked />
+              <span class="payment-icon">⚡</span>
+              <div class="payment-option-label">
+                <div>
+                  <strong>Pay Online (Razorpay)</strong>
+                  <span class="payment-rec-badge">RECOMMENDED</span>
+                </div>
+                <div style="font-size:12px;font-weight:400;color:var(--on-surface-variant);margin-top:2px">
+                  Instant &amp; 100% Secure · UPI (GPay, PhonePe, Paytm), Credit / Debit Cards, NetBanking &amp; Wallets
+                </div>
+                <div class="payment-sub-badges">
+                  <span class="pay-sub-pill">UPI</span>
+                  <span class="pay-sub-pill">Google Pay</span>
+                  <span class="pay-sub-pill">PhonePe</span>
+                  <span class="pay-sub-pill">Paytm</span>
+                  <span class="pay-sub-pill">Cards</span>
+                  <span class="pay-sub-pill">NetBanking</span>
+                </div>
+              </div>
+              <span style="font-size:11px;font-weight:700;color:var(--pistachio);background:rgba(59,105,52,0.12);padding:4px 10px;border-radius:var(--r-full);white-space:nowrap">FAST &amp; SECURE</span>
+            </label>
+
+            <label class="payment-option" id="payCod" onclick="selectPaymentMethod('cod')">
+              <input type="radio" name="payment" value="cod" />
               <span class="payment-icon">💵</span>
               <div class="payment-option-label">
-                Cash on Delivery (COD)
+                <strong>Cash on Delivery (COD)</strong>
                 <div style="font-size:12px;font-weight:400;color:var(--on-surface-variant);margin-top:2px">Pay in cash directly to the courier upon receiving your insulated dry-ice cryo-box.</div>
               </div>
-              <span style="font-size:11px;font-weight:700;color:var(--pistachio);background:rgba(59,105,52,0.12);padding:4px 10px;border-radius:var(--r-full);white-space:nowrap">ZERO COD FEE</span>
+              <span style="font-size:11px;font-weight:700;color:var(--outline);background:rgba(120,83,37,0.08);padding:4px 10px;border-radius:var(--r-full);white-space:nowrap">ZERO COD FEE</span>
             </label>
           </div>
         </div>
 
-        <button type="submit" class="btn-primary btn-full btn-lg" style="margin-top:1rem">
-          <span class="material-icons">payments</span> Place Order (Cash on Delivery)
+        <button type="submit" id="placeOrderSubmitBtn" class="btn-primary btn-full btn-lg" style="margin-top:1rem">
+          <span class="material-icons" id="submitBtnIcon">lock</span>
+          <span id="submitBtnText">Pay via Razorpay (UPI / Card)</span>
         </button>
       </form>
     </div>
@@ -176,6 +204,22 @@
             <p style="font-size:12px;color:var(--on-surface-variant);margin-top:0.4rem">Arrives rock-solid with guaranteed -18°C dry-ice containment.</p>
           </div>
 
+          <!-- Coupon Redemption Card in Checkout -->
+          <div class="coupon-redeem-card" style="margin-bottom:1rem">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.4rem">
+              <div style="display:flex;align-items:center;gap:0.4rem">
+                <span class="material-icons" style="font-size:18px;color:var(--amber)">local_offer</span>
+                <span style="font-size:13px;font-weight:700">Coupon / Promo Code</span>
+              </div>
+              <button type="button" onclick="openOffersModal()" style="font-size:11px;font-weight:700;color:var(--amber);background:none;border:none;cursor:pointer;text-decoration:underline">View Offers (5)</button>
+            </div>
+            <div class="coupon-input-group">
+              <input type="text" id="checkoutCouponInput" placeholder="Enter coupon (e.g. WELCOME500)" class="form-input" style="padding:8px 12px;font-size:13px;flex:1;text-transform:uppercase" onkeydown="if(event.key==='Enter'){event.preventDefault();applyCheckoutCoupon();}" />
+              <button type="button" class="btn-primary btn-sm" onclick="applyCheckoutCoupon()" style="padding:8px 14px;white-space:nowrap;font-size:12px">Apply</button>
+            </div>
+            <div id="checkoutCouponFeedback" style="display:none;margin-top:0.5rem;font-size:11px;font-weight:600"></div>
+          </div>
+
           <!-- Use Coins Section in Checkout -->
           <div class="coin-redeem-card" id="checkoutCoinCard">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.4rem">
@@ -194,7 +238,15 @@
           </div>
 
           <div class="summary-row"><span>Subtotal</span><span id="checkoutSubtotal">₹1,797</span></div>
-          <div class="summary-row"><span>Delivery</span><span style="color:var(--pistachio);font-weight:700">FREE</span></div>
+          <div class="summary-row"><span>Delivery</span><span id="checkoutDelivery" style="color:var(--pistachio);font-weight:700">FREE</span></div>
+          <div class="summary-row" id="checkoutCouponDiscountRow" style="display:none;color:var(--pistachio);font-weight:700">
+            <span>Coupon (<span id="checkoutAppliedCouponCode"></span>) <button type="button" onclick="removeCheckoutCoupon()" title="Remove coupon" class="btn-remove-coupon">✕</button></span>
+            <span>-₹<span id="checkoutAppliedCouponDiscount">0</span></span>
+          </div>
+          <div class="summary-row" id="checkoutCouponGiftRow" style="display:none;color:var(--pistachio);font-weight:700">
+            <span>Free Privilege: 500ml Tub <button type="button" onclick="removeCheckoutCoupon()" title="Remove coupon" class="btn-remove-coupon">✕</button></span>
+            <span style="background:#dcfce7;color:#166534;font-size:10px;padding:2px 8px;border-radius:10px">FREE 🍨</span>
+          </div>
           <div class="summary-row" id="checkoutCoinDiscountRow" style="display:none;color:var(--pistachio);font-weight:700">
             <span>Coin Discount (🪙 <span id="checkoutCoinsUsed">0</span>)</span>
             <span>-₹<span id="checkoutCoinsDiscountAmt">0</span></span>
@@ -203,7 +255,7 @@
           <div class="summary-row total"><span>Order Total</span><span id="checkoutTotal">₹1,887</span></div>
 
           <div class="trust-badges" style="margin-top:1.5rem">
-            <div class="trust-badge"><span class="material-icons">payments</span> Cash on Delivery (COD) · Pay at Doorstep</div>
+            <div class="trust-badge"><span class="material-icons">security</span> 100% Secure Razorpay (UPI / Cards) &amp; COD</div>
             <div class="trust-badge"><span class="material-icons">ac_unit</span> Melt-Free Guarantee</div>
             <div class="trust-badge"><span class="material-icons">eco</span> 100% Compostable packaging</div>
           </div>
@@ -225,11 +277,15 @@
   <div style="background:white;border-radius:var(--r-xl);padding:2.5rem 2rem;max-width:500px;width:100%;text-align:center;box-shadow:var(--shadow-lg);position:relative">
     <div style="font-size:56px;margin-bottom:0.75rem">🎉</div>
     <h2 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:700;margin-bottom:0.5rem">Order Confirmed!</h2>
-    <div style="display:inline-flex;align-items:center;gap:0.35rem;background:rgba(59,105,52,0.12);color:var(--pistachio);font-weight:700;font-size:13px;padding:6px 14px;border-radius:var(--r-full);margin-bottom:1rem">
-      <span class="material-icons" style="font-size:16px">payments</span> Payment: Cash on Delivery (COD)
+    <div id="orderPaymentBadge" class="order-paid-pill">
+      <span class="material-icons" id="orderPaymentIcon" style="font-size:16px">verified</span>
+      <span id="orderPaymentText">Payment: Paid Online via Razorpay</span>
     </div>
-    <p style="color:var(--on-surface-variant);font-size:14px;line-height:1.6;margin-bottom:1.25rem">
-      Your artisanal ice creams are being packed in an insulated sub-zero cryo-box. Please pay in cash upon receiving your order at your doorstep.
+    <div id="orderPaymentIdWrap" style="display:none;margin-bottom:0.75rem">
+      <span class="order-payment-id" id="orderPaymentIdText">Payment ID: pay_xxxx</span>
+    </div>
+    <p id="orderPaymentDesc" style="color:var(--on-surface-variant);font-size:14px;line-height:1.6;margin-bottom:1.25rem">
+      Your payment was successfully processed. Your artisanal ice creams are being packed in an insulated sub-zero cryo-box.
     </p>
 
     <!-- Milestone Box (When 10+ ice creams reached) -->
@@ -381,9 +437,17 @@ function updateCheckoutTotals() {
     sessionStorage.setItem('kalixAppliedCoins', appliedCheckoutCoins.toString());
   }
 
+  // Coupon evaluation
+  const couponResult = typeof calculateCouponBenefit === 'function' ? calculateCouponBenefit(subtotal, 0) : null;
+  let couponDiscount = 0;
+  if (couponResult && couponResult.active && couponResult.eligible) {
+    couponDiscount = couponResult.discount;
+  }
+
   const coinDiscount = appliedCheckoutCoins * COIN_VALUE_INR;
-  const gst = Math.round(subtotal * 0.05);
-  const total = Math.max(0, subtotal + gst - coinDiscount);
+  const taxableSubtotal = Math.max(0, subtotal - couponDiscount);
+  const gst = Math.round(taxableSubtotal * 0.05);
+  const total = Math.max(0, taxableSubtotal + gst - coinDiscount);
 
   const subtotalEl = document.getElementById('checkoutSubtotal');
   const gstEl = document.getElementById('checkoutGst');
@@ -392,9 +456,49 @@ function updateCheckoutTotals() {
   const coinsUsedEl = document.getElementById('checkoutCoinsUsed');
   const discountAmtEl = document.getElementById('checkoutCoinsDiscountAmt');
 
+  const couponRow = document.getElementById('checkoutCouponDiscountRow');
+  const couponGiftRow = document.getElementById('checkoutCouponGiftRow');
+  const couponCodeEl = document.getElementById('checkoutAppliedCouponCode');
+  const couponDiscountEl = document.getElementById('checkoutAppliedCouponDiscount');
+  const couponInput = document.getElementById('checkoutCouponInput');
+  const couponFeedback = document.getElementById('checkoutCouponFeedback');
+
   if (subtotalEl) subtotalEl.textContent = '₹' + subtotal.toLocaleString('en-IN');
   if (gstEl) gstEl.textContent = '₹' + gst.toLocaleString('en-IN');
   if (totalEl) totalEl.textContent = '₹' + total.toLocaleString('en-IN');
+
+  if (couponRow) {
+    if (couponDiscount > 0) {
+      couponRow.style.display = 'flex';
+      if (couponCodeEl) couponCodeEl.textContent = couponResult.coupon.code;
+      if (couponDiscountEl) couponDiscountEl.textContent = couponDiscount.toLocaleString('en-IN');
+    } else {
+      couponRow.style.display = 'none';
+    }
+  }
+
+  if (couponGiftRow) {
+    couponGiftRow.style.display = (couponResult && couponResult.active && couponResult.eligible && couponResult.freeTub) ? 'flex' : 'none';
+  }
+
+  if (couponInput && !couponInput.matches(':focus')) {
+    couponInput.value = (couponResult && couponResult.active) ? (couponResult.coupon?.code || getAppliedCouponCode()) : '';
+  }
+
+  if (couponFeedback) {
+    if (couponResult && couponResult.active) {
+      couponFeedback.style.display = 'block';
+      if (couponResult.eligible) {
+        couponFeedback.style.color = 'var(--pistachio)';
+        couponFeedback.innerHTML = `<span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:2px">check_circle</span> ${couponResult.message}`;
+      } else {
+        couponFeedback.style.color = '#d97706';
+        couponFeedback.innerHTML = `<span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:2px">info</span> ${couponResult.message}`;
+      }
+    } else {
+      couponFeedback.style.display = 'none';
+    }
+  }
 
   if (discountRow) {
     if (coinDiscount > 0) {
@@ -405,6 +509,87 @@ function updateCheckoutTotals() {
       discountRow.style.display = 'none';
     }
   }
+
+  // Update submit button text with dynamic total
+  const selectedPayment = document.querySelector('input[name="payment"]:checked')?.value || 'razorpay';
+  const submitBtnText = document.getElementById('submitBtnText');
+  const submitBtnIcon = document.getElementById('submitBtnIcon');
+  if (submitBtnText) {
+    if (selectedPayment === 'razorpay') {
+      submitBtnText.textContent = `Pay ₹${total.toLocaleString('en-IN')} via Razorpay (UPI / Card)`;
+      if (submitBtnIcon) submitBtnIcon.textContent = 'lock';
+    } else {
+      submitBtnText.textContent = `Place Order (Cash on Delivery)`;
+      if (submitBtnIcon) submitBtnIcon.textContent = 'payments';
+    }
+  }
+}
+
+function selectPaymentMethod(method) {
+  const rzpOpt = document.getElementById('payRazorpay');
+  const codOpt = document.getElementById('payCod');
+  const submitBtnText = document.getElementById('submitBtnText');
+  const submitBtnIcon = document.getElementById('submitBtnIcon');
+  const totalText = document.getElementById('checkoutTotal')?.textContent || '₹0';
+
+  if (method === 'razorpay') {
+    if (rzpOpt) {
+      rzpOpt.classList.add('selected');
+      const r = rzpOpt.querySelector('input[type="radio"]');
+      if (r) r.checked = true;
+    }
+    if (codOpt) {
+      codOpt.classList.remove('selected');
+      const r = codOpt.querySelector('input[type="radio"]');
+      if (r) r.checked = false;
+    }
+    if (submitBtnText) submitBtnText.textContent = `Pay ${totalText} via Razorpay (UPI / Card)`;
+    if (submitBtnIcon) submitBtnIcon.textContent = 'lock';
+  } else {
+    if (codOpt) {
+      codOpt.classList.add('selected');
+      const r = codOpt.querySelector('input[type="radio"]');
+      if (r) r.checked = true;
+    }
+    if (rzpOpt) {
+      rzpOpt.classList.remove('selected');
+      const r = rzpOpt.querySelector('input[type="radio"]');
+      if (r) r.checked = false;
+    }
+    if (submitBtnText) submitBtnText.textContent = `Place Order (Cash on Delivery)`;
+    if (submitBtnIcon) submitBtnIcon.textContent = 'payments';
+  }
+}
+
+function applyCheckoutCoupon() {
+  const input = document.getElementById('checkoutCouponInput');
+  const feedback = document.getElementById('checkoutCouponFeedback');
+  if (!input) return;
+  const code = input.value.trim().toUpperCase();
+  if (!code) {
+    if (feedback) {
+      feedback.style.display = 'block';
+      feedback.style.color = '#ef4444';
+      feedback.textContent = 'Please enter a coupon code.';
+    }
+    return;
+  }
+  const coupon = (typeof KALIX_COUPONS !== 'undefined' ? KALIX_COUPONS : []).find(c => c.code === code);
+  if (!coupon) {
+    if (feedback) {
+      feedback.style.display = 'block';
+      feedback.style.color = '#ef4444';
+      feedback.innerHTML = `<span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:2px">error_outline</span> Invalid code "${code}". Tap "View Offers" to choose a code.`;
+    }
+    return;
+  }
+  setAppliedCouponCode(code);
+  updateCheckoutTotals();
+  showToast(`🎉 Coupon "${code}" applied!`);
+}
+
+function removeCheckoutCoupon() {
+  removeAppliedCoupon();
 }
 
 function applyCheckoutCoins() {
@@ -454,26 +639,204 @@ function placeOrder(e) {
     return;
   }
 
+  const form = e.target;
+  if (form && !form.checkValidity()) {
+    form.reportValidity();
+    return;
+  }
+
+  const selectedMethod = document.querySelector('input[name="payment"]:checked')?.value || 'razorpay';
+  const totalText = document.getElementById('checkoutTotal')?.textContent || '₹0';
+  const totalAmt = parseInt(totalText.replace(/[^\d]/g, '')) || 0;
+
+  const firstName = document.getElementById('firstName')?.value?.trim() || '';
+  const lastName = document.getElementById('lastName')?.value?.trim() || '';
+  const customerName = `${firstName} ${lastName}`.trim() || 'Kalix Customer';
+  const customerPhone = (document.getElementById('mobileInput')?.value || '').trim();
+  const customerEmail = (document.getElementById('emailInput')?.value || 'customer@kalixicecream.com').trim();
+  const customerAddress = [
+    document.getElementById('addressLine1')?.value?.trim(),
+    document.getElementById('addressLine2')?.value?.trim(),
+    document.getElementById('cityInput')?.value?.trim(),
+    document.getElementById('stateSelect')?.value?.trim(),
+    document.getElementById('pinCodeInput')?.value?.trim()
+  ].filter(Boolean).join(', ');
+
+  const customerData = {
+    name: customerName,
+    phone: customerPhone,
+    email: customerEmail,
+    address: customerAddress
+  };
+
+  if (selectedMethod === 'razorpay') {
+    if (typeof Razorpay === 'undefined') {
+      showToast('⚠️ Razorpay SDK is loading. Please check your internet connection.');
+      return;
+    }
+
+    const keyId = (window.KALIX_RAZORPAY_CONFIG && window.KALIX_RAZORPAY_CONFIG.keyId) ? window.KALIX_RAZORPAY_CONFIG.keyId : 'rzp_test_TqAbtawIZ4dj4k';
+    const submitBtn = document.getElementById('placeOrderSubmitBtn');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.style.opacity = '0.7';
+    }
+
+    const options = {
+      key: keyId,
+      amount: totalAmt * 100, // paise
+      currency: 'INR',
+      name: 'Kalix Premium Ice Cream',
+      description: `Order Payment (${totalItems} Artisanal Ice Cream Tubs)`,
+      image: 'images/kalix_pistachio_rose.png',
+      handler: function (response) {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.style.opacity = '1';
+        }
+        completeOrderFlow({
+          method: 'razorpay',
+          paymentId: response.razorpay_payment_id,
+          orderId: response.razorpay_order_id || '',
+          signature: response.razorpay_signature || '',
+          total: totalAmt,
+          items: totalItems,
+          customer: customerData
+        });
+      },
+      prefill: {
+        name: customerName,
+        email: customerEmail,
+        contact: customerPhone.replace(/\D/g, '').slice(-10)
+      },
+      notes: {
+        delivery_address: customerAddress,
+        item_count: totalItems
+      },
+      theme: {
+        color: '#d97706',
+        backdrop_color: 'rgba(10, 15, 12, 0.75)'
+      },
+      modal: {
+        ondismiss: function () {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+          }
+          showToast('ℹ️ Razorpay checkout was closed without payment.');
+        }
+      }
+    };
+
+    try {
+      const rzp = new Razorpay(options);
+      rzp.on('payment.failed', function (resp) {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.style.opacity = '1';
+        }
+        console.error('Razorpay payment failed:', resp.error);
+        showToast(`❌ Payment Failed: ${resp.error.description || 'Transaction unsuccessful'}`);
+      });
+      rzp.open();
+    } catch (err) {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
+      }
+      console.error('Error opening Razorpay:', err);
+      showToast('❌ Could not start payment: ' + err.message);
+    }
+  } else {
+    // Cash on Delivery
+    completeOrderFlow({
+      method: 'cod',
+      paymentId: 'COD-' + Date.now().toString(36).toUpperCase(),
+      total: totalAmt,
+      items: totalItems,
+      customer: customerData
+    });
+  }
+}
+
+function completeOrderFlow(details) {
+  const totalItems = details.items;
+  const totalAmt = details.total;
+
   // Track cumulative items across orders
   const prevOrdered = parseInt(localStorage.getItem('kalixTotalOrderedPints') || '0');
   const newTotalOrdered = prevOrdered + totalItems;
   localStorage.setItem('kalixTotalOrderedPints', newTotalOrdered.toString());
 
+  // Deduct applied coins
   if (appliedCheckoutCoins > 0) {
     setRewardCoins(getRewardCoins() - appliedCheckoutCoins);
     sessionStorage.removeItem('kalixAppliedCoins');
     appliedCheckoutCoins = 0;
   }
 
+  // Clear applied coupon
+  setAppliedCouponCode('');
+
+  // Save order to history
+  try {
+    const orderRecord = {
+      orderId: 'KLX-' + Date.now().toString(36).toUpperCase(),
+      date: new Date().toISOString(),
+      items: [...cart],
+      total: totalAmt,
+      paymentMethod: details.method,
+      paymentId: details.paymentId,
+      customer: details.customer
+    };
+    const history = JSON.parse(localStorage.getItem('kalixOrderHistory') || '[]');
+    history.unshift(orderRecord);
+    localStorage.setItem('kalixOrderHistory', JSON.stringify(history.slice(0, 20)));
+  } catch (_) {}
+
+  // Update modal contents
   const modal = document.getElementById('orderModal');
   const rewardBox = document.getElementById('orderRewardUnlockBox');
   const normalBox = document.getElementById('orderNormalBox');
+  const paymentBadge = document.getElementById('orderPaymentBadge');
+  const paymentIcon = document.getElementById('orderPaymentIcon');
+  const paymentText = document.getElementById('orderPaymentText');
+  const paymentIdWrap = document.getElementById('orderPaymentIdWrap');
+  const paymentIdText = document.getElementById('orderPaymentIdText');
+  const paymentDesc = document.getElementById('orderPaymentDesc');
+
+  if (details.method === 'razorpay') {
+    if (paymentBadge) {
+      paymentBadge.className = 'order-paid-pill';
+      paymentBadge.style.background = '#ecfdf5';
+      paymentBadge.style.color = '#065f46';
+      paymentBadge.style.borderColor = '#a7f3d0';
+    }
+    if (paymentIcon) paymentIcon.textContent = 'verified';
+    if (paymentText) paymentText.textContent = 'Payment: Paid Online via Razorpay';
+    if (paymentIdWrap) paymentIdWrap.style.display = 'block';
+    if (paymentIdText) paymentIdText.textContent = `Payment ID: ${details.paymentId}`;
+    if (paymentDesc) {
+      paymentDesc.textContent = `Your payment of ₹${totalAmt.toLocaleString('en-IN')} has been verified via Razorpay! Your artisanal ice creams are being packed with dry-ice (-18°C) for express dispatch.`;
+    }
+  } else {
+    if (paymentBadge) {
+      paymentBadge.className = 'order-paid-pill';
+      paymentBadge.style.background = 'rgba(217,119,6,0.12)';
+      paymentBadge.style.color = 'var(--amber)';
+      paymentBadge.style.borderColor = 'rgba(217,119,6,0.3)';
+    }
+    if (paymentIcon) paymentIcon.textContent = 'payments';
+    if (paymentText) paymentText.textContent = 'Payment: Cash on Delivery (COD)';
+    if (paymentIdWrap) paymentIdWrap.style.display = 'none';
+    if (paymentDesc) {
+      paymentDesc.textContent = `Your order is confirmed! Please pay ₹${totalAmt.toLocaleString('en-IN')} in cash directly to the courier upon receiving your insulated cryo-box.`;
+    }
+  }
 
   const packsClaimed = typeof getPacksClaimed === 'function' ? getPacksClaimed() : parseInt(localStorage.getItem('kalixPacksClaimed') || '0');
   const consumedPints = packsClaimed * 10;
   const pintsSinceLastClaim = Math.max(0, newTotalOrdered - consumedPints);
-
-  // Qualify when accumulated pints in the current cycle reach 10
   const qualifiedForMilestone = pintsSinceLastClaim >= 10;
 
   if (qualifiedForMilestone) {

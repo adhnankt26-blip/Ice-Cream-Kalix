@@ -27,8 +27,10 @@
         <li><a href="#flavors">Ice Cream Tubs</a></li>
         <li><a href="#craft">Our Purity Promise</a></li>
         <li><a href="#cities">City Delivery</a></li>
+        <li><a href="javascript:void(0)" onclick="openOffersModal()" class="nav-link-offers"><span class="material-icons" style="font-size:15px;vertical-align:-2px;margin-right:3px;color:var(--amber)">local_offer</span>Offers <span class="nav-offers-chip">5 Active</span></a></li>
       </ul>
       <div class="nav-actions">
+        <button class="offers-nav-btn" onclick="openOffersModal()" title="Kalix Exclusive Offers & Coupons"><span class="material-icons">local_offer</span> <span>Offers</span> <span class="offers-count-pill">5</span></button>
         <button class="sommelier-nav-btn" onclick="openSommelierScreen()" title="Kalix AI Voice Tasting"><span class="material-icons" style="font-size:16px">mic</span> <span>AI Voice</span></button>
         <button class="rewards-nav-btn" onclick="openRewardsModal()" title="Kalix Rewards & Coins"><span
             class="rewards-coin-icon material-icons">monetization_on</span><span id="navRewardsCount">0</span><span class="rewards-label">Coins</span></button>
@@ -268,22 +270,6 @@
     </div>
   </section>
 
-  <section class="newsletter-section" id="newsletter">
-    <div class="container">
-      <div class="newsletter-inner">
-        <div>
-          <p class="section-eye" style="color:var(--primary-fixed-dim)">SPECIAL WELCOME OFFER</p>
-          <h2 style="color:white;font-family:'Playfair Display',serif;font-size:32px;margin:0.5rem 0">Get a Free 500ml Tub on Your First Order Above ₹1,499</h2>
-          <p style="color:rgba(255,255,255,0.75);font-size:15px;">Join the Kalix Club to receive exclusive festival discount codes, secret seasonal flavour drops, and fresh batch alerts.</p>
-        </div>
-        <form class="newsletter-form" onsubmit="subscribeNewsletter(event)">
-          <input type="email" id="nlEmail" placeholder="Enter your email address" required />
-          <button type="submit" class="btn-primary">Claim Welcome Offer</button>
-        </form>
-      </div>
-    </div>
-  </section>
-
   <footer class="footer">
     <div class="container">
       <div class="footer-top">
@@ -301,6 +287,7 @@
             <li><a href="#flavors">Ice Cream Tubs</a></li>
             <li><a href="#craft">Our Purity Promise</a></li>
             <li><a href="#cities">City Delivery</a></li>
+            <li><a href="javascript:void(0)" onclick="openOffersModal()">Offers &amp; Coupons</a></li>
           </ul>
         </div>
         <div class="footer-links">

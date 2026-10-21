@@ -573,9 +573,9 @@ async function checkPin() {
             We currently do not have sub-zero cold chain delivery to PIN ${pin}. We are rapidly expanding our dry-ice refrigerated hub network.
           </p>
           <div class="pin-action-row">
-            <span style="font-size:12px;color:var(--outline)">Join waitlist for notifications when we launch in your area</span>
-            <a href="#newsletter" class="pin-action-btn" style="background:var(--tertiary)">
-              Notify Me When Available <span class="material-icons" style="font-size:16px">notifications</span>
+            <span style="font-size:12px;color:var(--outline)">Explore current special coupons & launch deals</span>
+            <a href="javascript:void(0)" onclick="openOffersModal()" class="pin-action-btn" style="background:var(--tertiary)">
+              View Exclusive Offers <span class="material-icons" style="font-size:16px">local_offer</span>
             </a>
           </div>
         </div>
@@ -882,20 +882,66 @@ function renderCartPage() {
     </div>`;
   }).join('');
   const subtotal = cart.reduce((s,i)=>s+i.price*i.qty,0);
-  const shipping = subtotal>=1500 ? 0 : 199;
+  let shipping = subtotal>=1500 ? 0 : 199;
   
+  // Coupon benefit calculation
+  const couponResult = calculateCouponBenefit(subtotal, shipping);
+  let couponDiscount = 0;
+  if (couponResult.active && couponResult.eligible) {
+    couponDiscount = couponResult.discount;
+    if (couponResult.freeShipping) shipping = 0;
+  }
+
   const availableCoins = getRewardCoins();
-  const maxCoinsUsable = Math.min(availableCoins, Math.ceil(subtotal / COIN_VALUE_INR));
+  const maxCoinsUsable = Math.min(availableCoins, Math.ceil(Math.max(0, subtotal - couponDiscount) / COIN_VALUE_INR));
   if (appliedCartCoins > maxCoinsUsable) {
     appliedCartCoins = maxCoinsUsable;
     sessionStorage.setItem('kalixAppliedCoins', appliedCartCoins.toString());
   }
   const coinDiscount = appliedCartCoins * COIN_VALUE_INR;
-  const total = Math.max(0, subtotal + shipping - coinDiscount);
+  const total = Math.max(0, subtotal + shipping - couponDiscount - coinDiscount);
 
   if(el('subtotal')) el('subtotal').textContent='₹'+subtotal.toLocaleString('en-IN');
   if(el('shipping')) el('shipping').textContent = shipping===0?'FREE':'₹'+shipping;
   if(el('totalAmt')) el('totalAmt').textContent='₹'+total.toLocaleString('en-IN');
+
+  const couponRow = el('couponDiscountRow');
+  const couponGiftRow = el('couponGiftRow');
+  const couponInput = el('cartCouponInput');
+  const couponFeedback = el('cartCouponFeedback');
+
+  if (couponRow) {
+    if (couponDiscount > 0) {
+      couponRow.style.display = 'flex';
+      if (el('appliedCouponCode')) el('appliedCouponCode').textContent = couponResult.coupon.code;
+      if (el('appliedCouponDiscount')) el('appliedCouponDiscount').textContent = couponDiscount.toLocaleString('en-IN');
+    } else {
+      couponRow.style.display = 'none';
+    }
+  }
+
+  if (couponGiftRow) {
+    couponGiftRow.style.display = (couponResult.active && couponResult.eligible && couponResult.freeTub) ? 'flex' : 'none';
+  }
+
+  if (couponInput && !couponInput.matches(':focus')) {
+    couponInput.value = couponResult.active ? (couponResult.coupon?.code || getAppliedCouponCode()) : '';
+  }
+
+  if (couponFeedback) {
+    if (couponResult.active) {
+      couponFeedback.style.display = 'block';
+      if (couponResult.eligible) {
+        couponFeedback.style.color = 'var(--pistachio)';
+        couponFeedback.innerHTML = `<span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:2px">check_circle</span> ${couponResult.message}`;
+      } else {
+        couponFeedback.style.color = '#d97706';
+        couponFeedback.innerHTML = `<span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:2px">info</span> ${couponResult.message}`;
+      }
+    } else {
+      couponFeedback.style.display = 'none';
+    }
+  }
 
   const discountRow = el('coinDiscountRow');
   if (discountRow) {
@@ -1409,6 +1455,303 @@ function ensureFutModal() {
     </div>
   `;
   document.body.appendChild(modal);
+}
+
+// ==========================================================================
+// KALIX ROYAL OFFERS & COUPONS SYSTEM
+// ==========================================================================
+
+const KALIX_COUPONS = [
+  {
+    code: 'WELCOME500',
+    title: 'Free 500ml Tub on First Order Above ₹1,499',
+    badge: 'SPECIAL WELCOME OFFER',
+    badgeBg: '#b45309',
+    discountText: 'FREE 500ml Tub',
+    desc: 'Join the Kalix Club privilege! Get a complimentary 500ml artisanal tub added with your first order above ₹1,499.',
+    minOrder: 1499,
+    type: 'free_tub',
+    terms: 'Valid on orders of ₹1,499 and above. One-time welcome privilege.'
+  },
+  {
+    code: 'TASTE100',
+    title: 'Flat ₹100 Instant Cash Discount',
+    badge: 'FIRST ORDER',
+    badgeBg: '#15803d',
+    discountText: 'FLAT ₹100 OFF',
+    desc: 'Instant ₹100 off on any slow-churned pure A2 Gir cow milk ice cream order above ₹499.',
+    minOrder: 499,
+    type: 'flat',
+    discountValue: 100,
+    terms: 'Valid on orders of ₹499 and above.'
+  },
+  {
+    code: 'FREESHIP',
+    title: 'Complimentary Cryo-Express Shipping',
+    badge: 'FREE DELIVERY',
+    badgeBg: '#2563eb',
+    discountText: 'SAVE ₹199 SHIPPING',
+    desc: 'Enjoy free melt-free sub-zero cryo-insulated delivery (-18°C guaranteed) right to your doorstep.',
+    minOrder: 999,
+    type: 'free_shipping',
+    discountValue: 199,
+    terms: 'Valid on orders of ₹999 and above.'
+  },
+  {
+    code: 'ROYAL15',
+    title: '15% Off Handcrafted Heritage Tubs',
+    badge: 'CONNOISSEUR CLUB',
+    badgeBg: '#ea580c',
+    discountText: '15% OFF (UP TO ₹250)',
+    desc: 'Exclusive 15% discount on all single-herd malai tubs, tasting flights, and royal hampers.',
+    minOrder: 1199,
+    type: 'percent',
+    percent: 15,
+    maxDiscount: 250,
+    terms: 'Maximum discount ₹250. Valid on orders above ₹1,199.'
+  },
+  {
+    code: 'FESTIVE20',
+    title: '20% Off Festive Celebrations',
+    badge: 'FESTIVAL SPECIAL',
+    badgeBg: '#7c3aed',
+    discountText: '20% OFF (UP TO ₹400)',
+    desc: 'Celebrate auspicious moments with our GI-tagged Saffron & Alphonso Ice Creams.',
+    minOrder: 1999,
+    type: 'percent',
+    percent: 20,
+    maxDiscount: 400,
+    terms: 'Maximum discount ₹400. Valid on orders above ₹1,999.'
+  }
+];
+
+function getAppliedCouponCode() {
+  return (localStorage.getItem('kalixAppliedCoupon') || '').toUpperCase().trim();
+}
+
+function setAppliedCouponCode(code) {
+  if (code) {
+    localStorage.setItem('kalixAppliedCoupon', code.toUpperCase().trim());
+  } else {
+    localStorage.removeItem('kalixAppliedCoupon');
+  }
+}
+
+function calculateCouponBenefit(subtotal, shipping = 199) {
+  const code = getAppliedCouponCode();
+  if (!code) return { active: false };
+
+  const coupon = KALIX_COUPONS.find(c => c.code === code);
+  if (!coupon) return { active: false, invalid: true, code };
+
+  if (subtotal < coupon.minOrder) {
+    return {
+      active: true,
+      eligible: false,
+      coupon,
+      needed: coupon.minOrder - subtotal,
+      message: `Add ₹${(coupon.minOrder - subtotal).toLocaleString('en-IN')} more to unlock coupon ${coupon.code}!`
+    };
+  }
+
+  let discount = 0;
+  let freeShipping = false;
+  let freeTub = false;
+
+  if (coupon.type === 'flat') {
+    discount = Math.min(coupon.discountValue, subtotal);
+  } else if (coupon.type === 'free_shipping') {
+    freeShipping = true;
+    discount = shipping;
+  } else if (coupon.type === 'percent') {
+    discount = Math.min(Math.round((subtotal * coupon.percent) / 100), coupon.maxDiscount || Infinity);
+  } else if (coupon.type === 'free_tub') {
+    freeTub = true;
+    discount = 0;
+  }
+
+  return {
+    active: true,
+    eligible: true,
+    coupon,
+    discount,
+    freeShipping,
+    freeTub,
+    message: freeTub ? `Free 500ml Tub unlocked with ${coupon.code}!` : `Saved ₹${discount.toLocaleString('en-IN')} with ${coupon.code}!`
+  };
+}
+
+function ensureOffersModal() {
+  if (document.getElementById('offersModal')) return;
+  const modal = document.createElement('div');
+  modal.id = 'offersModal';
+  modal.className = 'offers-modal';
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+  modal.setAttribute('aria-labelledby', 'offersModalTitle');
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeOffersModal();
+  });
+
+  modal.innerHTML = `
+    <div class="offers-modal-card">
+      <div class="offers-modal-hero">
+        <button class="offers-modal-close" onclick="closeOffersModal()" aria-label="Close offers modal">
+          <span class="material-icons">close</span>
+        </button>
+        <div class="offers-hero-badge">
+          <span class="material-icons" style="font-size:13px">local_offer</span> EXCLUSIVE PRIVILEGES
+        </div>
+        <h2 id="offersModalTitle">Kalix Offers &amp; Coupons</h2>
+        <p>Apply these exclusive coupon codes at checkout or tap to copy. Handcrafted discounts on every order.</p>
+      </div>
+      <div class="offers-modal-body" id="offersModalBody"></div>
+      <div class="offers-modal-footer">
+        ✦ Coupon codes can also be entered directly in Cart &amp; Checkout ✦
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+function renderOffersModalCards() {
+  const container = document.getElementById('offersModalBody');
+  if (!container) return;
+
+  const currentCode = getAppliedCouponCode();
+  const currentCoupon = KALIX_COUPONS.find(c => c.code === currentCode);
+
+  let bannerHtml = '';
+  if (currentCode && currentCoupon) {
+    bannerHtml = `
+      <div class="applied-coupon-banner">
+        <div style="display:flex;align-items:center;gap:0.45rem">
+          <span class="material-icons" style="font-size:17px;color:#059669">check_circle</span>
+          <span>Applied: <strong>${currentCoupon.code}</strong> (${currentCoupon.discountText})</span>
+        </div>
+        <button type="button" class="btn-remove-applied" onclick="removeAppliedCoupon();renderOffersModalCards()">Remove</button>
+      </div>
+    `;
+  }
+
+  const cardsHtml = KALIX_COUPONS.map(c => {
+    const isCurrent = currentCode === c.code;
+    return `
+      <div class="coupon-card ${isCurrent ? 'is-active' : ''}">
+        <div class="coupon-card-header">
+          <span class="coupon-badge" style="background:${c.badgeBg}">${c.badge}</span>
+          <span class="coupon-discount-text">${c.discountText}</span>
+        </div>
+        <h3 class="coupon-title">${c.title}</h3>
+        <p class="coupon-desc">${c.desc}</p>
+        <div class="coupon-card-footer">
+          <div class="coupon-code-pill">
+            <span class="material-icons" style="font-size:15px">confirmation_number</span>
+            <span>${c.code}</span>
+          </div>
+          <div class="coupon-actions">
+            <button type="button" class="btn-copy-code" onclick="copyCouponCode('${c.code}', this)" title="Copy coupon code">
+              <span class="material-icons" style="font-size:14px">content_copy</span>
+              <span>Copy</span>
+            </button>
+            <button type="button" class="btn-apply-code ${isCurrent ? 'applied' : ''}" onclick="applyCouponFromModal('${c.code}')">
+              <span class="material-icons" style="font-size:14px">${isCurrent ? 'check_circle' : 'shopping_bag'}</span>
+              <span>${isCurrent ? 'Applied' : 'Apply Code'}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = bannerHtml + cardsHtml;
+}
+
+function openOffersModal() {
+  ensureOffersModal();
+  renderOffersModalCards();
+  const modal = document.getElementById('offersModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeOffersModal() {
+  const modal = document.getElementById('offersModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function copyCouponCode(code, btn) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(code).catch(() => {});
+  }
+  if (btn) {
+    const originalHtml = btn.innerHTML;
+    btn.innerHTML = `<span class="material-icons" style="font-size:14px">done</span> <span>Copied!</span>`;
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.innerHTML = originalHtml;
+      btn.classList.remove('copied');
+    }, 2000);
+  }
+  showToast(`🎟️ Coupon code "${code}" copied to clipboard!`);
+}
+
+function applyCouponFromModal(code) {
+  setAppliedCouponCode(code);
+  renderOffersModalCards();
+
+  if (typeof renderCart === 'function' && document.getElementById('cartCouponInput')) {
+    renderCart();
+  }
+  if (typeof updateCheckoutTotals === 'function' && document.getElementById('checkoutCouponInput')) {
+    updateCheckoutTotals();
+  }
+
+  showToast(`🎉 Coupon "${code}" applied to your order!`);
+  setTimeout(() => {
+    closeOffersModal();
+  }, 450);
+}
+
+function applyCartCoupon() {
+  const input = el('cartCouponInput');
+  const feedback = el('cartCouponFeedback');
+  if (!input) return;
+  const code = input.value.trim().toUpperCase();
+  if (!code) {
+    if (feedback) {
+      feedback.style.display = 'block';
+      feedback.style.color = '#ef4444';
+      feedback.textContent = 'Please enter a coupon code.';
+    }
+    return;
+  }
+  const coupon = KALIX_COUPONS.find(c => c.code === code);
+  if (!coupon) {
+    if (feedback) {
+      feedback.style.display = 'block';
+      feedback.style.color = '#ef4444';
+      feedback.innerHTML = `<span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:2px">error_outline</span> Invalid code "${code}". Tap "View Offers" to choose a code.`;
+    }
+    return;
+  }
+  setAppliedCouponCode(code);
+  renderCart();
+  showToast(`🎉 Coupon "${code}" applied!`);
+}
+
+function removeAppliedCoupon() {
+  const oldCode = getAppliedCouponCode();
+  setAppliedCouponCode('');
+  if (typeof renderCart === 'function' && el('cartCouponInput')) {
+    renderCart();
+  }
+  if (typeof updateCheckoutTotals === 'function' && document.getElementById('checkoutCouponInput')) {
+    updateCheckoutTotals();
+  }
+  if (document.getElementById('offersModalBody')) {
+    renderOffersModalCards();
+  }
+  showToast(oldCode ? `Coupon "${oldCode}" removed.` : 'Coupon removed.');
 }
 
 // Rewards Info Modal (Wallet Details & 10 Items Progress)
