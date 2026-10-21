@@ -38,8 +38,8 @@
 <div class="container">
   <div class="checkout-layout">
 
-    <!-- LEFT: FORM -->
-    <div>
+    <!-- LEFT: FORM COLUMN -->
+    <div class="checkout-form-column">
       <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem">
         <a href="cart.html" style="display:flex;align-items:center;gap:0.25rem;font-size:14px;color:var(--on-surface-variant);text-decoration:none;transition:color 0.2s" onmouseover="this.style.color='var(--amber)'" onmouseout="this.style.color='var(--on-surface-variant)'"><span class="material-icons" style="font-size:18px">arrow_back</span> Return to Boutique</a>
       </div>
@@ -65,7 +65,7 @@
                 <span class="material-icons" style="font-size:16px;color:var(--amber)">bookmark_add</span> Save Location
               </button>
               <button type="button" class="btn-secondary btn-sm" onclick="detectUserLocation()" id="detectLocBtn" style="display:flex;align-items:center;gap:0.35rem;font-size:12px;padding:0.45rem 0.85rem">
-                <span class="material-icons" style="font-size:16px;color:var(--pistachio)">my_location</span> Detect Location
+                <span class="material-icons" style="font-size:16px;color:var(--pistachio)">my_location</span> Current Location
               </button>
               <button type="button" class="btn-secondary btn-sm" onclick="toggleMapPicker()" id="toggleMapBtn" style="display:flex;align-items:center;gap:0.35rem;font-size:12px;padding:0.45rem 0.85rem">
                 <span class="material-icons" style="font-size:16px;color:var(--amber)">map</span> <span id="mapBtnText">Select on Map</span>
@@ -184,18 +184,16 @@
             </label>
           </div>
         </div>
-          </div>
-        </div>
 
-        <button type="submit" id="placeOrderSubmitBtn" class="btn-primary btn-full btn-lg" style="margin-top:1rem">
-          <span class="material-icons" id="submitBtnIcon">lock</span>
-          <span id="submitBtnText">Pay via Razorpay (UPI / Card)</span>
+        <button type="submit" id="placeOrderSubmitBtn" class="btn-primary btn-full btn-lg" style="margin-top:1.5rem">
+          <span id="submitBtnText">Proceed</span>
+          <span class="material-icons" id="submitBtnIcon">arrow_forward</span>
         </button>
       </form>
     </div>
 
-    <!-- RIGHT: ORDER SUMMARY -->
-    <div>
+    <!-- RIGHT: ORDER SUMMARY COLUMN -->
+    <div class="checkout-summary-column">
       <div class="summary-card" style="position:sticky;top:100px">
         <div class="summary-header">
           <h3>Order Summary</h3>
@@ -366,7 +364,7 @@ function updateCheckoutTotals() {
       submitBtn.disabled = false;
       submitBtn.style.opacity = '1';
       submitBtn.style.cursor = 'pointer';
-      submitBtn.innerHTML = `<span>Dispatch My Cryo-Vault</span> <span class="material-icons">lock</span>`;
+      submitBtn.innerHTML = `<span id="submitBtnText">Proceed</span> <span class="material-icons" id="submitBtnIcon">arrow_forward</span>`;
     }
   } else {
     subtotal = 0;
@@ -522,11 +520,11 @@ function updateCheckoutTotals() {
   const submitBtnIcon = document.getElementById('submitBtnIcon');
   if (submitBtnText) {
     if (selectedPayment === 'razorpay') {
-      submitBtnText.textContent = `Pay ₹${total.toLocaleString('en-IN')} via Razorpay (UPI / Card)`;
-      if (submitBtnIcon) submitBtnIcon.textContent = 'lock';
+      submitBtnText.textContent = `Proceed to Pay (₹${total.toLocaleString('en-IN')})`;
+      if (submitBtnIcon) submitBtnIcon.textContent = 'arrow_forward';
     } else {
-      submitBtnText.textContent = `Place Order (Cash on Delivery)`;
-      if (submitBtnIcon) submitBtnIcon.textContent = 'payments';
+      submitBtnText.textContent = `Proceed (Place Cash on Delivery Order)`;
+      if (submitBtnIcon) submitBtnIcon.textContent = 'arrow_forward';
     }
   }
 }
@@ -549,8 +547,8 @@ function selectPaymentMethod(method) {
       const r = codOpt.querySelector('input[type="radio"]');
       if (r) r.checked = false;
     }
-    if (submitBtnText) submitBtnText.textContent = `Pay ${totalText} via Razorpay (UPI / Card)`;
-    if (submitBtnIcon) submitBtnIcon.textContent = 'lock';
+    if (submitBtnText) submitBtnText.textContent = `Proceed to Pay (${totalText})`;
+    if (submitBtnIcon) submitBtnIcon.textContent = 'arrow_forward';
   } else {
     if (codOpt) {
       codOpt.classList.add('selected');
@@ -562,8 +560,8 @@ function selectPaymentMethod(method) {
       const r = rzpOpt.querySelector('input[type="radio"]');
       if (r) r.checked = false;
     }
-    if (submitBtnText) submitBtnText.textContent = `Place Order (Cash on Delivery)`;
-    if (submitBtnIcon) submitBtnIcon.textContent = 'payments';
+    if (submitBtnText) submitBtnText.textContent = `Proceed (Place Cash on Delivery Order)`;
+    if (submitBtnIcon) submitBtnIcon.textContent = 'arrow_forward';
   }
 }
 
@@ -1002,17 +1000,17 @@ function detectUserLocation() {
   if (btnText) btnText.textContent = 'Hide Map';
 
   if (geoStatus) {
-    geoStatus.innerHTML = '<span class="material-icons spin" style="font-size:14px;color:var(--amber)">sync</span> Detecting your location...';
+    geoStatus.innerHTML = '<span class="material-icons spin" style="font-size:14px;color:var(--amber)">sync</span> Fetching current location...';
   }
   if (detectBtn) {
     detectBtn.disabled = true;
-    detectBtn.innerHTML = '<span class="material-icons spin" style="font-size:16px">sync</span> Detecting...';
+    detectBtn.innerHTML = '<span class="material-icons spin" style="font-size:16px">sync</span> Fetching...';
   }
 
   function resetBtn() {
     if (detectBtn) {
       detectBtn.disabled = false;
-      detectBtn.innerHTML = '<span class="material-icons" style="font-size:16px;color:var(--pistachio)">my_location</span> Detect Location';
+      detectBtn.innerHTML = '<span class="material-icons" style="font-size:16px;color:var(--pistachio)">my_location</span> Current Location';
     }
   }
 
@@ -1021,7 +1019,7 @@ function detectUserLocation() {
       if (!deliveryMap) {
         initDeliveryMap(lat, lng);
       } else {
-        deliveryMap.setView([lat, lng], 14);
+        deliveryMap.setView([lat, lng], 15);
         if (deliveryMarker) deliveryMarker.setLatLng([lat, lng]);
         refreshMapSize();
       }
@@ -1029,9 +1027,11 @@ function detectUserLocation() {
       if (bdcData) {
         parseAndApplyAddress(bdcData, lat, lng, true);
         resetBtn();
+        showToast('📍 Current location fetched successfully!');
       } else {
         fetchReverseGeocode(lat, lng, true, () => {
           resetBtn();
+          showToast('📍 Current location fetched successfully!');
         });
       }
     });
@@ -1039,7 +1039,7 @@ function detectUserLocation() {
 
   function fallbackToIpLocation() {
     if (geoStatus) {
-      geoStatus.innerHTML = '<span class="material-icons spin" style="font-size:14px;color:var(--amber)">sync</span> Resolving via network...';
+      geoStatus.innerHTML = '<span class="material-icons spin" style="font-size:14px;color:var(--amber)">sync</span> Resolving network location...';
     }
     fetch('https://api.bigdatacloud.net/data/reverse-geocode-client')
       .then(res => res.json())
@@ -1049,29 +1049,42 @@ function detectUserLocation() {
         onLocationSuccess(lat, lng, data);
       })
       .catch(err => {
-        console.warn('IP geocode failed:', err);
-        resetBtn();
-        if (geoStatus) {
-          geoStatus.innerHTML = '<span class="material-icons" style="font-size:14px;color:var(--amber)">location_on</span> Drag map to pin';
-        }
-        ensureLeafletLoaded(() => {
-          if (!deliveryMap) initDeliveryMap(11.8900, 75.5200);
-          refreshMapSize();
-        });
-        showToast('Click or drag on the map to set your location.');
+        fetch('https://ipapi.co/json/')
+          .then(r => r.json())
+          .then(d => {
+            const lat = parseFloat(d.latitude) || 11.8900;
+            const lng = parseFloat(d.longitude) || 75.5200;
+            onLocationSuccess(lat, lng, {
+              city: d.city,
+              principalSubdivision: d.region,
+              postcode: d.postal,
+              locality: d.city,
+              countryName: d.country_name || 'India'
+            });
+          })
+          .catch(e => {
+            console.warn('IP geocode failed:', e);
+            resetBtn();
+            if (geoStatus) {
+              geoStatus.innerHTML = '<span class="material-icons" style="font-size:14px;color:var(--amber)">location_on</span> Drag map to pin';
+            }
+            ensureLeafletLoaded(() => {
+              if (!deliveryMap) initDeliveryMap(11.8900, 75.5200);
+              refreshMapSize();
+            });
+            showToast('Unable to detect GPS. Tap anywhere on map to pin your location.');
+          });
       });
   }
 
-  const isSecure = window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-
-  if (navigator.geolocation && isSecure) {
+  if (navigator.geolocation) {
     let handled = false;
     const timeoutTimer = setTimeout(() => {
       if (!handled) {
         handled = true;
         fallbackToIpLocation();
       }
-    }, 3500);
+    }, 4500);
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -1084,13 +1097,12 @@ function detectUserLocation() {
         if (handled) return;
         handled = true;
         clearTimeout(timeoutTimer);
-        console.warn('GPS error, falling back to IP:', err.message);
+        console.warn('GPS prompt error, falling back to network IP:', err.message);
         fallbackToIpLocation();
       },
-      { timeout: 3500, enableHighAccuracy: false }
+      { timeout: 4500, enableHighAccuracy: true, maximumAge: 0 }
     );
   } else {
-    // Immediate fallback for file://, insecure origins, or when geolocation is unavailable
     fallbackToIpLocation();
   }
 }
