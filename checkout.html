@@ -43,23 +43,23 @@
       <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem">
         <a href="cart.html" style="display:flex;align-items:center;gap:0.25rem;font-size:14px;color:var(--on-surface-variant);text-decoration:none;transition:color 0.2s" onmouseover="this.style.color='var(--amber)'" onmouseout="this.style.color='var(--on-surface-variant)'"><span class="material-icons" style="font-size:18px">arrow_back</span> Return to Boutique</a>
       </div>
-      <h1 class="checkout-title">Destination Address <span style="font-size:18px;color:var(--outline)">(India)</span></h1>
-      <p class="checkout-subtitle">Where should our insulated dry-ice cryo-chest arrive?</p>
+      <h1 class="checkout-title">Destination Address <span style="font-size:18px;color:var(--outline)">(Pan-India)</span></h1>
+      <p class="checkout-subtitle">Where should our insulated dry-ice cryo-chest be delivered?</p>
 
       <!-- Step Indicator -->
       <div style="display:flex;align-items:center;gap:0;margin-bottom:2.5rem">
-        <div style="display:flex;align-items:center;gap:0.5rem"><div style="width:32px;height:32px;border-radius:50%;background:var(--amber);color:white;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">1</div><span style="font-size:13px;font-weight:600;color:var(--amber)">Address</span></div>
+        <div style="display:flex;align-items:center;gap:0.5rem"><div style="width:32px;height:32px;border-radius:50%;background:var(--amber);color:white;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">1</div><span style="font-size:13px;font-weight:600;color:var(--amber)">Delivery Address</span></div>
         <div style="flex:1;height:2px;background:var(--surface-container);margin:0 1rem"></div>
-        <div style="display:flex;align-items:center;gap:0.5rem"><div style="width:32px;height:32px;border-radius:50%;background:var(--surface-container);color:var(--outline);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">2</div><span style="font-size:13px;font-weight:600;color:var(--outline)">Payment</span></div>
+        <div style="display:flex;align-items:center;gap:0.5rem"><div style="width:32px;height:32px;border-radius:50%;background:var(--surface-container);color:var(--outline);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">2</div><span style="font-size:13px;font-weight:600;color:var(--outline)">Payment Method</span></div>
         <div style="flex:1;height:2px;background:var(--surface-container);margin:0 1rem"></div>
-        <div style="display:flex;align-items:center;gap:0.5rem"><div style="width:32px;height:32px;border-radius:50%;background:var(--surface-container);color:var(--outline);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">3</div><span style="font-size:13px;font-weight:600;color:var(--outline)">Confirm</span></div>
+        <div style="display:flex;align-items:center;gap:0.5rem"><div style="width:32px;height:32px;border-radius:50%;background:var(--surface-container);color:var(--outline);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">3</div><span style="font-size:13px;font-weight:600;color:var(--outline)">Confirmation</span></div>
       </div>
 
       <form onsubmit="placeOrder(event)">
         <!-- Address -->
         <div class="form-section">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:0.75rem">
-            <h3 style="margin-bottom:0;border-bottom:none;padding-bottom:0"><span class="material-icons" style="font-size:22px;vertical-align:middle;margin-right:0.4rem;color:var(--amber)">location_on</span>Delivery Address</h3>
+            <h3 style="margin-bottom:0;border-bottom:none;padding-bottom:0"><span class="material-icons" style="font-size:22px;vertical-align:middle;margin-right:0.4rem;color:var(--amber)">location_on</span>Delivery Address Across India</h3>
             <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap">
               <button type="button" class="btn-secondary btn-sm" onclick="promptSaveLocation()" id="saveLocHeaderBtn" style="display:flex;align-items:center;gap:0.35rem;font-size:12px;padding:0.45rem 0.85rem">
                 <span class="material-icons" style="font-size:16px;color:var(--amber)">bookmark_add</span> Save Location
@@ -113,17 +113,17 @@
           <div class="form-grid">
             <div class="form-group"><label>First Name *</label><input class="form-input" id="firstName" type="text" placeholder="Arjun" required /></div>
             <div class="form-group"><label>Last Name *</label><input class="form-input" id="lastName" type="text" placeholder="Sharma" required /></div>
-            <div class="form-group full"><label>Address Line 1 (Flat / House / Street) *</label><input class="form-input" id="addressLine1" type="text" placeholder="Flat / House No., Building, Street" required /></div>
-            <div class="form-group full"><label>Address Line 2 (Area / Locality / Landmark)</label><input class="form-input" id="addressLine2" type="text" placeholder="Area, Colony, Landmark (optional)" /></div>
-            <div class="form-group"><label>City *</label><input class="form-input" id="cityInput" type="text" placeholder="Kochi / Mumbai" required /></div>
+            <div class="form-group full"><label>Address Line 1 (Flat, House No., Building, Apartment) *</label><input class="form-input" id="addressLine1" type="text" placeholder="Flat / House No., Building, Street" required /></div>
+            <div class="form-group full"><label>Address Line 2 (Street, Sector, Area, Colony)</label><input class="form-input" id="addressLine2" type="text" placeholder="Area, Colony, Landmark (optional)" /></div>
+            <div class="form-group"><label>City / District *</label><input class="form-input" id="cityInput" type="text" placeholder="Kochi / Mumbai / Bengaluru" required /></div>
             <div class="form-group"><label>State *</label>
               <select class="form-input" id="stateSelect" required>
-                <option value="">Select State</option>
+                <option value="">Select Indian State / UT</option>
                 <option value="Kerala">Kerala</option>
                 <option value="Maharashtra">Maharashtra</option>
                 <option value="Karnataka">Karnataka</option>
                 <option value="Tamil Nadu">Tamil Nadu</option>
-                <option value="Delhi">Delhi</option>
+                <option value="Delhi">Delhi (NCR)</option>
                 <option value="Telangana">Telangana</option>
                 <option value="Gujarat">Gujarat</option>
                 <option value="West Bengal">West Bengal</option>
@@ -133,29 +133,33 @@
                 <option value="Rajasthan">Rajasthan</option>
                 <option value="Punjab">Punjab</option>
                 <option value="Haryana">Haryana</option>
+                <option value="Madhya Pradesh">Madhya Pradesh</option>
+                <option value="Bihar">Bihar</option>
+                <option value="Odisha">Odisha</option>
+                <option value="Chandigarh">Chandigarh</option>
               </select>
             </div>
-            <div class="form-group"><label>PIN Code *</label><input class="form-input" id="pinCodeInput" type="text" placeholder="682001 / 400001" maxlength="6" required /></div>
-            <div class="form-group"><label>Mobile Number *</label><input class="form-input" id="mobileInput" type="tel" value="+91 " placeholder="+91 98xxx xxxxx" maxlength="15" required /></div>
-            <div class="form-group full"><label>Email Address * <small style="color:var(--outline);font-weight:400">(For Razorpay instant payment receipt &amp; dispatch updates)</small></label><input class="form-input" id="emailInput" type="email" placeholder="customer@example.com" required /></div>
+            <div class="form-group"><label>6-Digit PIN Code *</label><input class="form-input" id="pinCodeInput" type="text" placeholder="682001 / 400001" maxlength="6" required /></div>
+            <div class="form-group"><label>10-Digit Mobile Number *</label><input class="form-input" id="mobileInput" type="tel" value="+91 " placeholder="+91 98xxx xxxxx" maxlength="15" required /></div>
+            <div class="form-group full"><label>Email Address * <small style="color:var(--outline);font-weight:400">(For instant GST invoice &amp; cold-chain dispatch updates)</small></label><input class="form-input" id="emailInput" type="email" placeholder="customer@example.com" required /></div>
           </div>
         </div>
 
         <!-- Payment -->
         <div class="form-section">
           <h3><span class="material-icons" style="font-size:20px;vertical-align:middle;margin-right:0.4rem;color:var(--amber)">payments</span>Payment Method</h3>
-          <p style="font-size:13px;color:var(--outline);margin-bottom:1rem">Choose how you'd like to pay for your cold-chain ice cream order.</p>
+          <p style="font-size:13px;color:var(--outline);margin-bottom:1rem">Choose how you would like to pay for your cold-chain ice cream order.</p>
           <div class="payment-methods">
             <label class="payment-option selected" id="payRazorpay" onclick="selectPaymentMethod('razorpay')">
               <input type="radio" name="payment" value="razorpay" checked />
               <span class="payment-icon">⚡</span>
               <div class="payment-option-label">
                 <div>
-                  <strong>Pay Online (Razorpay)</strong>
+                  <strong>Pay Online via Razorpay</strong>
                   <span class="payment-rec-badge">RECOMMENDED</span>
                 </div>
                 <div style="font-size:12px;font-weight:400;color:var(--on-surface-variant);margin-top:2px">
-                  Instant &amp; 100% Secure · UPI (GPay, PhonePe, Paytm), Credit / Debit Cards, NetBanking &amp; Wallets
+                  Instant &amp; 100% Secure · UPI (Google Pay, PhonePe, Paytm, BHIM), Credit / Debit Cards, NetBanking &amp; Wallets
                 </div>
                 <div class="payment-sub-badges">
                   <span class="pay-sub-pill">UPI</span>
@@ -174,10 +178,12 @@
               <span class="payment-icon">💵</span>
               <div class="payment-option-label">
                 <strong>Cash on Delivery (COD)</strong>
-                <div style="font-size:12px;font-weight:400;color:var(--on-surface-variant);margin-top:2px">Pay in cash directly to the courier upon receiving your insulated dry-ice cryo-box.</div>
+                <div style="font-size:12px;font-weight:400;color:var(--on-surface-variant);margin-top:2px">Pay in cash or UPI directly to the delivery partner upon receiving your insulated dry-ice cryo-box.</div>
               </div>
               <span style="font-size:11px;font-weight:700;color:var(--outline);background:rgba(120,83,37,0.08);padding:4px 10px;border-radius:var(--r-full);white-space:nowrap">ZERO COD FEE</span>
             </label>
+          </div>
+        </div>
           </div>
         </div>
 

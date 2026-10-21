@@ -17,7 +17,8 @@ const FLAVORS = [
     glowColor: 'rgba(46, 125, 50, 0.22)',
     bg: 'linear-gradient(145deg, #eaf5ea 0%, #d5edd6 100%)',
     ingredients: ['Roasted Iranian Pistachio', 'Kannauj Damask Rose', '100% A2 Gir Malai', 'Raw Khandsari'],
-    sweetness: 75, tartness: 18, creaminess: 96
+    sweetness: 75, tartness: 18, creaminess: 96,
+    stock: 12
   },
   {
     id: 2,
@@ -34,7 +35,8 @@ const FLAVORS = [
     glowColor: 'rgba(217, 119, 6, 0.22)',
     bg: 'linear-gradient(145deg, #fff7e6 0%, #fde6ba 100%)',
     ingredients: ['Butterscotch Toffee Shards', 'Palm Jaggery Caramel', 'Smoked Sea Salt', 'Cultured A2 Cream'],
-    sweetness: 85, tartness: 10, creaminess: 94
+    sweetness: 85, tartness: 10, creaminess: 94,
+    stock: 10
   },
   {
     id: 3,
@@ -51,7 +53,8 @@ const FLAVORS = [
     glowColor: 'rgba(234, 88, 12, 0.22)',
     bg: 'linear-gradient(145deg, #fff3e0 0%, #ffe0b2 100%)',
     ingredients: ['Devgad Alphonso Mango', 'Kashmiri Chili Flakes', 'Coorg Lime Zest', 'A2 Churned Malai'],
-    sweetness: 88, tartness: 35, creaminess: 82
+    sweetness: 88, tartness: 35, creaminess: 82,
+    stock: 15
   },
   {
     id: 4,
@@ -68,7 +71,8 @@ const FLAVORS = [
     glowColor: 'rgba(124, 58, 237, 0.22)',
     bg: 'linear-gradient(145deg, #f5eefb 0%, #e8d7f7 100%)',
     ingredients: ['Wild Blackberries', 'French Lavender Infusion', 'Golden Cookie Crumble', 'Cultured Cream'],
-    sweetness: 72, tartness: 48, creaminess: 88
+    sweetness: 72, tartness: 48, creaminess: 88,
+    stock: 8
   },
   {
     id: 5,
@@ -85,7 +89,8 @@ const FLAVORS = [
     glowColor: 'rgba(225, 29, 72, 0.22)',
     bg: 'linear-gradient(145deg, #fdebf0 0%, #fad0dc 100%)',
     ingredients: ['Mahabaleshwar Strawberries', 'Muzaffarpur Shahi Lychee', 'Bourbon Vanilla Bean', 'A2 Sweet Cream'],
-    sweetness: 80, tartness: 36, creaminess: 86
+    sweetness: 80, tartness: 36, creaminess: 86,
+    stock: 14
   },
   {
     id: 6,
@@ -102,12 +107,102 @@ const FLAVORS = [
     glowColor: 'rgba(92, 56, 38, 0.26)',
     bg: 'linear-gradient(145deg, #f7efe8 0%, #ecd8cb 100%)',
     ingredients: ['Single-Origin Dark Cocoa', 'Roasted Almond Shards', 'Dark Chocolate Fudge', 'A2 Churned Malai'],
-    sweetness: 82, tartness: 8, creaminess: 98
+    sweetness: 82, tartness: 8, creaminess: 98,
+    stock: 10
   }
 ];
 
 let cart = JSON.parse(localStorage.getItem('kalixCart') || '[]');
 let wishlist = JSON.parse(localStorage.getItem('kalixWishlist') || '[]');
+
+function getFlavorStock(flavorId) {
+  const f = FLAVORS.find(x => x.id === parseInt(flavorId) || x.id === flavorId);
+  return (f && typeof f.stock === 'number') ? f.stock : 10;
+}
+
+function getCartItemQty(flavorId) {
+  syncCartFromStorage();
+  const item = cart.find(x => x.id === parseInt(flavorId) || x.id === flavorId);
+  return item ? (Number(item.qty) || 0) : 0;
+}
+
+function renderCardActionHtml(flavorId) {
+  const f = FLAVORS.find(x => x.id === parseInt(flavorId) || x.id === flavorId);
+  if (!f) return '';
+  const qty = getCartItemQty(flavorId);
+  const stock = getFlavorStock(flavorId);
+
+  if (qty > 0) {
+    return `
+      <div class="card-qty-stepper" data-card-stepper="${flavorId}" onclick="event.stopPropagation()">
+        <button type="button" class="card-qty-btn card-qty-minus" onclick="event.stopPropagation();handleCardQtyChange(${flavorId}, -1)" title="Reduce quantity" aria-label="Reduce quantity">−</button>
+        <span class="card-qty-val" aria-live="polite" aria-label="${qty} tubs in bag">${qty}</span>
+        <button type="button" class="card-qty-btn card-qty-plus" onclick="event.stopPropagation();handleCardQtyChange(${flavorId}, 1)" title="Add more" aria-label="Add more" ${qty >= stock ? 'disabled' : ''}>+</button>
+      </div>
+    `;
+  }
+
+  return `
+    <button type="button" class="boutique-add-btn" data-card-add="${flavorId}" onclick="event.stopPropagation();handleCardAdd(${flavorId})" title="Add to Bag">
+      <span class="btn-caption">Add to Bag</span>
+      <span class="material-icons">shopping_bag</span>
+    </button>
+  `;
+}
+
+function handleCardAdd(flavorId) {
+  const f = FLAVORS.find(x => x.id === parseInt(flavorId) || x.id === flavorId);
+  if (!f) return;
+  const stock = getFlavorStock(flavorId);
+  if (stock <= 0) {
+    showToast('⚠️ Fresh batch is currently sold out.');
+    return;
+  }
+  addToCart(flavorId, 1);
+  updateAllCardActionButtons();
+}
+
+function handleCardQtyChange(flavorId, delta) {
+  syncCartFromStorage();
+  const f = FLAVORS.find(x => x.id === parseInt(flavorId) || x.id === flavorId);
+  if (!f) return;
+  const existing = cart.find(x => x.id === parseInt(flavorId) || x.id === flavorId);
+  const stock = getFlavorStock(flavorId);
+
+  if (!existing && delta > 0) {
+    addToCart(flavorId, 1);
+    updateAllCardActionButtons();
+    return;
+  }
+  if (!existing) return;
+
+  const newQty = existing.qty + delta;
+  if (delta > 0 && existing.qty >= stock) {
+    showToast(`⚠️ Batch limit reached: Maximum ${stock} tubs per order.`);
+    return;
+  }
+
+  if (newQty <= 0) {
+    removeFromCart(flavorId);
+    showToast(`Removed from bag`);
+  } else {
+    existing.qty = newQty;
+    saveCart();
+    updateDrawer();
+    if (document.body.dataset.page === 'cart') renderCartPage();
+    showToast(`Updated bag quantity (${newQty} tubs)`);
+  }
+  updateAllCardActionButtons();
+}
+
+function updateAllCardActionButtons() {
+  document.querySelectorAll('.card-action-wrap[data-flavor-id]').forEach(wrap => {
+    const fid = parseInt(wrap.getAttribute('data-flavor-id'));
+    if (!isNaN(fid)) {
+      wrap.innerHTML = renderCardActionHtml(fid);
+    }
+  });
+}
 
 function getCartQuantity(items = cart) {
   return (Array.isArray(items) ? items : []).reduce((sum, item) => sum + (Number(item.qty) || 0), 0);
@@ -171,6 +266,7 @@ function saveCart() {
   localStorage.setItem('kalixCart', JSON.stringify(cart));
   updateBadges();
   if (typeof updateRewardsUI === 'function') updateRewardsUI();
+  updateAllCardActionButtons();
   document.dispatchEvent(new CustomEvent('kalix:cart-updated'));
 }
 function saveWishlist() { localStorage.setItem('kalixWishlist', JSON.stringify(wishlist)); updateBadges(); }
@@ -196,17 +292,27 @@ function addToCart(flavorId, qty=1) {
   syncCartFromStorage();
   const f = FLAVORS.find(x=>x.id===parseInt(flavorId)||x.id===flavorId);
   if(!f) return;
+  const stock = getFlavorStock(flavorId);
   const existing = cart.find(x=>x.id===parseInt(flavorId)||x.id===flavorId);
-  if(existing) existing.qty += qty;
-  else cart.push({id:f.id, name:f.name, price:f.price, image:f.image, emoji:f.emoji, qty});
+  if(existing) {
+    if (existing.qty + qty > stock) {
+      existing.qty = stock;
+      showToast(`⚠️ Batch limit reached: Maximum ${stock} tubs per order.`);
+    } else {
+      existing.qty += qty;
+    }
+  } else {
+    cart.push({id:f.id, name:f.name, price:f.price, image:f.image, emoji:f.emoji, qty: Math.min(qty, stock)});
+  }
   saveCart();
   const progress = getMysteryPackProgress();
   if(progress.unlocked) {
     showToast(`🎉 10 Ice Creams Reached! Mystery Pack unlocked for checkout!`);
   } else {
-    showToast(`🍨 Added! ${progress.remaining} more needed for Mystery Pack (${progress.total}/${MILESTONE_STEP}).`);
+    showToast(`🍨 Added to bag! ${progress.remaining} more needed for Mystery Pack (${progress.total}/${MILESTONE_STEP}).`);
   }
   updateDrawer();
+  updateAllCardActionButtons();
 }
 
 function addFlightToCart() {
@@ -233,6 +339,7 @@ function removeFromCart(id) {
   saveCart();
   updateDrawer();
   renderCartPage();
+  updateAllCardActionButtons();
 }
 
 function toggleWishlist(flavorId) {
@@ -349,10 +456,9 @@ function renderFlavors(filter='all') {
             <span class="price-val">${f.price}</span>
             <span class="price-unit">/ 500ml tub</span>
           </div>
-          <button class="boutique-add-btn" onclick="event.stopPropagation();addToCart(${f.id});this.classList.add('added');setTimeout(()=>this.classList.remove('added'),1200)" title="Add to Cryo-Bag">
-            <span class="btn-caption">Add to Bag</span>
-            <span class="material-icons">shopping_bag</span>
-          </button>
+          <div class="card-action-wrap" data-flavor-id="${f.id}">
+            ${renderCardActionHtml(f.id)}
+          </div>
         </div>
       </div>
     </div>`;
@@ -734,11 +840,24 @@ function selectProductFlavor(id) {
     el('ingChips').innerHTML = f.ingredients.map(i => `<span class="ingr-chip">${i}</span>`).join('');
   }
 
-  // 6. Update Add to Cart & Wishlist buttons
+  // 6. Update Add to Cart, Stock & Wishlist buttons
+  const stock = getFlavorStock(f.id);
+  const stockPill = el('productStockPill');
+  if (stockPill) {
+    stockPill.innerHTML = `<span class="material-icons" style="font-size:15px;color:var(--pistachio);vertical-align:-2px">check_circle</span> Fresh Batch in Stock: <strong>${stock} tubs available</strong>`;
+  }
+  const inCartQty = getCartItemQty(f.id);
+  if (el('qtyNum')) el('qtyNum').textContent = inCartQty > 0 ? inCartQty : 1;
+
   if (el('addCartBtn')) {
     el('addCartBtn').onclick = () => {
       const q = parseInt(el('qtyNum')?.textContent || 1);
       addToCart(f.id, q);
+      const btn = el('addCartBtn');
+      btn.innerHTML = `Added to Bag (${q}) <span class="material-icons">check</span>`;
+      setTimeout(() => {
+        btn.innerHTML = `Add to Bag <span class="material-icons">shopping_bag</span>`;
+      }, 1400);
     };
   }
   if (el('wishBtn')) {
@@ -782,10 +901,9 @@ function selectProductFlavor(id) {
           <h3 class="flavor-name">${r.name.replace('Kalix ', '').split(' Ice Cream')[0]}</h3>
           <div class="flavor-footer">
             <span class="flavor-price">₹${r.price}</span>
-            <button class="boutique-add-btn" onclick="event.stopPropagation();addToCart(${r.id})">
-              <span class="btn-caption">Add</span>
-              <span class="material-icons">shopping_bag</span>
-            </button>
+            <div class="card-action-wrap" data-flavor-id="${r.id}">
+              ${renderCardActionHtml(r.id)}
+            </div>
           </div>
         </div>
       </div>`).join('');
@@ -824,20 +942,32 @@ function renderProductPage() {
   selectProductFlavor(initial.id);
 
   // Stepper handlers
-  let qty = 1;
   const qtyMinus = document.getElementById('qtyMinus');
   const qtyPlus = document.getElementById('qtyPlus');
   const qtyNum = document.getElementById('qtyNum');
   if (qtyMinus && !qtyMinus._bound) {
     qtyMinus._bound = true;
     qtyMinus.addEventListener('click', () => {
-      if (qty > 1) { qty--; if (qtyNum) qtyNum.textContent = qty; }
+      let currentVal = parseInt(qtyNum?.textContent || '1');
+      if (currentVal > 1) {
+        currentVal--;
+        if (qtyNum) qtyNum.textContent = currentVal;
+      }
     });
   }
   if (qtyPlus && !qtyPlus._bound) {
     qtyPlus._bound = true;
     qtyPlus.addEventListener('click', () => {
-      qty++; if (qtyNum) qtyNum.textContent = qty;
+      const curId = parseInt(localStorage.getItem('kalixCurrentProduct')) || initial.id;
+      const curF = FLAVORS.find(x => x.id === curId) || initial;
+      const maxStock = getFlavorStock(curF.id);
+      let currentVal = parseInt(qtyNum?.textContent || '1');
+      if (currentVal < maxStock) {
+        currentVal++;
+        if (qtyNum) qtyNum.textContent = currentVal;
+      } else {
+        showToast(`⚠️ Batch limit reached: Maximum ${maxStock} tubs available in this fresh batch.`);
+      }
     });
   }
 }
@@ -854,7 +984,7 @@ function renderCartPage() {
     checkoutBtn.setAttribute('aria-disabled', String(!hasCartItems));
   }
   if(cart.length===0) {
-    list.innerHTML=`<div class="empty-state" style="padding:4rem 0"><span class="material-icons" style="font-size:64px;color:var(--outline)">shopping_bag</span><p style="font-size:18px;margin:1rem 0">Your cryo-bag is empty.</p><a href="index.html#flavors" class="btn-primary">Explore Ice Cream Flavors</a></div>`;
+    list.innerHTML=`<div class="empty-state" style="padding:4rem 0"><span class="material-icons" style="font-size:64px;color:var(--outline)">shopping_bag</span><p style="font-size:18px;margin:1rem 0">Your cryo-bag is empty.</p><a href="index.html#flavors" class="btn-primary">Explore Handcrafted Flavours</a></div>`;
     return;
   }
   list.innerHTML = cart.map(item=>{
@@ -868,7 +998,7 @@ function renderCartPage() {
       <div class="cart-item-info">
         <div class="cart-item-tag">REAL A2 MALAI ICE CREAM TUB</div>
         <div class="cart-item-name">${item.name}</div>
-        <div class="cart-item-meta">500ml · 100% Single-Herd A2 Malai · Dry-Ice Cryo Packed</div>
+        <div class="cart-item-meta">500ml · 100% Single-Herd A2 Malai · Dry-Ice Cryo Packed Across India</div>
       </div>
       <div class="cart-item-actions">
         <div class="qty-stepper">
@@ -882,7 +1012,7 @@ function renderCartPage() {
     </div>`;
   }).join('');
   const subtotal = cart.reduce((s,i)=>s+i.price*i.qty,0);
-  let shipping = subtotal>=1500 ? 0 : 199;
+  let shipping = subtotal>=1499 ? 0 : 199;
   
   // Coupon benefit calculation
   const couponResult = calculateCouponBenefit(subtotal, shipping);
@@ -1026,15 +1156,15 @@ function renderCartPage() {
     }
   }
 
-  const pct = Math.min((subtotal/1500)*100,100);
+  const pct = Math.min((subtotal/1499)*100,100);
   if(el('pbFill')) el('pbFill').style.width=pct+'%';
-  if(el('pbText')) el('pbText').textContent = subtotal<1500 ? `You're ₹${(1500-subtotal).toLocaleString('en-IN')} away from complimentary Insulated Cryo-Shipping & a handcrafted brass tasting spoon set!` : '🎉 Complimentary Cryo-Shipping & Brass Spoon Set Unlocked!';
+  if(el('pbText')) el('pbText').textContent = subtotal<1499 ? `You're ₹${(1499-subtotal).toLocaleString('en-IN')} away from complimentary Pan-India Insulated Cryo-Shipping & a handcrafted brass tasting spoon set!` : '🎉 Complimentary Pan-India Cryo-Shipping & Brass Spoon Set Unlocked!';
 }
 
 function goToCheckout() {
   syncCartFromStorage();
   if (!cart.length) {
-    showToast('Your cart is empty. Add an ice cream before checkout.');
+    showToast('Your bag is empty. Please add an ice cream before checkout.');
     return;
   }
   window.location.href = 'checkout.html';
@@ -1044,9 +1174,19 @@ function changeQty(id, delta) {
   syncCartFromStorage();
   const item = cart.find(x=>x.id===parseInt(id)||x.id===id);
   if(!item) return;
-  item.qty = Math.max(1, item.qty+delta);
-  saveCart();
-  renderCartPage();
+  const stock = getFlavorStock(item.id);
+  if (delta > 0 && item.qty >= stock) {
+    showToast(`⚠️ Batch limit reached: Maximum ${stock} tubs per order.`);
+    return;
+  }
+  const newQty = item.qty + delta;
+  if (newQty <= 0) {
+    removeFromCart(id);
+  } else {
+    item.qty = newQty;
+    saveCart();
+    renderCartPage();
+  }
 }
 
 // ---- Wishlist Page ----
@@ -1056,7 +1196,7 @@ function renderWishlistPage() {
   if(!grid) return;
   if(count) count.textContent = wishlist.length+' items';
   if(wishlist.length===0) {
-    grid.innerHTML=`<div class="empty-state" style="padding:4rem 0;grid-column:1/-1"><span class="material-icons" style="font-size:64px;color:var(--outline)">favorite_border</span><p style="font-size:18px;margin:1rem 0">Your wishlist is empty.</p><a href="index.html#flavors" class="btn-primary">Explore Ice Cream Flavors</a></div>`;
+    grid.innerHTML=`<div class="empty-state" style="padding:4rem 0;grid-column:1/-1"><span class="material-icons" style="font-size:64px;color:var(--outline)">favorite_border</span><p style="font-size:18px;margin:1rem 0">Your wishlist is empty.</p><a href="index.html#flavors" class="btn-primary">Explore Handcrafted Flavours</a></div>`;
   } else {
     grid.innerHTML = wishlist.map(item=>{
       const f = FLAVORS.find(x=>x.id===item.id) || item;
@@ -1077,10 +1217,9 @@ function renderWishlistPage() {
               <span class="price-symbol">₹</span>
               <span class="price-val">${item.price}</span>
             </div>
-            <button class="boutique-add-btn" onclick="addToCart(${item.id})">
-              <span class="btn-caption">Add to Bag</span>
-              <span class="material-icons">shopping_bag</span>
-            </button>
+            <div class="card-action-wrap" data-flavor-id="${item.id}">
+              ${renderCardActionHtml(item.id)}
+            </div>
           </div>
         </div>
       </div>`;
@@ -1117,10 +1256,9 @@ function renderWishlistPage() {
               <span class="price-symbol">₹</span>
               <span class="price-val">${f.price}</span>
             </div>
-            <button class="boutique-add-btn" onclick="event.stopPropagation();addToCart(${f.id})" title="Add to cart">
-              <span class="btn-caption">Add</span>
-              <span class="material-icons">shopping_bag</span>
-            </button>
+            <div class="card-action-wrap" data-flavor-id="${f.id}">
+              ${renderCardActionHtml(f.id)}
+            </div>
           </div>
         </div>
       </div>`;
@@ -2591,7 +2729,7 @@ function renderSommelierSpotlight(flavor, pal, matchedKeywords) {
     </div>
     <div class="spotlight-info-col">
       <span class="spotlight-badge" style="background:${pal.cueColor}18;color:${pal.cueColor};border:1px solid ${pal.cueColor}44">
-        ✨ AI Voice Flavor Match
+        ✨ AI Voice Flavour Match
       </span>
       <h3 class="spotlight-flavor-title">${flavor.name}</h3>
       <div style="font-size:13px;font-style:italic;color:var(--outline);margin-bottom:0.85rem">${flavor.subtitle}</div>
@@ -2607,11 +2745,11 @@ function renderSommelierSpotlight(flavor, pal, matchedKeywords) {
       </div>
 
       <div class="spotlight-actions">
-        <button class="btn-primary btn-md" onclick="addToCart(${flavor.id});showToast('🍨 ${flavor.name.split('&')[0]} added to Cryo-Bag!');">
-          Add to Cryo-Bag (₹${flavor.price}) <span class="material-icons">shopping_bag</span>
-        </button>
+        <div class="card-action-wrap" data-flavor-id="${flavor.id}">
+          ${renderCardActionHtml(flavor.id)}
+        </div>
         <button class="btn-secondary btn-md" onclick="goToProduct(${flavor.id})">
-          Explore Flavor Profile <span class="material-icons">arrow_forward</span>
+          Explore Flavour Profile <span class="material-icons">arrow_forward</span>
         </button>
       </div>
     </div>
@@ -2671,5 +2809,18 @@ document.addEventListener('DOMContentLoaded', ()=>{
   if(page==='cart') renderCartPage();
   if(page==='wishlist') renderWishlistPage();
   if(page==='checkout' && typeof updateCheckoutTotals === 'function') updateCheckoutTotals();
+  updateAllCardActionButtons();
   requestAnimationFrame(()=> refreshMotionElements());
+});
+
+window.addEventListener('storage', (e) => {
+  if (e.key === 'kalixCart') {
+    syncCartFromStorage();
+    updateBadges();
+    updateAllCardActionButtons();
+  }
+});
+
+document.addEventListener('kalix:cart-updated', () => {
+  updateAllCardActionButtons();
 });

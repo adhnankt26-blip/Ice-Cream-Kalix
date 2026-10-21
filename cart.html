@@ -39,14 +39,14 @@
       <div style="display:flex;align-items:center;gap:1rem;margin-bottom:2rem">
         <a href="index.html" style="display:flex;align-items:center;gap:0.25rem;font-size:14px;color:var(--on-surface-variant);text-decoration:none;transition:color 0.2s" onmouseover="this.style.color='var(--amber)'" onmouseout="this.style.color='var(--on-surface-variant)'"><span class="material-icons" style="font-size:18px">arrow_back</span> Return to Boutique</a>
       </div>
-      <h1 class="cart-title">Your Curated Darbar Cold Stash</h1>
-      <p style="color:var(--on-surface-variant);margin-bottom:1.5rem;font-size:15px">Handcrafted Items · Churn-Locked · Sub-Zero Dispatched</p>
+      <h1 class="cart-title">Your Cryo-Bag</h1>
+      <p style="color:var(--on-surface-variant);margin-bottom:1.5rem;font-size:15px">Handcrafted Ice Cream Tubs · Fresh Malai Churned · Sub-Zero Dispatched Across India</p>
 
       <!-- Rewards Banner -->
       <div id="cartRewardsBanner"></div>
 
       <div class="progress-bar-section">
-        <p class="pb-text" id="pbText">You're ₹1,500 away from complimentary Insulated Cryo-Shipping and a handcrafted brass tasting spoon set across India.</p>
+        <p class="pb-text" id="pbText">You're ₹1,499 away from complimentary Pan-India Insulated Cryo-Shipping and a handcrafted brass tasting spoon set.</p>
         <div class="pb-bar-track"><div class="pb-bar-fill" id="pbFill" style="width:0%"></div></div>
       </div>
 
@@ -54,11 +54,11 @@
 
       <!-- Guarantees -->
       <div style="margin-top:2rem;padding:1.5rem;background:var(--surface-container-low);border-radius:var(--r-lg);border:var(--ghost-border)">
-        <p class="section-eye" style="margin-bottom:1rem">COLD CHAIN GUARANTEES</p>
+        <p class="section-eye" style="margin-bottom:1rem">PAN-INDIA COLD CHAIN GUARANTEES</p>
         <div style="display:flex;flex-direction:column;gap:0.75rem">
-          <div style="display:flex;gap:0.75rem;align-items:center;font-size:13px;color:var(--on-surface-variant)"><span class="material-icons" style="color:var(--pistachio);font-size:18px">ac_unit</span> 100% Melt-Free Guarantee: Reshipped immediately free of charge if internal temperature exceeds -18°C.</div>
-          <div style="display:flex;gap:0.75rem;align-items:center;font-size:13px;color:var(--on-surface-variant)"><span class="material-icons" style="color:var(--pistachio);font-size:18px">inventory_2</span> Dry-Ice Cryo-Packaging: Engineered to withstand peak Indian summer heat up to 42°C for 48 hours.</div>
-          <div style="display:flex;gap:0.75rem;align-items:center;font-size:13px;color:var(--on-surface-variant)"><span class="material-icons" style="color:var(--amber);font-size:18px">verified_user</span> 100% Secure Payments: Instant Razorpay (UPI, Cards, NetBanking) &amp; Cash on Delivery (COD) supported.</div>
+          <div style="display:flex;gap:0.75rem;align-items:center;font-size:13px;color:var(--on-surface-variant)"><span class="material-icons" style="color:var(--pistachio);font-size:18px">ac_unit</span> 100% Melt-Free Delivery Guarantee: Re-delivered immediately free of charge if internal temperature exceeds -18°C.</div>
+          <div style="display:flex;gap:0.75rem;align-items:center;font-size:13px;color:var(--on-surface-variant)"><span class="material-icons" style="color:var(--pistachio);font-size:18px">inventory_2</span> Dry-Ice Cryo-Packaging: Engineered to withstand peak Indian summer heat up to 45°C for 48 hours.</div>
+          <div style="display:flex;gap:0.75rem;align-items:center;font-size:13px;color:var(--on-surface-variant)"><span class="material-icons" style="color:var(--amber);font-size:18px">verified_user</span> 100% Secure Indian Payments: Instant UPI (Google Pay, PhonePe, Paytm, BHIM), Cards, NetBanking &amp; Cash on Delivery (COD) supported.</div>
         </div>
       </div>
     </div>
@@ -67,12 +67,12 @@
     <div>
       <div class="summary-card">
         <div class="summary-header">
-          <h3>Insulated Cryo-Bag Summary</h3>
-          <p style="color:rgba(255,255,255,0.7);font-size:13px;margin-top:0.25rem">Dispatched in biodegradable dry-ice cryo-boxes</p>
+          <h3>Bill Details &amp; Summary</h3>
+          <p style="color:rgba(255,255,255,0.7);font-size:13px;margin-top:0.25rem">Dispatched across India in biodegradable dry-ice thermal boxes</p>
         </div>
         <div class="summary-body">
-          <div class="summary-row"><span>Subtotal</span><span id="subtotal">₹0</span></div>
-          <div class="summary-row"><span>Delivery</span><span id="shipping">₹199</span></div>
+          <div class="summary-row"><span>Item Total</span><span id="subtotal">₹0</span></div>
+          <div class="summary-row"><span>Delivery Charges</span><span id="shipping">₹199</span></div>
           <div class="summary-row" id="couponDiscountRow" style="display:none;color:var(--pistachio);font-weight:700">
             <span>Coupon (<span id="appliedCouponCode"></span>) <button type="button" onclick="removeAppliedCoupon()" title="Remove coupon" class="btn-remove-coupon">✕</button></span>
             <span>-₹<span id="appliedCouponDiscount">0</span></span>
@@ -85,8 +85,8 @@
             <span>Coin Discount (🪙 <span id="appliedCoinsCount">0</span>)</span>
             <span>-₹<span id="appliedCoinsDiscount">0</span></span>
           </div>
-          <div class="summary-row"><span style="font-size:12px;color:var(--outline)">Orders above ₹1,500 → FREE Delivery</span></div>
-          <div class="summary-row total"><span>Total</span><span id="totalAmt">₹0</span></div>
+          <div class="summary-row"><span style="font-size:12px;color:var(--outline)">Orders above ₹1,499 → FREE Delivery across India</span></div>
+          <div class="summary-row total"><span>Total Amount (Incl. GST)</span><span id="totalAmt">₹0</span></div>
 
           <!-- Coupon Redemption Card -->
           <div class="coupon-redeem-card">
