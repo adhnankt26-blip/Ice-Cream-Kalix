@@ -3908,3 +3908,196 @@ body.sommelier-screen-active { overflow: hidden; }
   .navbar.menu-open .hamburger span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
   .offers-nav-btn, .nav-actions > .btn-primary, .nav-actions .nav-icon-btn:first-of-type { display: none; }
 }
+
+/* ---- HOME PAGE TABLET AND PHONE LAYOUT ---- */
+@media (min-width: 821px) and (max-width: 1024px) {
+  body[data-page="home"] .hero {
+    grid-template-columns: minmax(0, 1.05fr) minmax(280px, .95fr);
+    gap: 2rem;
+    padding: 112px 2rem 3rem;
+    text-align: left;
+  }
+
+  body[data-page="home"] .hero-headline {
+    font-size: clamp(2.5rem, 5vw, 3.25rem);
+  }
+
+  body[data-page="home"] .hero-visual {
+    display: block;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 820px) {
+  body[data-page="home"] .hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2rem;
+    min-height: auto;
+    padding: 104px 1.5rem 3rem;
+    text-align: left;
+  }
+
+  body[data-page="home"] .hero-content {
+    width: min(100%, 720px);
+    margin-inline: auto;
+  }
+
+  body[data-page="home"] .hero-headline {
+    max-width: 16ch;
+    font-size: clamp(2.5rem, 7vw, 3.75rem);
+  }
+
+  body[data-page="home"] .hero-ctas,
+  body[data-page="home"] .hero-trust {
+    justify-content: flex-start;
+  }
+
+  body[data-page="home"] .hero-visual {
+    display: block;
+    width: min(100%, 520px);
+    margin-inline: auto;
+  }
+
+  body[data-page="home"] .craft-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2rem;
+  }
+
+  body[data-page="home"] .craft-visual {
+    width: min(100%, 540px);
+    margin-inline: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  body[data-page="home"] .hero {
+    gap: 1.5rem;
+    padding: 88px var(--phone-gutter, 16px) 2.5rem;
+  }
+
+  body[data-page="home"] .hero-headline {
+    font-size: clamp(2.2rem, 10vw, 2.8rem);
+  }
+
+  body[data-page="home"] .hero-sub {
+    font-size: 15px;
+  }
+
+  body[data-page="home"] .hero-tag {
+    right: .8rem;
+    width: auto;
+    max-width: calc(100% - 1.6rem);
+  }
+
+  body[data-page="home"] .tag-name {
+    display: block;
+    line-height: 1.3;
+  }
+
+  body[data-page="home"] .craft-layout {
+    gap: 1.5rem;
+  }
+
+  body[data-page="home"] .craft-stat-card {
+    left: .5rem;
+    max-width: calc(50% - .75rem);
+    padding: .65rem .8rem;
+  }
+
+  body[data-page="home"] .craft-stat-2 {
+    right: .5rem;
+    left: auto;
+  }
+
+  body[data-page="home"] .flavors-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+  }
+
+  body[data-page="home"] .flavor-card-stage {
+    height: clamp(180px, 58vw, 220px);
+  }
+
+  body[data-page="home"] .card-tub-wrap {
+    height: clamp(135px, 42vw, 165px);
+  }
+
+  body[data-page="home"] .flavor-card-body {
+    padding: 1rem 1.1rem 1.1rem;
+  }
+
+  body[data-page="home"] .flavor-card .flavor-desc {
+    display: -webkit-box;
+    font-size: 12px;
+  }
+
+  body[data-page="home"] .flavor-card .card-ingredients-strip {
+    display: flex;
+    margin-bottom: .9rem;
+  }
+
+  body[data-page="home"] .social-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body[data-page="home"] .delivery-features {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: .85rem;
+    padding: 1rem;
+  }
+
+  body[data-page="home"] .footer-top {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem 1rem;
+  }
+
+  body[data-page="home"] .footer-brand {
+    grid-column: 1 / -1;
+  }
+
+  body[data-page="home"] .footer-links {
+    min-width: 0;
+  }
+
+  body[data-page="home"] .footer-links a {
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 600px) {
+  .navbar {
+    transform: none;
+    transition: background .35s ease, box-shadow .35s ease;
+  }
+
+  .sommelier-nav-btn {
+    font-size: 0;
+  }
+}
+
+@media (max-width: 820px) {
+  .navbar .nav-links {
+    align-items: stretch;
+    padding: .45rem;
+    border-radius: 18px;
+  }
+
+  .navbar .nav-links a {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 40px;
+    padding: .65rem .85rem;
+  }
+}
+
+@media (max-width: 360px) {
+  body[data-page="home"] .footer-top {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body[data-page="home"] .footer-brand {
+    grid-column: auto;
+  }
+}
