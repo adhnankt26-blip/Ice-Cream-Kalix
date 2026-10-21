@@ -3967,6 +3967,26 @@ body.sommelier-screen-active { overflow: hidden; }
     width: min(100%, 540px);
     margin-inline: auto;
   }
+
+  body[data-page="checkout"] .checkout-layout {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    gap: 1.25rem !important;
+  }
+
+  body[data-page="checkout"] .checkout-form-column,
+  body[data-page="checkout"] .checkout-summary-column {
+    flex: 0 1 auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+
+  body[data-page="checkout"] .checkout-summary-column .summary-card {
+    position: static;
+    margin-inline: auto;
+  }
 }
 
 @media (max-width: 480px) {
