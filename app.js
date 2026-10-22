@@ -1012,7 +1012,9 @@ function renderCartPage() {
     </div>`;
   }).join('');
   const subtotal = cart.reduce((s,i)=>s+i.price*i.qty,0);
-  let shipping = subtotal>=1499 ? 0 : 199;
+  const branchInfo = typeof getNearestBranchAndDistance === 'function' ? getNearestBranchAndDistance() : { distanceKm: 8, branch: { name: 'Thalassery Hub' } };
+  const initialDelivery = typeof calculateDeliveryCharge === 'function' ? calculateDeliveryCharge(branchInfo.distanceKm, subtotal) : { charge: (subtotal>=1499 ? 0 : 36), isFree: subtotal>=1499 };
+  let shipping = initialDelivery.charge;
   
   // Coupon benefit calculation
   const couponResult = calculateCouponBenefit(subtotal, shipping);
@@ -1032,7 +1034,15 @@ function renderCartPage() {
   const total = Math.max(0, subtotal + shipping - couponDiscount - coinDiscount);
 
   if(el('subtotal')) el('subtotal').textContent='₹'+subtotal.toLocaleString('en-IN');
-  if(el('shipping')) el('shipping').textContent = shipping===0?'FREE':'₹'+shipping;
+  if(el('shipping')) {
+    if (shipping === 0) {
+      el('shipping').textContent = 'FREE';
+      el('shipping').style.color = 'var(--pistachio)';
+    } else {
+      el('shipping').textContent = '₹' + shipping;
+      el('shipping').style.color = 'var(--on-surface)';
+    }
+  }
   if(el('totalAmt')) el('totalAmt').textContent='₹'+total.toLocaleString('en-IN');
 
   const couponRow = el('couponDiscountRow');
@@ -1596,6 +1606,201 @@ function ensureFutModal() {
 }
 
 // ==========================================================================
+// KALIX STORE BRANCHES & DYNAMIC DISTANCE DELIVERY SYSTEM
+// ==========================================================================
+
+const KALIX_BRANCHES = [
+  {
+    id: 'thalassery_hq',
+    name: 'Kalix Thalassery Creamery (HQ)',
+    city: 'Thalassery',
+    district: 'Kannur',
+    state: 'Kerala',
+    lat: 11.7491,
+    lng: 75.4890,
+    pincode: '670101',
+    address: 'Artisanal Creamery Hub, Old Court Road, Thalassery 670101'
+  },
+  {
+    id: 'kannur_hub',
+    name: 'Kalix Kannur City Hub',
+    city: 'Kannur',
+    district: 'Kannur',
+    state: 'Kerala',
+    lat: 11.8745,
+    lng: 75.3704,
+    pincode: '670001',
+    address: 'Cryo-Hub, Fort Road, Kannur 670001'
+  },
+  {
+    id: 'kozhikode_hub',
+    name: 'Kalix Kozhikode Hub',
+    city: 'Kozhikode',
+    district: 'Kozhikode',
+    state: 'Kerala',
+    lat: 11.2588,
+    lng: 75.7804,
+    pincode: '673001',
+    address: 'Express Cold Hub, Beach Road, Kozhikode 673001'
+  },
+  {
+    id: 'kochi_hub',
+    name: 'Kalix Kochi Cold Chain Hub',
+    city: 'Kochi',
+    district: 'Ernakulam',
+    state: 'Kerala',
+    lat: 9.9312,
+    lng: 76.2673,
+    pincode: '682001',
+    address: 'Marine Drive Cryo Depot, Kochi 682001'
+  },
+  {
+    id: 'bengaluru_hub',
+    name: 'Kalix Bengaluru Creamery Hub',
+    city: 'Bengaluru',
+    district: 'Bengaluru Urban',
+    state: 'Karnataka',
+    lat: 12.9716,
+    lng: 77.5946,
+    pincode: '560001',
+    address: 'Indiranagar 100ft Rd, Bengaluru 560038'
+  },
+  {
+    id: 'mumbai_hub',
+    name: 'Kalix Mumbai Metro Hub',
+    city: 'Mumbai',
+    district: 'Mumbai Suburban',
+    state: 'Maharashtra',
+    lat: 19.0760,
+    lng: 72.8777,
+    pincode: '400001',
+    address: 'Bandra West Sub-Zero Depot, Mumbai 400050'
+  }
+];
+window.KALIX_BRANCHES = KALIX_BRANCHES;
+
+const KALIX_DELIVERY_CONFIG = {
+  baseRate: 20,                // Base thermal packaging & handling charge (₹)
+  ratePer5Km: 8,               // ₹8 per 5 km
+  kmStep: 5,                   // Distance interval in km
+  minCharge: 20,               // Minimum delivery charge (₹)
+  maxCharge: 160,              // Cap to avoid overcharging ("ബട്ട് ഓവർ ആകരുത്")
+  freeDeliveryThreshold: 1499  // Free delivery on orders ₹1,499 and above
+};
+window.KALIX_DELIVERY_CONFIG = KALIX_DELIVERY_CONFIG;
+
+function calculateDistanceKm(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Earth radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Math.round((R * c) * 10) / 10;
+}
+window.calculateDistanceKm = calculateDistanceKm;
+
+/**
+ * Finds the nearest Kalix branch from the given coordinates or cached customer address.
+ */
+function getNearestBranchAndDistance(customerCoords = null) {
+  const branches = window.KALIX_BRANCHES || KALIX_BRANCHES;
+  
+  let targetLat = customerCoords?.lat;
+  let targetLng = customerCoords?.lng;
+
+  if ((targetLat == null || targetLng == null) && typeof document !== 'undefined') {
+    if (window.currentAddressData && window.currentAddressData.lat && window.currentAddressData.lng) {
+      targetLat = window.currentAddressData.lat;
+      targetLng = window.currentAddressData.lng;
+    }
+    if (targetLat == null) {
+      try {
+        const cached = JSON.parse(localStorage.getItem('kalixCustomerCoords') || 'null');
+        if (cached && cached.lat && cached.lng) {
+          targetLat = cached.lat;
+          targetLng = cached.lng;
+        }
+      } catch (_) {}
+    }
+  }
+
+  // Fallback default coordinates (Thalassery / Kannur, Kerala)
+  if (targetLat == null || targetLng == null) {
+    targetLat = 11.8900;
+    targetLng = 75.5200;
+  }
+
+  let nearest = null;
+  let minDistance = Infinity;
+
+  branches.forEach(branch => {
+    const dist = calculateDistanceKm(targetLat, targetLng, branch.lat, branch.lng);
+    if (dist < minDistance) {
+      minDistance = dist;
+      nearest = branch;
+    }
+  });
+
+  return {
+    branch: nearest || branches[0],
+    distanceKm: minDistance,
+    customerLat: targetLat,
+    customerLng: targetLng
+  };
+}
+window.getNearestBranchAndDistance = getNearestBranchAndDistance;
+
+/**
+ * Computes dynamic delivery charge based on distance from nearest branch.
+ * Rule: ₹8 per 5 km + baseRate, capped between minCharge and maxCharge.
+ * Free if subtotal >= freeDeliveryThreshold or freeShipping coupon applied.
+ */
+function calculateDeliveryCharge(distanceKm, subtotal = 0, isFreeShipCoupon = false) {
+  const cfg = window.KALIX_DELIVERY_CONFIG || KALIX_DELIVERY_CONFIG;
+  const dist = Math.max(0.5, distanceKm != null ? distanceKm : 5);
+
+  const steps = Math.ceil(dist / cfg.kmStep);
+  const variableCharge = steps * cfg.ratePer5Km;
+  let rawCharge = cfg.baseRate + variableCharge;
+  rawCharge = Math.min(cfg.maxCharge, Math.max(cfg.minCharge, rawCharge));
+
+  if (subtotal >= cfg.freeDeliveryThreshold) {
+    return {
+      charge: 0,
+      originalCharge: rawCharge,
+      isFree: true,
+      reason: 'subtotal_threshold',
+      distanceKm: dist,
+      ratePer5Km: cfg.ratePer5Km
+    };
+  }
+
+  if (isFreeShipCoupon) {
+    return {
+      charge: 0,
+      originalCharge: rawCharge,
+      isFree: true,
+      reason: 'coupon',
+      distanceKm: dist,
+      ratePer5Km: cfg.ratePer5Km
+    };
+  }
+
+  return {
+    charge: rawCharge,
+    originalCharge: rawCharge,
+    isFree: false,
+    reason: null,
+    distanceKm: dist,
+    ratePer5Km: cfg.ratePer5Km
+  };
+}
+window.calculateDeliveryCharge = calculateDeliveryCharge;
+
+// ==========================================================================
 // KALIX ROYAL OFFERS & COUPONS SYSTEM
 // ==========================================================================
 
@@ -1944,6 +2149,17 @@ function ensureOffersModal() {
   document.body.appendChild(modal);
 }
 
+function canCopyCoupon(code, customerInfo = null) {
+  const coupon = KALIX_COUPONS.find(c => c.code === code);
+  if (!coupon) return false;
+
+  if (isCouponRedeemed(code, customerInfo)) return false;
+  if (coupon.firstOrderOnly && !isFirstOrder(customerInfo)) return false;
+
+  return true;
+}
+window.canCopyCoupon = canCopyCoupon;
+
 function renderOffersModalCards() {
   const container = document.getElementById('offersModalBody');
   if (!container) return;
@@ -1977,6 +2193,7 @@ function renderOffersModalCards() {
     const isCurrent = currentCode === c.code;
     const isRedeemed = isCouponRedeemed(c.code, customerInfo);
     const notEligibleFirstOrder = !isRedeemed && c.firstOrderOnly && !userIsFirstOrder;
+    const canCopy = canCopyCoupon(c.code, customerInfo);
 
     let cardClass = 'coupon-card';
     if (isCurrent) cardClass += ' is-active';
@@ -2029,6 +2246,21 @@ function renderOffersModalCards() {
         </button>`;
     }
 
+    let copyButtonHtml = '';
+    if (!canCopy) {
+      copyButtonHtml = `
+        <button type="button" class="btn-copy-code is-disabled" onclick="copyCouponCode('${c.code}', this)" title="Coupon cannot be copied">
+          <span class="material-icons" style="font-size:14px">lock</span>
+          <span>Locked</span>
+        </button>`;
+    } else {
+      copyButtonHtml = `
+        <button type="button" class="btn-copy-code" onclick="copyCouponCode('${c.code}', this)" title="Copy coupon code">
+          <span class="material-icons" style="font-size:14px">content_copy</span>
+          <span>Copy</span>
+        </button>`;
+    }
+
     return `
       <div class="${cardClass}">
         <div class="coupon-card-header">
@@ -2044,10 +2276,7 @@ function renderOffersModalCards() {
             <span ${isRedeemed ? 'style="text-decoration:line-through;color:#94a3b8"' : ''}>${c.code}</span>
           </div>
           <div class="coupon-actions">
-            <button type="button" class="btn-copy-code" onclick="copyCouponCode('${c.code}', this)" title="Copy coupon code">
-              <span class="material-icons" style="font-size:14px">content_copy</span>
-              <span>Copy</span>
-            </button>
+            ${copyButtonHtml}
             ${buttonHtml}
           </div>
         </div>
@@ -2071,6 +2300,26 @@ function closeOffersModal() {
 }
 
 function copyCouponCode(code, btn) {
+  let customerInfo = null;
+  if (typeof document !== 'undefined') {
+    const phone = document.getElementById('mobileInput')?.value?.trim();
+    const email = document.getElementById('emailInput')?.value?.trim();
+    if (phone || email) customerInfo = { phone, email };
+  }
+
+  const coupon = KALIX_COUPONS.find(c => c.code === code);
+  const isRedeemed = isCouponRedeemed(code, customerInfo);
+  const firstOrderExpired = coupon && coupon.firstOrderOnly && !isFirstOrder(customerInfo);
+
+  if (isRedeemed || firstOrderExpired) {
+    if (isRedeemed) {
+      showToast(`⚠️ Coupon "${code}" has already been used and cannot be copied.`);
+    } else {
+      showToast(`⚠️ Coupon "${code}" is only valid on your first order and cannot be copied.`);
+    }
+    return;
+  }
+
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(code).catch(() => {});
   }

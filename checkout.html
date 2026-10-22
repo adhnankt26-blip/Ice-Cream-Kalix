@@ -242,7 +242,14 @@
           </div>
 
           <div class="summary-row"><span>Subtotal</span><span id="checkoutSubtotal">₹1,797</span></div>
-          <div class="summary-row"><span>Delivery</span><span id="checkoutDelivery" style="color:var(--pistachio);font-weight:700">FREE</span></div>
+          <div class="summary-row">
+            <span>Delivery <span id="checkoutDistanceBadge" style="font-size:11px;color:var(--outline);font-weight:600"></span></span>
+            <span id="checkoutDelivery" style="color:var(--pistachio);font-weight:700">FREE</span>
+          </div>
+          <div id="checkoutBranchBanner" class="checkout-branch-banner" style="display:none">
+            <span class="material-icons" style="font-size:14px;color:var(--amber)">store</span>
+            <span id="checkoutBranchText">Dispatched from <strong>Kalix Thalassery Creamery (HQ)</strong></span>
+          </div>
           <div class="summary-row" id="checkoutCouponDiscountRow" style="display:none;color:var(--pistachio);font-weight:700">
             <span>Coupon (<span id="checkoutAppliedCouponCode"></span>) <button type="button" onclick="removeCheckoutCoupon()" title="Remove coupon" class="btn-remove-coupon">✕</button></span>
             <span>-₹<span id="checkoutAppliedCouponDiscount">0</span></span>
@@ -441,7 +448,19 @@ function updateCheckoutTotals() {
     sessionStorage.setItem('kalixAppliedCoins', appliedCheckoutCoins.toString());
   }
 
-  // Coupon evaluation
+  // 1. Determine active customer coordinates
+  let custCoords = null;
+  if (currentAddressData && currentAddressData.lat && currentAddressData.lng) {
+    custCoords = { lat: currentAddressData.lat, lng: currentAddressData.lng };
+  } else if (deliveryMarker && typeof deliveryMarker.getLatLng === 'function') {
+    const pos = deliveryMarker.getLatLng();
+    custCoords = { lat: pos.lat, lng: pos.lng };
+  }
+
+  // 2. Find nearest branch and distance
+  const branchInfo = typeof getNearestBranchAndDistance === 'function' ? getNearestBranchAndDistance(custCoords) : { distanceKm: 8, branch: { name: 'Kalix Thalassery Creamery (HQ)' } };
+
+  // 3. Coupon evaluation
   const customerPhone = document.getElementById('mobileInput')?.value?.trim() || '';
   const customerEmail = document.getElementById('emailInput')?.value?.trim() || '';
   const couponResult = typeof calculateCouponBenefit === 'function' ? calculateCouponBenefit(subtotal, 0, { phone: customerPhone, email: customerEmail }) : null;
@@ -449,15 +468,24 @@ function updateCheckoutTotals() {
   if (couponResult && couponResult.active && couponResult.eligible) {
     couponDiscount = couponResult.discount;
   }
+  const isFreeShipping = couponResult?.freeShipping || false;
+
+  // 4. Calculate dynamic delivery charge from nearest branch distance
+  const deliveryCalc = typeof calculateDeliveryCharge === 'function' ? calculateDeliveryCharge(branchInfo.distanceKm, subtotal, isFreeShipping) : { charge: (subtotal >= 1499 ? 0 : 36), isFree: subtotal >= 1499, ratePer5Km: 8 };
+  const deliveryFee = deliveryCalc.charge;
 
   const coinDiscount = appliedCheckoutCoins * COIN_VALUE_INR;
   const taxableSubtotal = Math.max(0, subtotal - couponDiscount);
   const gst = Math.round(taxableSubtotal * 0.05);
-  const total = Math.max(0, taxableSubtotal + gst - coinDiscount);
+  const total = Math.max(0, taxableSubtotal + gst + deliveryFee - coinDiscount);
 
   const subtotalEl = document.getElementById('checkoutSubtotal');
   const gstEl = document.getElementById('checkoutGst');
   const totalEl = document.getElementById('checkoutTotal');
+  const deliveryEl = document.getElementById('checkoutDelivery');
+  const distanceBadge = document.getElementById('checkoutDistanceBadge');
+  const branchBanner = document.getElementById('checkoutBranchBanner');
+  const branchText = document.getElementById('checkoutBranchText');
   const discountRow = document.getElementById('checkoutCoinDiscountRow');
   const coinsUsedEl = document.getElementById('checkoutCoinsUsed');
   const discountAmtEl = document.getElementById('checkoutCoinsDiscountAmt');
@@ -472,6 +500,33 @@ function updateCheckoutTotals() {
   if (subtotalEl) subtotalEl.textContent = '₹' + subtotal.toLocaleString('en-IN');
   if (gstEl) gstEl.textContent = '₹' + gst.toLocaleString('en-IN');
   if (totalEl) totalEl.textContent = '₹' + total.toLocaleString('en-IN');
+
+  if (deliveryEl) {
+    if (deliveryFee === 0) {
+      deliveryEl.textContent = 'FREE';
+      deliveryEl.style.color = 'var(--pistachio)';
+    } else {
+      deliveryEl.textContent = '₹' + deliveryFee.toLocaleString('en-IN');
+      deliveryEl.style.color = 'var(--on-surface)';
+    }
+  }
+
+  if (distanceBadge) {
+    if (branchInfo.distanceKm != null) {
+      distanceBadge.textContent = `(${branchInfo.distanceKm} km • ₹${deliveryCalc.ratePer5Km || 8}/5km)`;
+    } else {
+      distanceBadge.textContent = '';
+    }
+  }
+
+  if (branchBanner && branchText) {
+    if (branchInfo.branch) {
+      branchBanner.style.display = 'flex';
+      branchText.innerHTML = `Dispatched from <strong>${branchInfo.branch.name}</strong> (${branchInfo.distanceKm} km away • ${branchInfo.branch.city})`;
+    } else {
+      branchBanner.style.display = 'none';
+    }
+  }
 
   if (couponRow) {
     if (couponDiscount > 0) {
@@ -734,6 +789,10 @@ function placeOrder(e) {
       submitBtn.style.opacity = '0.7';
     }
 
+    const coords = (currentAddressData && currentAddressData.lat && currentAddressData.lng) ? { lat: currentAddressData.lat, lng: currentAddressData.lng } : (deliveryMarker ? deliveryMarker.getLatLng() : null);
+    const branchInfo = typeof getNearestBranchAndDistance === 'function' ? getNearestBranchAndDistance(coords) : null;
+    const deliveryText = document.getElementById('checkoutDelivery')?.textContent || 'FREE';
+
     const options = {
       key: keyId,
       amount: totalAmt * 100, // paise
@@ -763,7 +822,10 @@ function placeOrder(e) {
       },
       notes: {
         delivery_address: customerAddress,
-        item_count: totalItems
+        item_count: totalItems,
+        nearest_branch: branchInfo?.branch?.name || 'Kalix Creamery',
+        distance_km: branchInfo?.distanceKm || 0,
+        delivery_charge: deliveryText
       },
       theme: {
         color: '#d97706',
@@ -839,6 +901,10 @@ function completeOrderFlow(details) {
 
   // Save order to history
   try {
+    const coords = (currentAddressData && currentAddressData.lat && currentAddressData.lng) ? { lat: currentAddressData.lat, lng: currentAddressData.lng } : (deliveryMarker ? deliveryMarker.getLatLng() : null);
+    const branchInfo = typeof getNearestBranchAndDistance === 'function' ? getNearestBranchAndDistance(coords) : null;
+    const deliveryText = document.getElementById('checkoutDelivery')?.textContent || 'FREE';
+
     const orderRecord = {
       orderId: currentOrderId,
       date: new Date().toISOString(),
@@ -847,7 +913,10 @@ function completeOrderFlow(details) {
       paymentMethod: details.method,
       paymentId: details.paymentId,
       customer: details.customer,
-      couponCode: usedCouponCode || null
+      couponCode: usedCouponCode || null,
+      deliveryCharge: deliveryText,
+      nearestBranch: branchInfo?.branch?.name || 'Kalix Creamery',
+      distanceKm: branchInfo?.distanceKm || 0
     };
     const history = JSON.parse(localStorage.getItem('kalixOrderHistory') || '[]');
     history.unshift(orderRecord);
@@ -1309,10 +1378,19 @@ async function fetchReverseGeocode(lat, lng, autoApply = false, onDone = null) {
       };
     }
 
+    resolvedData.lat = lat;
+    resolvedData.lng = lng;
     currentAddressData = resolvedData;
+    try {
+      localStorage.setItem('kalixCustomerCoords', JSON.stringify({ lat, lng }));
+    } catch (_) {}
 
     if (textEl) textEl.textContent = resolvedData.summary || `${resolvedData.city}, ${resolvedData.state}`;
     if (geoStatus) geoStatus.innerHTML = '<span class="material-icons" style="font-size:14px;color:var(--pistachio)">check_circle</span> Pin Selected';
+
+    if (typeof updateCheckoutTotals === 'function') {
+      updateCheckoutTotals();
+    }
 
     if (autoApply) {
       applyMapAddress();
@@ -1365,6 +1443,10 @@ function applyMapAddress() {
     pinInput.value = addr.pincode;
   }
 
+  if (typeof updateCheckoutTotals === 'function') {
+    updateCheckoutTotals();
+  }
+
   showToast('✓ Address populated from Map!');
 }
 
@@ -1411,6 +1493,48 @@ if (emailInput) {
     }
   });
   emailInput.addEventListener('blur', function() {
+    updateCheckoutTotals();
+  });
+}
+
+const pinCodeInput = document.getElementById('pinCodeInput');
+if (pinCodeInput) {
+  pinCodeInput.addEventListener('input', function() {
+    const val = this.value.replace(/\D/g, '').slice(0, 6);
+    this.value = val;
+    if (val.length === 6) {
+      const knownPins = {
+        '670101': { lat: 11.7491, lng: 75.4890, city: 'Thalassery' },
+        '670102': { lat: 11.7450, lng: 75.4920, city: 'Thalassery' },
+        '670001': { lat: 11.8745, lng: 75.3704, city: 'Kannur' },
+        '670592': { lat: 11.9682, lng: 75.5085, city: 'Mayyil' },
+        '673001': { lat: 11.2588, lng: 75.7804, city: 'Kozhikode' },
+        '682001': { lat: 9.9312, lng: 76.2673, city: 'Kochi' },
+        '560001': { lat: 12.9716, lng: 77.5946, city: 'Bengaluru' },
+        '400001': { lat: 19.0760, lng: 72.8777, city: 'Mumbai' },
+        '110001': { lat: 28.6139, lng: 77.2090, city: 'Delhi' }
+      };
+      if (knownPins[val]) {
+        if (!currentAddressData) currentAddressData = {};
+        currentAddressData.lat = knownPins[val].lat;
+        currentAddressData.lng = knownPins[val].lng;
+        currentAddressData.pincode = val;
+        if (!currentAddressData.city && knownPins[val].city) {
+          currentAddressData.city = knownPins[val].city;
+        }
+        try {
+          localStorage.setItem('kalixCustomerCoords', JSON.stringify({ lat: knownPins[val].lat, lng: knownPins[val].lng }));
+        } catch (_) {}
+        if (deliveryMap && deliveryMarker) {
+          deliveryMap.setView([knownPins[val].lat, knownPins[val].lng], 14);
+          deliveryMarker.setLatLng([knownPins[val].lat, knownPins[val].lng]);
+          refreshMapSize();
+        }
+      }
+      updateCheckoutTotals();
+    }
+  });
+  pinCodeInput.addEventListener('blur', function() {
     updateCheckoutTotals();
   });
 }
@@ -1652,6 +1776,9 @@ function selectSavedLocation(locId) {
   };
 
   renderSavedLocations();
+  if (typeof updateCheckoutTotals === 'function') {
+    updateCheckoutTotals();
+  }
   showToast(`✓ Selected "${loc.label}" address!`);
 }
 
