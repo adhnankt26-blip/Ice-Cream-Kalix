@@ -1065,8 +1065,8 @@ function renderCartPage() {
         couponFeedback.style.color = 'var(--pistachio)';
         couponFeedback.innerHTML = `<span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:2px">check_circle</span> ${couponResult.message}`;
       } else {
-        couponFeedback.style.color = '#d97706';
-        couponFeedback.innerHTML = `<span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:2px">info</span> ${couponResult.message}`;
+        couponFeedback.style.color = couponResult.reason === 'first_order_only' ? '#ef4444' : '#d97706';
+        couponFeedback.innerHTML = `<span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:2px">${couponResult.reason === 'first_order_only' ? 'error_outline' : 'info'}</span> ${couponResult.message}`;
       }
     } else {
       couponFeedback.style.display = 'none';
@@ -1603,13 +1603,14 @@ const KALIX_COUPONS = [
   {
     code: 'WELCOME500',
     title: 'Free 500ml Tub on First Order Above ₹1,499',
-    badge: 'SPECIAL WELCOME OFFER',
+    badge: 'FIRST ORDER SPECIAL',
     badgeBg: '#b45309',
     discountText: 'FREE 500ml Tub',
     desc: 'Join the Kalix Club privilege! Get a complimentary 500ml artisanal tub added with your first order above ₹1,499.',
     minOrder: 1499,
     type: 'free_tub',
-    terms: 'Valid on orders of ₹1,499 and above. One-time welcome privilege.'
+    firstOrderOnly: true,
+    terms: 'Valid on your first order of ₹1,499 and above. One-time welcome privilege.'
   },
   {
     code: 'TASTE100',
@@ -1621,7 +1622,8 @@ const KALIX_COUPONS = [
     minOrder: 499,
     type: 'flat',
     discountValue: 100,
-    terms: 'Valid on orders of ₹499 and above.'
+    firstOrderOnly: true,
+    terms: 'Valid on first order of ₹499 and above.'
   },
   {
     code: 'FREESHIP',
@@ -1662,6 +1664,7 @@ const KALIX_COUPONS = [
     terms: 'Maximum discount ₹400. Valid on orders above ₹1,999.'
   }
 ];
+window.KALIX_COUPONS = KALIX_COUPONS;
 
 function getAppliedCouponCode() {
   return (localStorage.getItem('kalixAppliedCoupon') || '').toUpperCase().trim();
@@ -1675,17 +1678,99 @@ function setAppliedCouponCode(code) {
   }
 }
 
-function calculateCouponBenefit(subtotal, shipping = 199) {
+/**
+ * Checks whether the current session/customer is placing their first order.
+ * Inspects local order history, completion markers, and matching phone/email.
+ */
+function isFirstOrder(customerInfo = null) {
+  try {
+    const history = JSON.parse(localStorage.getItem('kalixOrderHistory') || '[]');
+
+    let phone = customerInfo?.phone;
+    let email = customerInfo?.email;
+
+    if (!phone && typeof document !== 'undefined') {
+      const mob = document.getElementById('mobileInput');
+      if (mob && mob.value) phone = mob.value;
+    }
+    if (!email && typeof document !== 'undefined') {
+      const em = document.getElementById('emailInput');
+      if (em && em.value) email = em.value;
+    }
+
+    if (phone) {
+      const cleanPhone = phone.replace(/\D/g, '').slice(-10);
+      if (cleanPhone.length >= 10) {
+        const phoneMatch = history.some(o => {
+          const pastPhone = (o.customer?.phone || '').replace(/\D/g, '').slice(-10);
+          return pastPhone && pastPhone === cleanPhone;
+        });
+        if (phoneMatch) return false;
+
+        const pastPhones = JSON.parse(localStorage.getItem('kalixPastPhones') || '[]');
+        if (pastPhones.includes(cleanPhone)) return false;
+      }
+    }
+
+    if (email) {
+      const cleanEmail = email.toLowerCase().trim();
+      if (cleanEmail.includes('@') && cleanEmail.length > 3) {
+        const emailMatch = history.some(o => {
+          const pastEmail = (o.customer?.email || '').toLowerCase().trim();
+          return pastEmail && pastEmail === cleanEmail;
+        });
+        if (emailMatch) return false;
+
+        const pastEmails = JSON.parse(localStorage.getItem('kalixPastEmails') || '[]');
+        if (pastEmails.includes(cleanEmail)) return false;
+      }
+    }
+
+    if (history.length > 0) return false;
+    if (localStorage.getItem('kalixHasOrdered') === 'true') return false;
+    if (parseInt(localStorage.getItem('kalixTotalOrdersCount') || '0', 10) > 0) return false;
+    if (parseInt(localStorage.getItem('kalixTotalOrderedPints') || '0', 10) > 0) return false;
+
+    return true;
+  } catch (e) {
+    return true;
+  }
+}
+window.isFirstOrder = isFirstOrder;
+
+function calculateCouponBenefit(subtotal, shipping = 199, customerInfo = null) {
   const code = getAppliedCouponCode();
   if (!code) return { active: false };
 
   const coupon = KALIX_COUPONS.find(c => c.code === code);
   if (!coupon) return { active: false, invalid: true, code };
 
+  // Check first-order restriction
+  if (coupon.firstOrderOnly) {
+    let info = customerInfo;
+    if (!info && typeof document !== 'undefined') {
+      const mob = document.getElementById('mobileInput');
+      const em = document.getElementById('emailInput');
+      if (mob || em) {
+        info = { phone: mob?.value?.trim() || '', email: em?.value?.trim() || '' };
+      }
+    }
+    if (!isFirstOrder(info)) {
+      return {
+        active: true,
+        eligible: false,
+        reason: 'first_order_only',
+        coupon,
+        message: `Coupon "${coupon.code}" is valid only on your first order.`
+      };
+    }
+  }
+
   if (subtotal < coupon.minOrder) {
     return {
       active: true,
       eligible: false,
+      reason: 'min_order',
       coupon,
       needed: coupon.minOrder - subtotal,
       message: `Add ₹${(coupon.minOrder - subtotal).toLocaleString('en-IN')} more to unlock coupon ${coupon.code}!`
@@ -1718,6 +1803,7 @@ function calculateCouponBenefit(subtotal, shipping = 199) {
     message: freeTub ? `Free 500ml Tub unlocked with ${coupon.code}!` : `Saved ₹${discount.toLocaleString('en-IN')} with ${coupon.code}!`
   };
 }
+window.calculateCouponBenefit = calculateCouponBenefit;
 
 function ensureOffersModal() {
   if (document.getElementById('offersModal')) return;
@@ -1758,6 +1844,7 @@ function renderOffersModalCards() {
 
   const currentCode = getAppliedCouponCode();
   const currentCoupon = KALIX_COUPONS.find(c => c.code === currentCode);
+  const userIsFirstOrder = isFirstOrder();
 
   let bannerHtml = '';
   if (currentCode && currentCoupon) {
@@ -1774,14 +1861,20 @@ function renderOffersModalCards() {
 
   const cardsHtml = KALIX_COUPONS.map(c => {
     const isCurrent = currentCode === c.code;
+    const notEligibleFirstOrder = c.firstOrderOnly && !userIsFirstOrder;
     return `
-      <div class="coupon-card ${isCurrent ? 'is-active' : ''}">
+      <div class="coupon-card ${isCurrent ? 'is-active' : ''} ${notEligibleFirstOrder ? 'first-order-locked' : ''}">
         <div class="coupon-card-header">
           <span class="coupon-badge" style="background:${c.badgeBg}">${c.badge}</span>
           <span class="coupon-discount-text">${c.discountText}</span>
         </div>
         <h3 class="coupon-title">${c.title}</h3>
         <p class="coupon-desc">${c.desc}</p>
+        ${notEligibleFirstOrder ? `
+          <div style="margin-top:0.35rem;font-size:11px;color:#dc2626;font-weight:600;display:flex;align-items:center;gap:4px">
+            <span class="material-icons" style="font-size:14px">lock</span> Valid only on your first order with Kalix
+          </div>
+        ` : ''}
         <div class="coupon-card-footer">
           <div class="coupon-code-pill">
             <span class="material-icons" style="font-size:15px">confirmation_number</span>
@@ -1793,8 +1886,8 @@ function renderOffersModalCards() {
               <span>Copy</span>
             </button>
             <button type="button" class="btn-apply-code ${isCurrent ? 'applied' : ''}" onclick="applyCouponFromModal('${c.code}')">
-              <span class="material-icons" style="font-size:14px">${isCurrent ? 'check_circle' : 'shopping_bag'}</span>
-              <span>${isCurrent ? 'Applied' : 'Apply Code'}</span>
+              <span class="material-icons" style="font-size:14px">${isCurrent ? 'check_circle' : notEligibleFirstOrder ? 'lock' : 'shopping_bag'}</span>
+              <span>${isCurrent ? 'Applied' : notEligibleFirstOrder ? '1st Order Only' : 'Apply Code'}</span>
             </button>
           </div>
         </div>
@@ -1834,6 +1927,18 @@ function copyCouponCode(code, btn) {
 }
 
 function applyCouponFromModal(code) {
+  const coupon = KALIX_COUPONS.find(c => c.code === code);
+  let customerInfo = null;
+  if (typeof document !== 'undefined') {
+    const phone = document.getElementById('mobileInput')?.value?.trim();
+    const email = document.getElementById('emailInput')?.value?.trim();
+    if (phone || email) customerInfo = { phone, email };
+  }
+  if (coupon && coupon.firstOrderOnly && !isFirstOrder(customerInfo)) {
+    showToast(`⚠️ Coupon "${code}" is only valid on your first order.`);
+    return;
+  }
+
   setAppliedCouponCode(code);
   renderOffersModalCards();
 
@@ -1872,6 +1977,17 @@ function applyCartCoupon() {
     }
     return;
   }
+
+  if (coupon.firstOrderOnly && !isFirstOrder()) {
+    if (feedback) {
+      feedback.style.display = 'block';
+      feedback.style.color = '#ef4444';
+      feedback.innerHTML = `<span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:2px">error_outline</span> Coupon "${code}" is only valid on your first order.`;
+    }
+    showToast(`⚠️ Coupon "${code}" is only valid on your first order.`);
+    return;
+  }
+
   setAppliedCouponCode(code);
   renderCart();
   showToast(`🎉 Coupon "${code}" applied!`);

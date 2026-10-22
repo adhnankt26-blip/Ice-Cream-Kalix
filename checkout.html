@@ -442,7 +442,9 @@ function updateCheckoutTotals() {
   }
 
   // Coupon evaluation
-  const couponResult = typeof calculateCouponBenefit === 'function' ? calculateCouponBenefit(subtotal, 0) : null;
+  const customerPhone = document.getElementById('mobileInput')?.value?.trim() || '';
+  const customerEmail = document.getElementById('emailInput')?.value?.trim() || '';
+  const couponResult = typeof calculateCouponBenefit === 'function' ? calculateCouponBenefit(subtotal, 0, { phone: customerPhone, email: customerEmail }) : null;
   let couponDiscount = 0;
   if (couponResult && couponResult.active && couponResult.eligible) {
     couponDiscount = couponResult.discount;
@@ -496,8 +498,8 @@ function updateCheckoutTotals() {
         couponFeedback.style.color = 'var(--pistachio)';
         couponFeedback.innerHTML = `<span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:2px">check_circle</span> ${couponResult.message}`;
       } else {
-        couponFeedback.style.color = '#d97706';
-        couponFeedback.innerHTML = `<span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:2px">info</span> ${couponResult.message}`;
+        couponFeedback.style.color = couponResult.reason === 'first_order_only' ? '#ef4444' : '#d97706';
+        couponFeedback.innerHTML = `<span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:2px">${couponResult.reason === 'first_order_only' ? 'error_outline' : 'info'}</span> ${couponResult.message}`;
       }
     } else {
       couponFeedback.style.display = 'none';
@@ -587,6 +589,19 @@ function applyCheckoutCoupon() {
     }
     return;
   }
+
+  const customerPhone = document.getElementById('mobileInput')?.value?.trim() || '';
+  const customerEmail = document.getElementById('emailInput')?.value?.trim() || '';
+  if (coupon.firstOrderOnly && typeof isFirstOrder === 'function' && !isFirstOrder({ phone: customerPhone, email: customerEmail })) {
+    if (feedback) {
+      feedback.style.display = 'block';
+      feedback.style.color = '#ef4444';
+      feedback.innerHTML = `<span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:2px">error_outline</span> Coupon "${code}" is only valid on your first order.`;
+    }
+    showToast(`⚠️ Coupon "${code}" is only valid on your first order.`);
+    return;
+  }
+
   setAppliedCouponCode(code);
   updateCheckoutTotals();
   showToast(`🎉 Coupon "${code}" applied!`);
@@ -672,6 +687,18 @@ function placeOrder(e) {
     email: customerEmail,
     address: customerAddress
   };
+
+  // Validate applied coupon eligibility for first-order offer
+  const appliedCode = typeof getAppliedCouponCode === 'function' ? getAppliedCouponCode() : '';
+  if (appliedCode) {
+    const coupon = (typeof KALIX_COUPONS !== 'undefined' ? KALIX_COUPONS : []).find(c => c.code === appliedCode);
+    if (coupon && coupon.firstOrderOnly && typeof isFirstOrder === 'function' && !isFirstOrder({ phone: customerPhone, email: customerEmail })) {
+      showToast(`⚠️ Coupon "${appliedCode}" is only valid on your first order and has been removed.`);
+      if (typeof setAppliedCouponCode === 'function') setAppliedCouponCode('');
+      updateCheckoutTotals();
+      return;
+    }
+  }
 
   if (selectedMethod === 'razorpay') {
     if (typeof Razorpay === 'undefined') {
@@ -796,6 +823,32 @@ function completeOrderFlow(details) {
     const history = JSON.parse(localStorage.getItem('kalixOrderHistory') || '[]');
     history.unshift(orderRecord);
     localStorage.setItem('kalixOrderHistory', JSON.stringify(history.slice(0, 20)));
+
+    // Track order completion markers for first-order offer enforcement
+    localStorage.setItem('kalixHasOrdered', 'true');
+    const orderCount = parseInt(localStorage.getItem('kalixTotalOrdersCount') || '0', 10) + 1;
+    localStorage.setItem('kalixTotalOrdersCount', orderCount.toString());
+
+    if (details.customer?.phone) {
+      const cleanPhone = details.customer.phone.replace(/\D/g, '').slice(-10);
+      if (cleanPhone.length >= 10) {
+        const phones = JSON.parse(localStorage.getItem('kalixPastPhones') || '[]');
+        if (!phones.includes(cleanPhone)) {
+          phones.push(cleanPhone);
+          localStorage.setItem('kalixPastPhones', JSON.stringify(phones));
+        }
+      }
+    }
+    if (details.customer?.email) {
+      const cleanEmail = details.customer.email.toLowerCase().trim();
+      if (cleanEmail && cleanEmail.includes('@')) {
+        const emails = JSON.parse(localStorage.getItem('kalixPastEmails') || '[]');
+        if (!emails.includes(cleanEmail)) {
+          emails.push(cleanEmail);
+          localStorage.setItem('kalixPastEmails', JSON.stringify(emails));
+        }
+      }
+    }
   } catch (_) {}
 
   // Update modal contents
@@ -1311,6 +1364,25 @@ if (mobileInput) {
     }
     const digits = val.replace(/\D/g, '').slice(0, 10);
     this.value = '+91 ' + digits;
+    if (digits.length === 10) {
+      updateCheckoutTotals();
+    }
+  });
+
+  mobileInput.addEventListener('blur', function() {
+    updateCheckoutTotals();
+  });
+}
+
+const emailInput = document.getElementById('emailInput');
+if (emailInput) {
+  emailInput.addEventListener('input', function() {
+    if (this.value.includes('@') && this.value.includes('.')) {
+      updateCheckoutTotals();
+    }
+  });
+  emailInput.addEventListener('blur', function() {
+    updateCheckoutTotals();
   });
 }
 

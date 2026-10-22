@@ -3620,6 +3620,13 @@ body.sommelier-screen-active { overflow: hidden; }
   border-color: #059669;
   background: #f0fdf4;
 }
+.coupon-card.first-order-locked {
+  border-color: #fecaca;
+  background: #fffcfc;
+}
+.coupon-card.first-order-locked:hover {
+  border-color: #f87171;
+}
 
 .coupon-card-header {
   display: flex;
