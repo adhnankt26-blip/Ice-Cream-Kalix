@@ -8,13 +8,17 @@
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
   <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
   <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script>
-    if (typeof L === 'undefined') {
-      document.write('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />');
-      document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"><\/script>');
-    }
+    window.addEventListener('error', function(e) {
+      if (e.target && e.target.tagName === 'SCRIPT' && e.target.src && e.target.src.includes('leaflet')) {
+        console.warn('Primary Leaflet CDN failed, loading fallback CDN...');
+        var s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js';
+        document.head.appendChild(s);
+      }
+    }, true);
   </script>
   <link rel="stylesheet" href="style.css" />
   <!-- Razorpay Checkout SDK & Configuration -->
@@ -74,7 +78,7 @@
           </div>
 
           <!-- Saved Delivery Locations Bar -->
-          <div id="savedLocationsWrapper" class="saved-locations-wrapper" style="display:none">
+          <div id="savedLocationsWrapper" class="saved-locations-wrapper">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;flex-wrap:wrap;gap:0.5rem">
               <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--outline);display:flex;align-items:center;gap:0.4rem">
                 <span class="material-icons" style="font-size:16px;color:var(--amber)">bookmarks</span> Saved Locations (Tap to Select)
@@ -1054,16 +1058,28 @@ function ensureLeafletLoaded(callback) {
     callback();
     return;
   }
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css';
-  document.head.appendChild(link);
+  let link = document.querySelector('link[href*="leaflet"]');
+  if (!link) {
+    link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    link.crossOrigin = '';
+    document.head.appendChild(link);
+  }
 
   const script = document.createElement('script');
-  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js';
+  script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+  script.crossOrigin = '';
   script.onload = () => callback();
   script.onerror = () => {
-    showToast('Failed to load map library. Please check your internet connection.');
+    // Secondary fallback CDN (cdnjs)
+    const fallbackScript = document.createElement('script');
+    fallbackScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js';
+    fallbackScript.onload = () => callback();
+    fallbackScript.onerror = () => {
+      showToast('Notice: Map preview unavailable. You can still type your address manually.');
+    };
+    document.head.appendChild(fallbackScript);
   };
   document.head.appendChild(script);
 }
@@ -1077,7 +1093,7 @@ function refreshMapSize() {
   setTimeout(() => { if (deliveryMap) deliveryMap.invalidateSize(); }, 600);
 }
 
-function initDeliveryMap(lat = 11.8900, lng = 75.5200) {
+function initDeliveryMap(lat = 11.7491, lng = 75.4890, shouldReverseGeocode = false) {
   if (deliveryMap) return;
   const mapEl = document.getElementById('leafletMap');
   if (!mapEl) return;
@@ -1094,7 +1110,7 @@ function initDeliveryMap(lat = 11.8900, lng = 75.5200) {
       popupAnchor: [0, -34]
     });
 
-    deliveryMap = L.map('leafletMap').setView([lat, lng], 13);
+    deliveryMap = L.map('leafletMap').setView([lat, lng], 14);
     
     // High-performance OpenStreetMap tiles
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -1115,22 +1131,30 @@ function initDeliveryMap(lat = 11.8900, lng = 75.5200) {
     });
 
     refreshMapSize();
-    fetchReverseGeocode(lat, lng, false);
+    if (shouldReverseGeocode) {
+      fetchReverseGeocode(lat, lng, false);
+    }
   });
 }
 
-function toggleMapPicker() {
+function toggleMapPicker(forceState = null) {
   const wrapper = document.getElementById('mapPickerWrapper');
   const btnText = document.getElementById('mapBtnText');
   if (!wrapper) return;
   
-  const isHidden = wrapper.style.display === 'none' || !wrapper.style.display;
-  if (isHidden) {
+  const isHidden = (forceState !== null) ? !forceState : (wrapper.style.display === 'none' || !wrapper.style.display);
+  if (!isHidden) {
     wrapper.style.display = 'block';
     if (btnText) btnText.textContent = 'Hide Map';
     ensureLeafletLoaded(() => {
+      let initLat = 11.7491;
+      let initLng = 75.4890;
+      if (currentAddressData && currentAddressData.lat && currentAddressData.lng) {
+        initLat = currentAddressData.lat;
+        initLng = currentAddressData.lng;
+      }
       if (!deliveryMap) {
-        initDeliveryMap();
+        initDeliveryMap(initLat, initLng, true);
       } else {
         refreshMapSize();
       }
@@ -1149,13 +1173,14 @@ function detectUserLocation() {
 
   if (wrapper) wrapper.style.display = 'block';
   if (btnText) btnText.textContent = 'Hide Map';
+  refreshMapSize();
 
   if (geoStatus) {
-    geoStatus.innerHTML = '<span class="material-icons spin" style="font-size:14px;color:var(--amber)">sync</span> Fetching current location...';
+    geoStatus.innerHTML = '<span class="material-icons spin" style="font-size:14px;color:var(--amber)">sync</span> Locating you...';
   }
   if (detectBtn) {
     detectBtn.disabled = true;
-    detectBtn.innerHTML = '<span class="material-icons spin" style="font-size:16px">sync</span> Fetching...';
+    detectBtn.innerHTML = '<span class="material-icons spin" style="font-size:16px">sync</span> Locating...';
   }
 
   function resetBtn() {
@@ -1165,24 +1190,24 @@ function detectUserLocation() {
     }
   }
 
-  function onLocationSuccess(lat, lng, bdcData = null) {
+  function onLocationSuccess(lat, lng, enrichedData = null) {
     ensureLeafletLoaded(() => {
       if (!deliveryMap) {
-        initDeliveryMap(lat, lng);
+        initDeliveryMap(lat, lng, false);
       } else {
         deliveryMap.setView([lat, lng], 15);
         if (deliveryMarker) deliveryMarker.setLatLng([lat, lng]);
         refreshMapSize();
       }
 
-      if (bdcData) {
-        parseAndApplyAddress(bdcData, lat, lng, true);
+      if (enrichedData) {
+        parseAndApplyAddress(enrichedData, lat, lng, true);
         resetBtn();
-        showToast('📍 Current location fetched successfully!');
+        showToast('📍 Current location detected & applied!');
       } else {
         fetchReverseGeocode(lat, lng, true, () => {
           resetBtn();
-          showToast('📍 Current location fetched successfully!');
+          showToast('📍 Current location detected & applied!');
         });
       }
     });
@@ -1192,66 +1217,128 @@ function detectUserLocation() {
     if (geoStatus) {
       geoStatus.innerHTML = '<span class="material-icons spin" style="font-size:14px;color:var(--amber)">sync</span> Resolving network location...';
     }
-    fetch('https://api.bigdatacloud.net/data/reverse-geocode-client')
+
+    // Cascading IP Geolocation Stack:
+    // Tier 1: https://ipwho.is/ (HTTPS, CORS enabled, high accuracy across all hosting)
+    fetch('https://ipwho.is/')
       .then(res => res.json())
-      .then(data => {
-        const lat = parseFloat(data.latitude) || 11.8900;
-        const lng = parseFloat(data.longitude) || 75.5200;
-        onLocationSuccess(lat, lng, data);
+      .then(d => {
+        if (d && d.success !== false && d.latitude && d.longitude) {
+          const lat = parseFloat(d.latitude);
+          const lng = parseFloat(d.longitude);
+          onLocationSuccess(lat, lng, {
+            locality: d.city,
+            city: d.city,
+            principalSubdivision: d.region,
+            postcode: d.postal,
+            countryName: d.country || 'India'
+          });
+          return;
+        }
+        throw new Error('ipwho.is returned no coords');
       })
-      .catch(err => {
-        fetch('https://ipapi.co/json/')
-          .then(r => r.json())
+      .catch(() => {
+        // Tier 2: https://get.geojs.io/v1/ip/geo.json (Free, CORS enabled, HTTPS)
+        fetch('https://get.geojs.io/v1/ip/geo.json')
+          .then(res => res.json())
           .then(d => {
-            const lat = parseFloat(d.latitude) || 11.8900;
-            const lng = parseFloat(d.longitude) || 75.5200;
-            onLocationSuccess(lat, lng, {
-              city: d.city,
-              principalSubdivision: d.region,
-              postcode: d.postal,
-              locality: d.city,
-              countryName: d.country_name || 'India'
-            });
-          })
-          .catch(e => {
-            console.warn('IP geocode failed:', e);
-            resetBtn();
-            if (geoStatus) {
-              geoStatus.innerHTML = '<span class="material-icons" style="font-size:14px;color:var(--amber)">location_on</span> Drag map to pin';
+            if (d && d.latitude && d.longitude) {
+              const lat = parseFloat(d.latitude);
+              const lng = parseFloat(d.longitude);
+              onLocationSuccess(lat, lng, {
+                locality: d.city,
+                city: d.city,
+                principalSubdivision: d.region,
+                countryName: d.country || 'India'
+              });
+              return;
             }
-            ensureLeafletLoaded(() => {
-              if (!deliveryMap) initDeliveryMap(11.8900, 75.5200);
-              refreshMapSize();
-            });
-            showToast('Unable to detect GPS. Tap anywhere on map to pin your location.');
+            throw new Error('geojs returned no coords');
+          })
+          .catch(() => {
+            // Tier 3: https://api.bigdatacloud.net/data/reverse-geocode-client
+            fetch('https://api.bigdatacloud.net/data/reverse-geocode-client')
+              .then(res => res.json())
+              .then(d => {
+                const lat = parseFloat(d.latitude) || 11.7491;
+                const lng = parseFloat(d.longitude) || 75.4890;
+                onLocationSuccess(lat, lng, d);
+              })
+              .catch(e => {
+                console.warn('Network location exhausted:', e);
+                resetBtn();
+                if (geoStatus) {
+                  geoStatus.innerHTML = '<span class="material-icons" style="font-size:14px;color:var(--amber)">location_on</span> Drag map to pin';
+                }
+                ensureLeafletLoaded(() => {
+                  if (!deliveryMap) initDeliveryMap(11.7491, 75.4890, true);
+                  refreshMapSize();
+                });
+                showToast('Unable to detect GPS. Tap anywhere on map to pin your location.');
+              });
           });
       });
   }
 
+  // Modern browsers require HTTPS (secure context) for hardware GPS
+  const isSecure = window.isSecureContext || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+  if (!isSecure) {
+    if (geoStatus) {
+      geoStatus.innerHTML = '<span class="material-icons" style="font-size:14px;color:var(--amber)">wifi</span> Resolving via network...';
+    }
+    showToast('Notice: Using network location (Browser requires HTTPS for GPS).');
+    fallbackToIpLocation();
+    return;
+  }
+
   if (navigator.geolocation) {
-    let handled = false;
-    const timeoutTimer = setTimeout(() => {
-      if (!handled) {
-        handled = true;
-        fallbackToIpLocation();
+    let resolved = false;
+    const gpsTimer = setTimeout(() => {
+      if (!resolved) {
+        resolved = true;
+        console.warn('High-accuracy GPS timed out, trying low-accuracy triangulation...');
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            onLocationSuccess(pos.coords.latitude, pos.coords.longitude);
+          },
+          () => {
+            fallbackToIpLocation();
+          },
+          { enableHighAccuracy: false, timeout: 5000, maximumAge: 120000 }
+        );
       }
-    }, 4500);
+    }, 7000);
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        if (handled) return;
-        handled = true;
-        clearTimeout(timeoutTimer);
+        if (resolved) return;
+        resolved = true;
+        clearTimeout(gpsTimer);
         onLocationSuccess(pos.coords.latitude, pos.coords.longitude);
       },
       (err) => {
-        if (handled) return;
-        handled = true;
-        clearTimeout(timeoutTimer);
-        console.warn('GPS prompt error, falling back to network IP:', err.message);
-        fallbackToIpLocation();
+        if (resolved) return;
+        resolved = true;
+        clearTimeout(gpsTimer);
+        console.warn('GPS prompt error:', err.message);
+        if (err.code === 2 || err.code === 3) {
+          // Position unavailable or timed out: try low accuracy
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              onLocationSuccess(pos.coords.latitude, pos.coords.longitude);
+            },
+            () => {
+              fallbackToIpLocation();
+            },
+            { enableHighAccuracy: false, timeout: 5000, maximumAge: 120000 }
+          );
+        } else {
+          // User denied permission (code 1) or device error
+          fallbackToIpLocation();
+        }
       },
-      { timeout: 4500, enableHighAccuracy: true, maximumAge: 0 }
+      { timeout: 7000, enableHighAccuracy: true, maximumAge: 30000 }
     );
   } else {
     fallbackToIpLocation();
@@ -1267,10 +1354,10 @@ function parseAndApplyAddress(data, lat, lng, autoApply = false) {
   const talukObj = admin.find(a => a.adminLevel === 6 || (a.description && a.description.toLowerCase().includes('taluk')));
   const localObj = admin.find(a => a.adminLevel >= 7 || (a.name && (a.name.includes('Panchayat') || a.name.includes('Municipality'))));
 
-  const city = data.city || data.locality || (distObj?.name ? distObj.name.replace(/ district/i, '') : '') || 'Tellicherry';
+  const city = data.city || data.locality || (distObj?.name ? distObj.name.replace(/ district/i, '') : '') || 'Thalassery';
   const state = data.principalSubdivision || 'Kerala';
   const pincode = data.postcode ? data.postcode.replace(/\D/g, '').slice(0, 6) : '';
-  const line1 = localObj?.name || data.locality || city;
+  const line1 = localObj?.name || data.locality || [city, talukObj?.name].filter(Boolean).join(', ') || 'Pinned Delivery Location';
   const line2 = [talukObj?.name, distObj?.name].filter(Boolean).join(', ');
   const summary = [line1, line2, city, state, pincode].filter(Boolean).join(', ');
 
@@ -1280,11 +1367,21 @@ function parseAndApplyAddress(data, lat, lng, autoApply = false) {
     city,
     state,
     pincode,
-    summary
+    summary,
+    lat,
+    lng
   };
+
+  try {
+    localStorage.setItem('kalixCustomerCoords', JSON.stringify({ lat, lng }));
+  } catch (_) {}
 
   if (textEl) textEl.textContent = summary || `${city}, ${state}`;
   if (geoStatus) geoStatus.innerHTML = '<span class="material-icons" style="font-size:14px;color:var(--pistachio)">check_circle</span> Pin Selected';
+
+  if (typeof updateCheckoutTotals === 'function') {
+    updateCheckoutTotals();
+  }
 
   if (autoApply) {
     applyMapAddress();
@@ -1302,7 +1399,7 @@ async function fetchReverseGeocode(lat, lng, autoApply = false, onDone = null) {
   geocodeTimer = setTimeout(async () => {
     let resolvedData = null;
 
-    // 1. Primary fast & reliable lookup via BigDataCloud (No rate-limit, works everywhere)
+    // 1. Primary fast & reliable lookup via BigDataCloud (No rate-limit, works on all hosts)
     try {
       const bdcUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`;
       const res = await fetch(bdcUrl);
@@ -1314,10 +1411,13 @@ async function fetchReverseGeocode(lat, lng, autoApply = false, onDone = null) {
           const talukObj = admin.find(a => a.adminLevel === 6 || (a.description && a.description.toLowerCase().includes('taluk')));
           const localObj = admin.find(a => a.adminLevel >= 7 || (a.name && (a.name.includes('Panchayat') || a.name.includes('Municipality'))));
 
+          const city = bdc.city || bdc.locality || (distObj?.name ? distObj.name.replace(/ district/i, '') : '') || 'Thalassery';
+          const line1 = localObj?.name || bdc.locality || [city, talukObj?.name].filter(Boolean).join(', ') || 'Pinned Delivery Location';
+
           resolvedData = {
-            line1: localObj?.name || bdc.locality || bdc.city || '',
+            line1,
             line2: [talukObj?.name, distObj?.name].filter(Boolean).join(', '),
-            city: bdc.city || bdc.locality || (distObj?.name ? distObj.name.replace(/ district/i, '') : ''),
+            city,
             state: bdc.principalSubdivision || 'Kerala',
             pincode: bdc.postcode ? bdc.postcode.replace(/\D/g, '').slice(0, 6) : '',
             summary: [bdc.locality || bdc.city, talukObj?.name, distObj?.name, bdc.principalSubdivision].filter(Boolean).join(', ')
@@ -1332,7 +1432,7 @@ async function fetchReverseGeocode(lat, lng, autoApply = false, onDone = null) {
     try {
       const controller = new AbortController();
       const nomTimer = setTimeout(() => controller.abort(), 2000);
-      const nomUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+      const nomUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&email=support@kalixicecream.com`;
       const res = await fetch(nomUrl, { signal: controller.signal });
       clearTimeout(nomTimer);
       if (res.ok) {
@@ -1347,10 +1447,10 @@ async function fetchReverseGeocode(lat, lng, autoApply = false, onDone = null) {
 
           if (!resolvedData) {
             resolvedData = {
-              line1: streetParts.join(', ') || areaParts.join(', ') || nomCity,
+              line1: streetParts.join(', ') || areaParts.join(', ') || nomCity || 'Pinned Delivery Location',
               line2: areaParts.join(', '),
-              city: nomCity,
-              state: nomState,
+              city: nomCity || 'Thalassery',
+              state: nomState || 'Kerala',
               pincode: nomPin,
               summary: nom.display_name || ''
             };
@@ -1369,7 +1469,7 @@ async function fetchReverseGeocode(lat, lng, autoApply = false, onDone = null) {
 
     if (!resolvedData) {
       resolvedData = {
-        line1: `Pinned Location`,
+        line1: `Pinned Delivery Location`,
         line2: '',
         city: 'Thalassery',
         state: 'Kerala',
@@ -1409,20 +1509,20 @@ function applyMapAddress() {
 
   // Fill Address Line 1
   const line1Input = document.getElementById('addressLine1');
-  if (line1Input && addr.line1) {
-    line1Input.value = addr.line1;
+  if (line1Input) {
+    line1Input.value = addr.line1 || [addr.city, addr.state].filter(Boolean).join(', ') || 'Pinned Delivery Location';
   }
 
   // Fill Address Line 2
   const line2Input = document.getElementById('addressLine2');
-  if (line2Input && addr.line2) {
-    line2Input.value = addr.line2;
+  if (line2Input) {
+    line2Input.value = addr.line2 || '';
   }
 
   // Fill City
   const cityInput = document.getElementById('cityInput');
-  if (cityInput && addr.city) {
-    cityInput.value = addr.city;
+  if (cityInput) {
+    cityInput.value = addr.city || 'Thalassery';
   }
 
   // Match State in dropdown
@@ -1554,7 +1654,11 @@ function getSavedLocations() {
 }
 
 function setSavedLocations(list) {
-  localStorage.setItem('kalixSavedLocations', JSON.stringify(list));
+  try {
+    localStorage.setItem('kalixSavedLocations', JSON.stringify(list));
+  } catch (e) {
+    console.warn('localStorage error saving locations:', e);
+  }
 }
 
 function renderSavedLocations() {
@@ -1564,21 +1668,35 @@ function renderSavedLocations() {
   if (!wrapper || !grid) return;
 
   const locations = getSavedLocations();
+  wrapper.style.display = 'block';
+
+  if (countBadge) {
+    countBadge.textContent = locations.length > 0 ? `${locations.length} Saved` : '0 Saved';
+  }
+
   if (locations.length === 0) {
-    wrapper.style.display = 'none';
+    grid.innerHTML = `
+      <div class="saved-loc-empty-card">
+        <span class="material-icons" style="font-size:24px;color:var(--amber)">bookmark_border</span>
+        <div style="flex:1">
+          <div style="font-weight:700;color:var(--on-surface);margin-bottom:2px">No saved addresses yet</div>
+          <div style="font-size:12px;color:var(--outline)">Use "Current Location" or fill your address, then tap "Save Location" for instant 1-click checkout!</div>
+        </div>
+        <button type="button" onclick="promptSaveLocation()" class="btn-primary btn-sm" style="font-size:11px;padding:6px 12px;white-space:nowrap">
+          <span class="material-icons" style="font-size:14px">bookmark_add</span> Save Address
+        </button>
+      </div>
+    `;
     return;
   }
 
-  wrapper.style.display = 'block';
-  if (countBadge) countBadge.textContent = `${locations.length} Saved`;
-
-  grid.innerHTML = locations.map(loc => {
+  const cardsHtml = locations.map(loc => {
     const isSelected = selectedSavedLocationId === loc.id;
     const icon = loc.type === 'home' ? 'home' : (loc.type === 'work' ? 'apartment' : 'place');
     const label = loc.customName || (loc.type === 'home' ? 'Home' : (loc.type === 'work' ? 'Work' : 'Other'));
     
     return `
-      <div class="saved-loc-card ${isSelected ? 'selected' : ''}" onclick="selectSavedLocation('${loc.id}')" title="Click to use this delivery address">
+      <div class="saved-loc-card ${isSelected ? 'selected' : ''}" onclick="selectSavedLocation('${loc.id}')" title="Click to deliver to this address">
         <div class="saved-loc-icon">
           <span class="material-icons" style="font-size:18px">${icon}</span>
         </div>
@@ -1587,8 +1705,8 @@ function renderSavedLocations() {
             <span class="saved-loc-title">${label}</span>
             ${isSelected ? '<span class="saved-loc-active-pill">ACTIVE</span>' : ''}
           </div>
-          <div class="saved-loc-line">${loc.addressLine1}</div>
-          <div class="saved-loc-city">${loc.city}, ${loc.pinCode}</div>
+          <div class="saved-loc-line">${loc.addressLine1 || loc.city}</div>
+          <div class="saved-loc-city">${loc.city || ''}${loc.pinCode ? ', ' + loc.pinCode : ''}</div>
         </div>
         <button type="button" class="saved-loc-delete-btn" onclick="deleteSavedLocation('${loc.id}', event)" title="Delete saved address">
           <span class="material-icons" style="font-size:15px">delete_outline</span>
@@ -1596,26 +1714,51 @@ function renderSavedLocations() {
       </div>
     `;
   }).join('');
+
+  const addCardHtml = `
+    <div class="saved-loc-add-card" onclick="promptSaveLocation()" title="Save current address as a new delivery location">
+      <span class="material-icons" style="font-size:22px">add_circle_outline</span>
+      <span>Add New Address</span>
+    </div>
+  `;
+
+  grid.innerHTML = cardsHtml + addCardHtml;
 }
 
 function promptSaveLocation() {
-  const l1 = document.getElementById('addressLine1')?.value?.trim();
-  const city = document.getElementById('cityInput')?.value?.trim();
-  const pin = document.getElementById('pinCodeInput')?.value?.trim();
-  const state = document.getElementById('stateSelect')?.value?.trim();
-  const l2 = document.getElementById('addressLine2')?.value?.trim();
+  let l1 = document.getElementById('addressLine1')?.value?.trim();
+  let city = document.getElementById('cityInput')?.value?.trim();
+  let pin = document.getElementById('pinCodeInput')?.value?.trim();
+  let state = document.getElementById('stateSelect')?.value?.trim();
+  let l2 = document.getElementById('addressLine2')?.value?.trim();
+
+  // If inputs are empty but currentAddressData exists, auto-fill inputs
+  if ((!l1 || !city) && currentAddressData) {
+    if (!l1 && currentAddressData.line1) {
+      const el1 = document.getElementById('addressLine1');
+      if (el1) el1.value = currentAddressData.line1;
+      l1 = currentAddressData.line1;
+    }
+    if (!city && currentAddressData.city) {
+      const ec = document.getElementById('cityInput');
+      if (ec) ec.value = currentAddressData.city;
+      city = currentAddressData.city;
+    }
+    if (!pin && currentAddressData.pincode) {
+      const ep = document.getElementById('pinCodeInput');
+      if (ep) ep.value = currentAddressData.pincode;
+      pin = currentAddressData.pincode;
+    }
+  }
 
   let previewText = '';
-  if (currentAddressData && currentAddressData.summary) {
-    previewText = currentAddressData.summary;
-  } else if (l1 && city) {
+  if (l1 || city) {
     previewText = [l1, l2, city, state, pin].filter(Boolean).join(', ');
+  } else if (currentAddressData && currentAddressData.summary) {
+    previewText = currentAddressData.summary;
   } else {
-    showToast('Please select a pin on the map or fill in your address first.');
-    const wrapper = document.getElementById('mapPickerWrapper');
-    if (wrapper && (wrapper.style.display === 'none' || !wrapper.style.display)) {
-      toggleMapPicker();
-    }
+    showToast('Please select a pin on the map or enter your address first.');
+    toggleMapPicker(true);
     return;
   }
 
@@ -1651,29 +1794,46 @@ function confirmSaveLocation() {
   const customNameInput = document.getElementById('customLocNameInput');
   const customName = type === 'other' && customNameInput ? customNameInput.value.trim() : '';
 
-  const line1 = document.getElementById('addressLine1')?.value?.trim() || currentAddressData?.line1 || '';
-  const line2 = document.getElementById('addressLine2')?.value?.trim() || currentAddressData?.line2 || '';
-  const city = document.getElementById('cityInput')?.value?.trim() || currentAddressData?.city || '';
-  const state = document.getElementById('stateSelect')?.value || currentAddressData?.state || 'Kerala';
-  const pinCode = document.getElementById('pinCodeInput')?.value?.trim() || currentAddressData?.pincode || '';
+  let line1 = document.getElementById('addressLine1')?.value?.trim() || currentAddressData?.line1 || currentAddressData?.summary || 'Pinned Delivery Location';
+  let line2 = document.getElementById('addressLine2')?.value?.trim() || currentAddressData?.line2 || '';
+  let city = document.getElementById('cityInput')?.value?.trim() || currentAddressData?.city || 'Thalassery';
+  let state = document.getElementById('stateSelect')?.value || currentAddressData?.state || 'Kerala';
+  let pinCode = document.getElementById('pinCodeInput')?.value?.trim() || currentAddressData?.pincode || '';
   const firstName = document.getElementById('firstName')?.value?.trim() || '';
   const lastName = document.getElementById('lastName')?.value?.trim() || '';
   const mobile = document.getElementById('mobileInput')?.value?.trim() || '';
 
-  if (!line1 || !city) {
-    showToast('Please fill in Address Line 1 and City before saving.');
-    return;
-  }
+  // Synchronize back to inputs if empty
+  const l1Input = document.getElementById('addressLine1');
+  if (l1Input && !l1Input.value.trim()) l1Input.value = line1;
+  const cInput = document.getElementById('cityInput');
+  if (cInput && !cInput.value.trim()) cInput.value = city;
 
-  let lat = 11.8900;
-  let lng = 75.5200;
-  if (deliveryMarker) {
+  let lat = 11.7491;
+  let lng = 75.4890;
+  if (deliveryMarker && typeof deliveryMarker.getLatLng === 'function') {
     const pos = deliveryMarker.getLatLng();
     lat = pos.lat;
     lng = pos.lng;
-  } else if (currentAddressData && currentAddressData.lat) {
+  } else if (currentAddressData && currentAddressData.lat && currentAddressData.lng) {
     lat = currentAddressData.lat;
     lng = currentAddressData.lng;
+  } else if (pinCode) {
+    const knownPins = {
+      '670101': { lat: 11.7491, lng: 75.4890 },
+      '670102': { lat: 11.7450, lng: 75.4920 },
+      '670001': { lat: 11.8745, lng: 75.3704 },
+      '670592': { lat: 11.9682, lng: 75.5085 },
+      '673001': { lat: 11.2588, lng: 75.7804 },
+      '682001': { lat: 9.9312, lng: 76.2673 },
+      '560001': { lat: 12.9716, lng: 77.5946 },
+      '400001': { lat: 19.0760, lng: 72.8777 },
+      '110001': { lat: 28.6139, lng: 77.2090 }
+    };
+    if (knownPins[pinCode]) {
+      lat = knownPins[pinCode].lat;
+      lng = knownPins[pinCode].lng;
+    }
   }
 
   const label = customName || (type === 'home' ? 'Home' : (type === 'work' ? 'Work' : 'Other'));
@@ -1702,11 +1862,26 @@ function confirmSaveLocation() {
   setSavedLocations(list);
 
   selectedSavedLocationId = newLocation.id;
+  currentAddressData = {
+    line1,
+    line2,
+    city,
+    state,
+    pincode: pinCode,
+    summary: newLocation.summary,
+    lat,
+    lng
+  };
+  try {
+    localStorage.setItem('kalixCustomerCoords', JSON.stringify({ lat, lng }));
+  } catch (_) {}
+
   renderSavedLocations();
   closeSaveLocationModal();
+  if (typeof updateCheckoutTotals === 'function') {
+    updateCheckoutTotals();
+  }
   showToast(`✓ Location saved as "${label}"!`);
-
-  applyMapAddress();
 }
 
 function selectSavedLocation(locId) {
@@ -1729,10 +1904,10 @@ function selectSavedLocation(locId) {
   if (l1) l1.value = loc.addressLine1;
   if (l2) l2.value = loc.addressLine2 || '';
   if (c) c.value = loc.city;
-  if (p) p.value = loc.pinCode;
+  if (p) p.value = loc.pinCode || '';
   if (fn && loc.firstName && !fn.value) fn.value = loc.firstName;
   if (ln && loc.lastName && !ln.value) ln.value = loc.lastName;
-  if (mob && loc.mobile && mob.value === '+91 ') mob.value = loc.mobile;
+  if (mob && loc.mobile && (mob.value === '+91 ' || !mob.value)) mob.value = loc.mobile;
 
   if (s && loc.state) {
     const sLower = loc.state.toLowerCase();
@@ -1744,11 +1919,11 @@ function selectSavedLocation(locId) {
     }
   }
 
-  // 2. Pan and place pin on map
+  // 2. Pan and place pin on map WITHOUT triggering reverse geocode
   if (loc.lat && loc.lng) {
     ensureLeafletLoaded(() => {
       if (!deliveryMap) {
-        initDeliveryMap(loc.lat, loc.lng);
+        initDeliveryMap(loc.lat, loc.lng, false);
       } else {
         deliveryMap.setView([loc.lat, loc.lng], 15);
         if (deliveryMarker) deliveryMarker.setLatLng([loc.lat, loc.lng]);
@@ -1763,7 +1938,7 @@ function selectSavedLocation(locId) {
     if (geoStatus) geoStatus.innerHTML = '<span class="material-icons" style="font-size:14px;color:var(--pistachio)">check_circle</span> Saved Location Active';
   }
 
-  // 3. Cache currentAddressData
+  // 3. Cache currentAddressData and customer coordinates
   currentAddressData = {
     line1: loc.addressLine1,
     line2: loc.addressLine2,
@@ -1774,12 +1949,15 @@ function selectSavedLocation(locId) {
     lat: loc.lat,
     lng: loc.lng
   };
+  try {
+    localStorage.setItem('kalixCustomerCoords', JSON.stringify({ lat: loc.lat, lng: loc.lng }));
+  } catch (_) {}
 
   renderSavedLocations();
   if (typeof updateCheckoutTotals === 'function') {
     updateCheckoutTotals();
   }
-  showToast(`✓ Selected "${loc.label}" address!`);
+  showToast(`✓ Using saved address "${loc.label}"!`);
 }
 
 function deleteSavedLocation(locId, event) {
