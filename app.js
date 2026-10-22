@@ -1610,6 +1610,7 @@ const KALIX_COUPONS = [
     minOrder: 1499,
     type: 'free_tub',
     firstOrderOnly: true,
+    usageLimit: 1,
     terms: 'Valid on your first order of ₹1,499 and above. One-time welcome privilege.'
   },
   {
@@ -1623,7 +1624,8 @@ const KALIX_COUPONS = [
     type: 'flat',
     discountValue: 100,
     firstOrderOnly: true,
-    terms: 'Valid on first order of ₹499 and above.'
+    usageLimit: 1,
+    terms: 'Valid on first order of ₹499 and above. One-time use per customer.'
   },
   {
     code: 'FREESHIP',
@@ -1635,7 +1637,8 @@ const KALIX_COUPONS = [
     minOrder: 999,
     type: 'free_shipping',
     discountValue: 199,
-    terms: 'Valid on orders of ₹999 and above.'
+    usageLimit: 1,
+    terms: 'One-time privilege. Valid on orders of ₹999 and above.'
   },
   {
     code: 'ROYAL15',
@@ -1648,7 +1651,8 @@ const KALIX_COUPONS = [
     type: 'percent',
     percent: 15,
     maxDiscount: 250,
-    terms: 'Maximum discount ₹250. Valid on orders above ₹1,199.'
+    usageLimit: 1,
+    terms: 'Maximum discount ₹250. Valid once per customer on orders above ₹1,199.'
   },
   {
     code: 'FESTIVE20',
@@ -1661,7 +1665,8 @@ const KALIX_COUPONS = [
     type: 'percent',
     percent: 20,
     maxDiscount: 400,
-    terms: 'Maximum discount ₹400. Valid on orders above ₹1,999.'
+    usageLimit: 1,
+    terms: 'Maximum discount ₹400. Valid once per customer on orders above ₹1,999.'
   }
 ];
 window.KALIX_COUPONS = KALIX_COUPONS;
@@ -1738,6 +1743,96 @@ function isFirstOrder(customerInfo = null) {
 }
 window.isFirstOrder = isFirstOrder;
 
+function getCouponUsageHistory() {
+  try {
+    const list = JSON.parse(localStorage.getItem('kalixCouponUsages') || '[]');
+    return Array.isArray(list) ? list : [];
+  } catch (_) {
+    return [];
+  }
+}
+
+/**
+ * Checks whether a specific coupon code has already been redeemed by the user/device/phone/email.
+ */
+function isCouponRedeemed(code, customerInfo = null) {
+  if (!code) return false;
+  const cleanCode = code.toUpperCase().trim();
+
+  // 1. Device list of redeemed coupons
+  try {
+    const redeemedList = JSON.parse(localStorage.getItem('kalixRedeemedCoupons') || '[]');
+    if (redeemedList.includes(cleanCode)) return true;
+  } catch (_) {}
+
+  // 2. Coupon usage logs
+  const usages = getCouponUsageHistory();
+  if (usages.some(u => u.code === cleanCode)) return true;
+
+  // 3. Match against orders in kalixOrderHistory
+  try {
+    const history = JSON.parse(localStorage.getItem('kalixOrderHistory') || '[]');
+    if (history.some(o => o.couponCode === cleanCode)) return true;
+
+    let phone = customerInfo?.phone;
+    let email = customerInfo?.email;
+    if (!phone && typeof document !== 'undefined') {
+      phone = document.getElementById('mobileInput')?.value?.trim();
+    }
+    if (!email && typeof document !== 'undefined') {
+      email = document.getElementById('emailInput')?.value?.trim();
+    }
+
+    if (phone) {
+      const cleanPhone = phone.replace(/\D/g, '').slice(-10);
+      if (cleanPhone.length >= 10) {
+        if (usages.some(u => u.code === cleanCode && u.phone === cleanPhone)) return true;
+        if (history.some(o => o.couponCode === cleanCode && (o.customer?.phone || '').replace(/\D/g, '').slice(-10) === cleanPhone)) return true;
+      }
+    }
+
+    if (email) {
+      const cleanEmail = email.toLowerCase().trim();
+      if (cleanEmail.includes('@') && cleanEmail.length > 3) {
+        if (usages.some(u => u.code === cleanCode && u.email === cleanEmail)) return true;
+        if (history.some(o => o.couponCode === cleanCode && (o.customer?.email || '').toLowerCase().trim() === cleanEmail)) return true;
+      }
+    }
+  } catch (_) {}
+
+  return false;
+}
+window.isCouponRedeemed = isCouponRedeemed;
+
+/**
+ * Marks a coupon code as permanently redeemed for this device & customer.
+ */
+function markCouponAsUsed(code, customer = null, orderId = '') {
+  if (!code) return;
+  const cleanCode = code.toUpperCase().trim();
+
+  try {
+    const list = JSON.parse(localStorage.getItem('kalixRedeemedCoupons') || '[]');
+    if (!list.includes(cleanCode)) {
+      list.push(cleanCode);
+      localStorage.setItem('kalixRedeemedCoupons', JSON.stringify(list));
+    }
+
+    const usages = getCouponUsageHistory();
+    const cleanPhone = (customer?.phone || '').replace(/\D/g, '').slice(-10);
+    const cleanEmail = (customer?.email || '').toLowerCase().trim();
+    usages.push({
+      code: cleanCode,
+      phone: cleanPhone,
+      email: cleanEmail,
+      orderId: orderId || '',
+      date: new Date().toISOString()
+    });
+    localStorage.setItem('kalixCouponUsages', JSON.stringify(usages));
+  } catch (_) {}
+}
+window.markCouponAsUsed = markCouponAsUsed;
+
 function calculateCouponBenefit(subtotal, shipping = 199, customerInfo = null) {
   const code = getAppliedCouponCode();
   if (!code) return { active: false };
@@ -1745,27 +1840,38 @@ function calculateCouponBenefit(subtotal, shipping = 199, customerInfo = null) {
   const coupon = KALIX_COUPONS.find(c => c.code === code);
   if (!coupon) return { active: false, invalid: true, code };
 
-  // Check first-order restriction
-  if (coupon.firstOrderOnly) {
-    let info = customerInfo;
-    if (!info && typeof document !== 'undefined') {
-      const mob = document.getElementById('mobileInput');
-      const em = document.getElementById('emailInput');
-      if (mob || em) {
-        info = { phone: mob?.value?.trim() || '', email: em?.value?.trim() || '' };
-      }
-    }
-    if (!isFirstOrder(info)) {
-      return {
-        active: true,
-        eligible: false,
-        reason: 'first_order_only',
-        coupon,
-        message: `Coupon "${coupon.code}" is valid only on your first order.`
-      };
+  let info = customerInfo;
+  if (!info && typeof document !== 'undefined') {
+    const mob = document.getElementById('mobileInput');
+    const em = document.getElementById('emailInput');
+    if (mob || em) {
+      info = { phone: mob?.value?.trim() || '', email: em?.value?.trim() || '' };
     }
   }
 
+  // 1. Check if coupon is already redeemed
+  if (isCouponRedeemed(coupon.code, info)) {
+    return {
+      active: true,
+      eligible: false,
+      reason: 'already_redeemed',
+      coupon,
+      message: `Coupon "${coupon.code}" has already been used on a previous order.`
+    };
+  }
+
+  // 2. Check first-order restriction
+  if (coupon.firstOrderOnly && !isFirstOrder(info)) {
+    return {
+      active: true,
+      eligible: false,
+      reason: 'first_order_only',
+      coupon,
+      message: `Coupon "${coupon.code}" is valid only on your first order.`
+    };
+  }
+
+  // 3. Check minimum order value
   if (subtotal < coupon.minOrder) {
     return {
       active: true,
@@ -1844,7 +1950,15 @@ function renderOffersModalCards() {
 
   const currentCode = getAppliedCouponCode();
   const currentCoupon = KALIX_COUPONS.find(c => c.code === currentCode);
-  const userIsFirstOrder = isFirstOrder();
+
+  let customerInfo = null;
+  if (typeof document !== 'undefined') {
+    const phone = document.getElementById('mobileInput')?.value?.trim();
+    const email = document.getElementById('emailInput')?.value?.trim();
+    if (phone || email) customerInfo = { phone, email };
+  }
+
+  const userIsFirstOrder = isFirstOrder(customerInfo);
 
   let bannerHtml = '';
   if (currentCode && currentCoupon) {
@@ -1861,34 +1975,80 @@ function renderOffersModalCards() {
 
   const cardsHtml = KALIX_COUPONS.map(c => {
     const isCurrent = currentCode === c.code;
-    const notEligibleFirstOrder = c.firstOrderOnly && !userIsFirstOrder;
+    const isRedeemed = isCouponRedeemed(c.code, customerInfo);
+    const notEligibleFirstOrder = !isRedeemed && c.firstOrderOnly && !userIsFirstOrder;
+
+    let cardClass = 'coupon-card';
+    if (isCurrent) cardClass += ' is-active';
+    if (isRedeemed) cardClass += ' is-redeemed';
+    else if (notEligibleFirstOrder) cardClass += ' is-expired';
+
+    let badgeText = c.badge;
+    let badgeBg = c.badgeBg;
+    if (isRedeemed) {
+      badgeText = 'ALREADY USED';
+      badgeBg = '#64748b';
+    } else if (notEligibleFirstOrder) {
+      badgeText = '1ST ORDER ONLY';
+      badgeBg = '#dc2626';
+    }
+
+    let noteHtml = '';
+    if (isRedeemed) {
+      noteHtml = `
+        <div class="coupon-status-note redeemed">
+          <span class="material-icons" style="font-size:14px">check_circle</span>
+          <span>Already redeemed on a previous order</span>
+        </div>`;
+    } else if (notEligibleFirstOrder) {
+      noteHtml = `
+        <div class="coupon-status-note expired">
+          <span class="material-icons" style="font-size:14px">lock</span>
+          <span>Valid only on 1st order with Kalix</span>
+        </div>`;
+    }
+
+    let buttonHtml = '';
+    if (isRedeemed) {
+      buttonHtml = `
+        <button type="button" class="btn-apply-code is-disabled" disabled title="This coupon has already been used">
+          <span class="material-icons" style="font-size:14px">check</span>
+          <span>Redeemed</span>
+        </button>`;
+    } else if (notEligibleFirstOrder) {
+      buttonHtml = `
+        <button type="button" class="btn-apply-code is-disabled" onclick="showToast('⚠️ Coupon &quot;${c.code}&quot; is valid only on your first order.')" title="Only applicable on your first order">
+          <span class="material-icons" style="font-size:14px">lock</span>
+          <span>1st Order Only</span>
+        </button>`;
+    } else {
+      buttonHtml = `
+        <button type="button" class="btn-apply-code ${isCurrent ? 'applied' : ''}" onclick="applyCouponFromModal('${c.code}')">
+          <span class="material-icons" style="font-size:14px">${isCurrent ? 'check_circle' : 'shopping_bag'}</span>
+          <span>${isCurrent ? 'Applied' : 'Apply Code'}</span>
+        </button>`;
+    }
+
     return `
-      <div class="coupon-card ${isCurrent ? 'is-active' : ''} ${notEligibleFirstOrder ? 'first-order-locked' : ''}">
+      <div class="${cardClass}">
         <div class="coupon-card-header">
-          <span class="coupon-badge" style="background:${c.badgeBg}">${c.badge}</span>
-          <span class="coupon-discount-text">${c.discountText}</span>
+          <span class="coupon-badge" style="background:${badgeBg}">${badgeText}</span>
+          <span class="coupon-discount-text" ${isRedeemed ? 'style="color:#64748b;text-decoration:line-through"' : ''}>${c.discountText}</span>
         </div>
-        <h3 class="coupon-title">${c.title}</h3>
-        <p class="coupon-desc">${c.desc}</p>
-        ${notEligibleFirstOrder ? `
-          <div style="margin-top:0.35rem;font-size:11px;color:#dc2626;font-weight:600;display:flex;align-items:center;gap:4px">
-            <span class="material-icons" style="font-size:14px">lock</span> Valid only on your first order with Kalix
-          </div>
-        ` : ''}
+        <h3 class="coupon-title" ${isRedeemed ? 'style="opacity:0.75"' : ''}>${c.title}</h3>
+        <p class="coupon-desc" ${isRedeemed ? 'style="opacity:0.75"' : ''}>${c.desc}</p>
+        ${noteHtml}
         <div class="coupon-card-footer">
-          <div class="coupon-code-pill">
+          <div class="coupon-code-pill ${isRedeemed ? 'dimmed' : ''}">
             <span class="material-icons" style="font-size:15px">confirmation_number</span>
-            <span>${c.code}</span>
+            <span ${isRedeemed ? 'style="text-decoration:line-through;color:#94a3b8"' : ''}>${c.code}</span>
           </div>
           <div class="coupon-actions">
             <button type="button" class="btn-copy-code" onclick="copyCouponCode('${c.code}', this)" title="Copy coupon code">
               <span class="material-icons" style="font-size:14px">content_copy</span>
               <span>Copy</span>
             </button>
-            <button type="button" class="btn-apply-code ${isCurrent ? 'applied' : ''}" onclick="applyCouponFromModal('${c.code}')">
-              <span class="material-icons" style="font-size:14px">${isCurrent ? 'check_circle' : notEligibleFirstOrder ? 'lock' : 'shopping_bag'}</span>
-              <span>${isCurrent ? 'Applied' : notEligibleFirstOrder ? '1st Order Only' : 'Apply Code'}</span>
-            </button>
+            ${buttonHtml}
           </div>
         </div>
       </div>
@@ -1928,13 +2088,21 @@ function copyCouponCode(code, btn) {
 
 function applyCouponFromModal(code) {
   const coupon = KALIX_COUPONS.find(c => c.code === code);
+  if (!coupon) return;
+
   let customerInfo = null;
   if (typeof document !== 'undefined') {
     const phone = document.getElementById('mobileInput')?.value?.trim();
     const email = document.getElementById('emailInput')?.value?.trim();
     if (phone || email) customerInfo = { phone, email };
   }
-  if (coupon && coupon.firstOrderOnly && !isFirstOrder(customerInfo)) {
+
+  if (isCouponRedeemed(code, customerInfo)) {
+    showToast(`⚠️ Coupon "${code}" has already been used on a previous order.`);
+    return;
+  }
+
+  if (coupon.firstOrderOnly && !isFirstOrder(customerInfo)) {
     showToast(`⚠️ Coupon "${code}" is only valid on your first order.`);
     return;
   }
@@ -1975,6 +2143,16 @@ function applyCartCoupon() {
       feedback.style.color = '#ef4444';
       feedback.innerHTML = `<span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:2px">error_outline</span> Invalid code "${code}". Tap "View Offers" to choose a code.`;
     }
+    return;
+  }
+
+  if (isCouponRedeemed(code)) {
+    if (feedback) {
+      feedback.style.display = 'block';
+      feedback.style.color = '#ef4444';
+      feedback.innerHTML = `<span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:2px">error_outline</span> Coupon "${code}" has already been used on a previous order.`;
+    }
+    showToast(`⚠️ Coupon "${code}" has already been used.`);
     return;
   }
 

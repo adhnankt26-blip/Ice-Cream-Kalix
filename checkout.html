@@ -592,7 +592,19 @@ function applyCheckoutCoupon() {
 
   const customerPhone = document.getElementById('mobileInput')?.value?.trim() || '';
   const customerEmail = document.getElementById('emailInput')?.value?.trim() || '';
-  if (coupon.firstOrderOnly && typeof isFirstOrder === 'function' && !isFirstOrder({ phone: customerPhone, email: customerEmail })) {
+  const custInfo = { phone: customerPhone, email: customerEmail };
+
+  if (typeof isCouponRedeemed === 'function' && isCouponRedeemed(code, custInfo)) {
+    if (feedback) {
+      feedback.style.display = 'block';
+      feedback.style.color = '#ef4444';
+      feedback.innerHTML = `<span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:2px">error_outline</span> Coupon "${code}" has already been used on a previous order.`;
+    }
+    showToast(`⚠️ Coupon "${code}" has already been used.`);
+    return;
+  }
+
+  if (coupon.firstOrderOnly && typeof isFirstOrder === 'function' && !isFirstOrder(custInfo)) {
     if (feedback) {
       feedback.style.display = 'block';
       feedback.style.color = '#ef4444';
@@ -688,15 +700,24 @@ function placeOrder(e) {
     address: customerAddress
   };
 
-  // Validate applied coupon eligibility for first-order offer
+  // Validate applied coupon eligibility
   const appliedCode = typeof getAppliedCouponCode === 'function' ? getAppliedCouponCode() : '';
   if (appliedCode) {
     const coupon = (typeof KALIX_COUPONS !== 'undefined' ? KALIX_COUPONS : []).find(c => c.code === appliedCode);
-    if (coupon && coupon.firstOrderOnly && typeof isFirstOrder === 'function' && !isFirstOrder({ phone: customerPhone, email: customerEmail })) {
-      showToast(`⚠️ Coupon "${appliedCode}" is only valid on your first order and has been removed.`);
-      if (typeof setAppliedCouponCode === 'function') setAppliedCouponCode('');
-      updateCheckoutTotals();
-      return;
+    const custInfo = { phone: customerPhone, email: customerEmail };
+    if (coupon) {
+      if (typeof isCouponRedeemed === 'function' && isCouponRedeemed(appliedCode, custInfo)) {
+        showToast(`⚠️ Coupon "${appliedCode}" was already redeemed and has been removed.`);
+        if (typeof setAppliedCouponCode === 'function') setAppliedCouponCode('');
+        updateCheckoutTotals();
+        return;
+      }
+      if (coupon.firstOrderOnly && typeof isFirstOrder === 'function' && !isFirstOrder(custInfo)) {
+        showToast(`⚠️ Coupon "${appliedCode}" is only valid on your first order and has been removed.`);
+        if (typeof setAppliedCouponCode === 'function') setAppliedCouponCode('');
+        updateCheckoutTotals();
+        return;
+      }
     }
   }
 
@@ -806,19 +827,27 @@ function completeOrderFlow(details) {
     appliedCheckoutCoins = 0;
   }
 
+  // Mark applied coupon as used before clearing
+  const usedCouponCode = typeof getAppliedCouponCode === 'function' ? getAppliedCouponCode() : '';
+  const currentOrderId = 'KLX-' + Date.now().toString(36).toUpperCase();
+  if (usedCouponCode && typeof markCouponAsUsed === 'function') {
+    markCouponAsUsed(usedCouponCode, details.customer, currentOrderId);
+  }
+
   // Clear applied coupon
   setAppliedCouponCode('');
 
   // Save order to history
   try {
     const orderRecord = {
-      orderId: 'KLX-' + Date.now().toString(36).toUpperCase(),
+      orderId: currentOrderId,
       date: new Date().toISOString(),
       items: [...cart],
       total: totalAmt,
       paymentMethod: details.method,
       paymentId: details.paymentId,
-      customer: details.customer
+      customer: details.customer,
+      couponCode: usedCouponCode || null
     };
     const history = JSON.parse(localStorage.getItem('kalixOrderHistory') || '[]');
     history.unshift(orderRecord);
